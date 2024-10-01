@@ -26,12 +26,9 @@ The interesting thing about this keyboard is that it's a declarative design:
 * [Nice!view](https://nicekeyboards.com/nice-view) support
   
 ## Todo
-* Remove clutter and unnecesary outlines
-* Top plate generation
 * Bottom Plate (Thick PCB with cutouts for all components placed at the bottom. Optimised for maximum thinness)
 * Remove or document magic numbers
 * SMD footrints
-* Better nice!nano footprint, steal from https://github.com/bstiq/nice-nano-kicad
 * Middle bracked PCB with touchpad (Holds both halves together rigidly)
 * stabilizer cutouts Needs more research...
   Thanks https://github.com/jasonhazel for measuring the ChocFox WOB 3u spacebar stabilizer spacing. (40mm)
