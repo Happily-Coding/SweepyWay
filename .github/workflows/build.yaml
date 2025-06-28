@@ -71,9 +71,8 @@ jobs:
           name: typematrix_split 
           path: ergogen/output
       - name: Persist output for pages
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
-          #          name: typematrix_split_pages
           path: ergogen/output
   deploy-pages:
     if: github.ref == 'refs/heads/main'
@@ -92,6 +91,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
-        #        with:
-          #          artifact_name: typematrix_split_pages
+        uses: actions/deploy-pages@v4
