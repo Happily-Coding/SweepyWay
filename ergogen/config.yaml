@@ -71,13 +71,6 @@ units:
   mcu_xo: 0.5 * mcu_x
   mcu_yo: 0.5 * mcu_y  
 
-  # Nice!View display
-  disp_x: 14
-  disp_y: 36
-  disp_jumper_y: 2.6
-  disp_xo: 0.5 * disp_x
-  disp_yo: 0.5 * disp_y
-
   # Battery Connector
   batc_x: 4.3
   batc_y: 4.6
@@ -487,17 +480,6 @@ pcbs:
           rotate: 270
         where:
           ref: mcu
-      display:
-        what: ceoloide/display_nice_view
-        params:
-          MOSI: DPD
-          SCK: DPC
-          CS: DPE
-        adjust:
-          rotate: 270
-        where:
-          ref: mcu
-          shift: [-1.5, 0] # Move the display down a bit to be sure the cable fits between the headers
       pads_bat:
         what: ceoloide/battery_connector_jst_ph_2
         params:
@@ -650,17 +632,6 @@ pcbs:
         where:
           ref: mirror_mcu
 
-      display:
-        what: ceoloide/display_nice_view
-        params:
-          MOSI: DPD
-          SCK: DPC
-          CS: DPE
-        adjust:
-          rotate: 270
-        where:
-          ref: mirror_mcu
-          shift: [-1.50, 0] # Move the display down a bit to be sure the cable fits between the headers
       pads_bat:
         what: ceoloide/battery_connector_jst_ph_2
         params:
