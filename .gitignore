@@ -57,3 +57,5 @@ node_modules
 # gerbers
 ergogen/output/gerbers/*/*
 !ergogen/output/gerbers/*/*.zip
+ergogen/output/outlines/
+ergogen/output/pcbs/
