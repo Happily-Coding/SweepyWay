@@ -506,7 +506,7 @@ pcbs:
           shift: [-mcu_y/2 -7,-7]
           rotate: 180
       reset:
-        what: ceoloide/reset_switch_tht_top
+        what: ceoloide/reset_switch_smd_side
         params:
           side: B
           from: GND
