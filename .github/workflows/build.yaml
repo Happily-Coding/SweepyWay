@@ -37,29 +37,29 @@ jobs:
       - name: Run KiBot to generate images, gerbers for the plates
         uses: ./.github/actions/kibot
         with:
-          boards: left right
+          boards: left_pcb right_pcb
           config: default
       - name: Run KiBot to generate images, gerbers for the unrouted board
         uses: ./.github/actions/kibot
         with:
-          boards: left right
+          boards: left_pcb right_pcb
           config: default
       - name: Export DSN file for Freerouting
         uses: ./.github/actions/export-dsn
         with:
-          boards: left right
+          boards: left_pcb right_pcb
       - name: Autoroute PCB
         uses: ./.github/actions/autoroute
         with:
-          boards: left right
+          boards: left_pcb right_pcb
       - name: Import SES
         uses: ./.github/actions/import-ses
         with:
-          boards: left right
+          boards: left_pcb right_pcb
       - name: Run KiBot to generate images, gerbers for the autorouted board
         uses: ./.github/actions/kibot
         with:
-          boards: left right
+          boards: left_pcb right_pcb
           config: boards
       - name: Generate Directory Listings
         uses: jayanta525/github-pages-directory-listing@v4.0.0
