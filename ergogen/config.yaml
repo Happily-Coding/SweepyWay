@@ -1,23 +1,24 @@
 meta:
   engine: 4.1.0
-  name: typematrix2020-split
+  name: SweepyWay
   version: &kb_version v0.2
-  author: Tilman Baumann
-  url: &kb_url https://github.com/tbaumann/typematrix_split_new/
+  author: Happily-Coding
+  url: &kb_url https://github.com/Happily-Coding/SweepyWay/
 
   # These presets provide different layout options
   # Select a preset in the `units` section below
 presets:
   choc:
     # Standard Choc spacing
-    kx: 17 # spacing between key centers (X-axis)
-    ky: 18 # spacing between key centers (Y-axis)
+    kx: 17 # spacing between key ccol7s (X-axis)
+    ky: 18 # spacing between key ccol7s (Y-axis)
+    px: 3.5 #How much to pad horizontally
+    py: 3.5 #how much to pad vertically
     plate_kx: 13.8 # key cutout hole width (cherry, choc v2: 14, choc v1: 13.8)
     plate_ky: 13.8 # key cutout hole height (cherry, choc v2: 14, choc v1: 13.8)
     keycap_x_1u: 17.5
     keycap_y_1u: 16.5
     keycap_x_1_5u: cx * 1.5 - 0.5 
-    keycap_x_space:  cx * 3 - 0.5 
     keycap_x_1_5u_span: cx*1.25
     vertical_diode_shift: 1.5 # How much to shift to avoid overlap
     horizontal_diode_shift: -0.5 plate_kx - 0.85
@@ -26,15 +27,14 @@ presets:
   cfx:
     # CFX 1u are 15.5x15x5 keys for a tighter 17x17 matrix.  This is an idealised grid as to my knowledge no 1.5u keycaps exist for that size
     $extends: presets.choc
-    kx: 17 # spacing between key centers (X-axis)
-    ky: 17 # spacing between key centers (Y-axis)
+    kx: 17 # spacing between key ccol7s (X-axis)
+    ky: 17 # spacing between key ccol7s (Y-axis)
     keycap_x_1u: 16.5
   chocfox_wob:
     # ChocFox WOB 1u are CFX. However the larger keys don't work on that grid.
     $extends: presets.cfx
     keycap_x_1_5u: 26
     keycap_x_1_5u_span: 13.25 + kx/2
-    keycap_x_space:  54.5
 
 
 units:
@@ -106,6 +106,8 @@ units:
   controller_bump_x: 3kx
   controller_bump_y: mcu_x 
   controller_bump_shift: kx
+  
+  controller_area_y_pad: 11
 
 points:
   key:
@@ -113,287 +115,238 @@ points:
     spread: kx
     width: keycap_x_1u
     height: keycap_x_1u
+    mirror: #When they are mirrored tag them with test
+      tags: ["key", "rightkey"]
   zones:
     matrix:
       # Fix placement on KiCAD sheet.
       anchor:
-        shift: [35, -100]
-      key.tags: key
+        shift: [35, -150]
+      key.tags: [
+        "key",
+        "leftkey"
+        ] #When keys are not mirrored tag them with key, right
       columns:
-        left:
-          key:
-            spread: keycap_x_1_5u_span
-            width: keycap_x_1_5u
-            asym: left
-            column_net: C0
-            tags: [key, 1_5u]
-        q:
-          key:
-            spread: keycap_x_1_5u_span
-            column_net: C1
-        w:
+        col1:
+          key.column_net: C1
+          key.stagger: 0
+          rows:
+            row5:
+              skip: true
+        col2:
           key.column_net: C2
-        e:
+          key.stagger: 0.25 ky
+        col3:
           key.column_net: C3
-        r:
+          key.stagger: 0.66 ky
+        col4:
           key.column_net: C4
-        t:
+          key.stagger: -0.25 ky
+          rows:
+            row5:
+              skip: true
+        col5:
           key.column_net: C5
-        enter:
-          key:
-            column_net: C6
-            spread: keycap_x_1_5u_span
-            width: keycap_x_1_5u
-            tags: [key, 1_5u]
-      rows:
-        bottom:
-          row_net: R4
-        home:
-          row_net: R3
-        top:
-          row_net: R2
-        num:
-          row_net: R1
-        f:
-          row_net: R0
-
-    leftcluster:
-      key:
-        spread: keycap_x_1_5u+0.5
-        width: keycap_x_1_5u
-        asym: left
-        tags: [key, 1_5u]
-      anchor:
-        ref: matrix_left_bottom
-        shift: [0, -2ky]
-      columns:
-        one:
-          key.column_net: C0
-        two:
-          #key.width: 21.50
-          key.column_net: C1
-        three:
-          key.column_net: C2
-      rows:
-        down:
-          row_net: R6
-        up:
-          row_net: R5
-    rightcluster:
-      key:
-        asym: right
-        tags: key
-      anchor:
-        ref: matrix_q_bottom
-        shift: [-1 kx, -2ky]
-      columns:
-        one:
-          key.column_net: C0
-        two:
-          key.column_net: C1
-        three:
-          key.column_net: C2
-      rows:
-        down:
-          row_net: R6
-        up:
-          row_net: R5
-
-        
-    spaces:
-      key.tags: key
-      anchor:
-        ref: matrix_q_bottom
-        shift: [2kx, -1ky]
-      columns:
-        alt:
-          key:
-            asym: right
-            column_net: C3
-        space:
-          key:
-            width: keycap_x_space
-            spread: 41.5
-            column_net: C4
-            tags: [key, space]
-      rows:
-        space:
-          row_net: R5
-    rightsym:
-      anchor:
-        ref: matrix_q_bottom
-        shift: [-kx, 0]
-      key:
-        asym: right
-        tags: key
-      columns:
-        sym:
-          key.column_net: C0
-       
-      rows:
-        bottom:
-          row_net: R4
-        home:
-          row_net: R3
-        top:
-          row_net: R2
-        num:
-          row_net: R1
-        f:
-          row_net: R0
-    right:
-      anchor:
-        ref: rightsym_sym_bottom
-        shift: [-keycap_x_1_5u_span, -2ky]
-      key:
-        asym: right
-        spread: keycap_x_1_5u_span
-        width: keycap_x_1_5u
-        tags: [key, 1_5u]
-      columns:
-        sym:
+          key.stagger: -0.15 ky
+          rows:
+            row5:
+              skip: true
+        col6:
+          key.column_net: C6
+          key.stagger: -0.2 ky
+          rows:
+            row5:
+              skip: true
+        col7:
           key.column_net: C7
+          key.stagger: .2 ky
+          rows:
+            row1:
+              skip: true
+            row5:
+              skip: true
       rows:
-        ctl_down:
-          row_net: R6
-        ctl_up:
+        row5:
           row_net: R5
-        bottom:
+        row4:
           row_net: R4
-        home:
+        row3:
           row_net: R3
-        top:
+        row2:
           row_net: R2
-        num:
+        row1:
           row_net: R1
-        f:
-          row_net: R0
+      mirror:
+        #shift: [35, -150]
+        distance: 340
 
-    #  Controller
-    #
+    thumbfan:
+      key.tags: ["key", "leftkey"] #When keys are not mirrored tag them with key, right
+      anchor:
+        ref: matrix_col6_row4
+        shift: [-0.66 kx, -1 ky]
+        rotate: -10
+      columns:
+        col1:
+          key:
+            spread: kx
+            column_net: col_index
+        col2:
+          key:
+            spread: kx
+            splay: -15
+            origin: [-0.5 kx, -0.5 ky]
+            column_net: col_inner
+        col3:
+          key:
+            spread: kx
+            splay: -5
+            origin: [-0.5 kx, -0.5 ky]
+            column_net: col_extra_inner
+      rows:
+        thumb_row_1:
+          row_net: R5
+      mirror:
+        ref: matrix_col6_row4
+        distance: 100
+        #200 #mirrors 200 away from the other cluster which isnt right
+
     controller:
       anchor:
-        ref: matrix_enter_f
-        shift: [-keycap_x_1_5u_span - 0.5*kx - mcu_y/2, 0.5 ky + mcu_x/2]
+        ref: matrix_col6_row2
+        shift: [-0.5*kx - mcu_y/2, 0.5 ky + mcu_x/2 + controller_area_y_pad + ky]
       key:
         name: mcu
         width: mcu_y
         height: mcu_x
-        tags: [controller]
+        tags: ["controller", "leftcontroller"]
+        mirror.tags: ["controller", "rightcontroller"]
+      mirror:
+        ref: matrix_col6_row2
+        distance: 100
+      #mirror: 200 #Mirrors 200 away from the controller which isnt right
 
-  mirror: &mirror
-    ref: matrix_enter_f
-    distance: 100
+  #Creates the mirror for the entire matrix x units way from the ref
+  #mirror: 200 #&mirror
+    #ref: matrix_col7_row2
+    #shift: [0, + ky]
+    #distance: 100
+    #key.tags: [key,mirrorkey]
+
 outlines:
-  _keys:
+  l_key_based_board_outline:
     - what: rectangle
-      where: [[key, -space]]
+      where: leftkey
+      #asym: source
+      size: [kx + px, ky + py]
+      #corner: px #Havig it set to 3.5 (while px was 3.5) made ergogen create a huge arc for some reason. it did not happen with other decimals, nor 3, nor 4
+      corner: 3
+
+  r_key_based_board_outline:
+    - what: rectangle
+      where: rightkey
+      #asym: source
+      size: [kx + px, ky + py]
+      corner: 3
+      #corner: px #Havig it set to this value made ergogen create a huge arc for some reason.
+
+
+  l_thumb_suplementary_outline:
+    - what: polygon
+      points:
+        - ref: matrix_col6_row4
+          shift: [0.5 kx + 0.5px, -0.5 ky + 0.5 py]
+        - ref: thumbfan_col3_thumb_row_1
+          shift: [0.5 kx - 0.5px, 0.5 ky + 0.5 py]
+        - ref: thumbfan_col3_thumb_row_1
+          shift: [0.5 kx - 0.5px, -0.5 ky - 0.5 py]
+        - ref: thumbfan_col1_thumb_row_1
+          shift: [-0.5 kx + 0.5 px, -0.5 ky - 0.5 py]
+        - ref: matrix_col2_row4
+          shift: [0.5 kx - 0.5 py, -0.5 ky - 0.5 py]
+        - ref: matrix_col2_row3
+        - ref: matrix_col6_row3
+
+  r_thumb_suplementary_outline:
+    - what: polygon
+      points:
+        - ref: mirror_matrix_col6_row4
+          shift: [0.5 kx + 0.5px, -0.5 ky + 0.5 py]
+        - ref: mirror_thumbfan_col3_thumb_row_1
+          shift: [0.5 kx - 0.5px, 0.5 ky + 0.5 py]
+        - ref: mirror_thumbfan_col3_thumb_row_1
+          shift: [0.5 kx - 0.5px, -0.5 ky - 0.5 py]
+        - ref: mirror_thumbfan_col1_thumb_row_1
+          shift: [-0.5 kx + 0.5 px, -0.5 ky - 0.5 py]
+        - ref: mirror_matrix_col2_row4
+          shift: [0.5 kx - 0.5 py, -0.5 ky - 0.5 py]
+        - ref: mirror_matrix_col2_row3
+        - ref: mirror_matrix_col6_row3
+
+
+  l_all_key_clusters_outline:
+    - "+l_key_based_board_outline"
+    - "+l_thumb_suplementary_outline"
+
+  r_all_key_clusters_outline:
+    - "+r_key_based_board_outline"
+    - "+r_thumb_suplementary_outline"
+
+
+  l_keys_outline:
+    - what: rectangle
+      where: [[leftkey, -space]]
       size: [plate_kx/2, plate_ky/2]
-  _enters:
+
+  r_keys_outline:
     - what: rectangle
-      where: [[key, enter]]
-      size: [plate_ky/2, plate_kx/2]
-  _spaces:
-    - what: rectangle
-      where: [[key, space]]
+      where: [[rightkey, -space]]
       size: [plate_kx/2, plate_ky/2]
 
-  _outline_left:
-    - what: polygon
-      operation: stack
-      fillet: fillet_radius
-      points:
-        - ref: matrix_left_f
-          shift: [-keycap_x_1_5u/2 - 0.25, ky * 0.5]
-        - ref: matrix_enter_f
-          shift: [keycap_x_1_5u/2 + 0.25, ky * 0.5]
-        - ref: matrix_enter_bottom
-          shift: [keycap_x_1_5u/2 + 0.25, -ky * 1.5]
-        - ref: leftcluster_three_down
-          shift: [keycap_x_1_5u/2 + 0.25, ky * 0.5]
-        - ref: leftcluster_three_down
-          shift: [keycap_x_1_5u/2 + 0.25, -ky * 0.5]
-        - ref: leftcluster_one_down
-          shift: [-keycap_x_1_5u/2 - 0.25, -ky * 0.5]
+  l_controller_area:
+    - what: rectangle
+      where: leftcontroller
+      size: [70, 42]
 
-  _outline_right:
-    - what: polygon
-      operation: stack
-      fillet: fillet_radius
-      points:
-        - ref: mirror_right_sym_f
-          shift: [-keycap_x_1_5u/2 - 0.25, ky * 0.5]
-        - ref: mirror_matrix_enter_f
-          shift: [keycap_x_1_5u/2 + 0.25, ky * 0.5]
-        - ref: mirror_matrix_enter_bottom
-          shift: [keycap_x_1_5u/2 + 0.25, -ky * 1.5]
-        - ref: mirror_rightcluster_three_down
-          shift: [kx/2, ky * 0.5]
-        - ref: mirror_rightcluster_three_down
-          shift: [kx/2, -ky * 0.5]
-        - ref: mirror_right_sym_ctl_down
-          shift: [-keycap_x_1_5u/2 - 0.25, -ky * 0.5]
-  
-  _mcuear_left:
-    - what: polygon
-      fillet: fillet_radius
-      expand: 0.5
-      points:
-        - ref: matrix_enter_f
-          shift: [-keycap_x_1_5u_span + 0.5*kx, 0.5*ky]
-        - shift: [-kx, mcu_x]
-        - shift: [-3kx, 0]
-        - shift: [-kx, -mcu_x]
+  r_controller_area:
+    - what: rectangle
+      where: rightcontroller
+      size: [70, 42]
 
-  _mcuear_right:
-    - what: polygon
-      fillet: fillet_radius
-      expand: 0.5
-      points:
-        - ref: mirror_matrix_enter_f
-          shift: [-0.75 * kx, 0.5*ky]
-        - shift: [-kx, mcu_x]
-        - shift: [-4kx, 0]
-        - shift: [-kx, -mcu_x]
+  l_pcb_outline:
+    - "+l_key_based_board_outline"
+    - "+l_thumb_suplementary_outline"
+    - "+l_controller_area"
 
-  pcb_left:
-    - name: _outline_left
-    - operation: add
-      name: _mcuear_left
+  r_pcb_outline:
+    - "+r_key_based_board_outline"
+    - "+r_thumb_suplementary_outline"
+    - "+r_controller_area"
 
-  pcb_right:
-    - name: _outline_right
-    - operation: add
-      name: _mcuear_right
-
-  topleft:
-    - name: _outline_left
+  l_cover_outline:
+    - name: l_all_key_clusters_outline
     - operation: subtract
-      name: _keys
+      name: l_keys_outline
+
+  r_cover_outline:
+    - name: r_all_key_clusters_outline
     - operation: subtract
-      name: _spaces
+      name: r_keys_outline
 
 
-  topright:
-    - name: _outline_right
-    - operation: subtract
-      name: _keys
-    - operation: subtract
-      name: _spaces
+  l_bottom_plate_outline:
+    - name: l_pcb_outline
+
+  r_bottom_plate_outline:
+    - name: r_pcb_outline
 
 
-
-  bottomright:
-    - name: pcb_right
-
-  bottomleft:
-    - name: pcb_left
 
   # Combination preview showing outline and keys.
-  combined:
-    - name: topleft
-    - operation: stack
-      name: topright
+  #combined:
+  #  - name: r_cover_outline
+    # - operation: stack
+    #   name: right_cover_outline
 
 
 pcbs:
@@ -401,7 +354,7 @@ pcbs:
     template: kicad8
     outlines:
       right:
-        outline: topright
+        outline: r_cover_outline
     footprints:
       jlc:
         what: ceoloide/utility_text
@@ -425,7 +378,7 @@ pcbs:
     template: kicad8
     outlines:
       right:
-        outline: topleft
+        outline: l_cover_outline
     footprints:
       url:
         what: ceoloide/utility_text
@@ -434,7 +387,7 @@ pcbs:
         adjust:
           shift: [0,-6]
         where: 
-          - [/^spaces_.*/, key, -1_5u, space]
+          - [ key, -1_5u, space]
       jlc:
         what: ceoloide/utility_text
         params:
@@ -444,18 +397,18 @@ pcbs:
         adjust:
           shift: [0, 6]
         where: 
-          - [/^spaces_.*/, key, -1_5u, space]
-  left:
+          - [ key, -1_5u, space]
+  left_pcb:
     template: kicad8
     outlines:
       left:
-        outline: pcb_left
+        outline: l_pcb_outline
     footprints:
       choc:
         what: ceoloide/switch_choc_v1_v2
         where:
           - [/^matrix_.*/, key, -1_5u]
-          - [/^spaces_.*/, key, -space]
+          - [ leftkey, -space]
         params:
           include_keycap: true
           choc_v2_support: false
@@ -466,25 +419,10 @@ pcbs:
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
-      choc_1_5u:
-        what: ceoloide/switch_choc_v1_v2
-        where:
-          - [/^matrix_.*/, 1_5u]
-          - /leftcluster_.*/
-        params:
-          include_keycap: true
-          choc_v2_support: false
-          #          solder: true
-          reversible: false
-          hotswap: true
-          from: "{{colrow}}"
-          to: "{{column_net}}"
-          keycap_width: keycap_x_1_5u
-          keycap_height: 16.5
       choc_space:
         what: ceoloide/switch_choc_v1_v2
         where: 
-          - [/^spaces_.*/, key, -1_5u, space]
+          - [ leftkey, -1_5u, space]
 
         params:
           include_keycap: true
@@ -497,13 +435,11 @@ pcbs:
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
-          
       diode:
         what: ceoloide/diode_tht_sod123
         where:
           - /^matrix_.*/
           - /leftcluster_.*/
-          - /^spaces_.*/
         params:
           from: "{{colrow}}"
           to: "{{row_net}}"
@@ -514,7 +450,6 @@ pcbs:
           shift: [horizontal_diode_shift,vertical_diode_shift]
           rotate: 90 + diode_rotation
 
-      # Controller Area
       promicro:
         what: ceoloide/mcu_nice_nano
         params:
@@ -527,10 +462,10 @@ pcbs:
           # GND
           # GND
           P2: "DPE" # Display CS (nice!view only) FIXME? ZPM default?
-          P3: "R1" # Row
-          P4: "R2" # Row
-          P5: "R3" # Row
-          P6: "R4" # Row
+          P3: "R2" # Row
+          P4: "R3" # Row
+          P5: "R4" # Row
+          P6: "R5" # Row
           P7: "R5" # Row
           P8: "R6" # Row
           P9: "R7" # Row
@@ -540,13 +475,13 @@ pcbs:
           # GND       # Ground / Battery Neg
           # RST       # Reset pin
           # VCC       # External Power
-          P21: "C0" # Column
-          P20: "C1" # Column
-          P19: "C2" # Column
-          P18: "C3" # Column
-          P15: "C4" # Column
-          P14: "C5" # Column
-          P16: "C6" # Column
+          P21: "C1" # Column
+          P20: "C2" # Column
+          P19: "C3" # Column
+          P18: "C4" # Column
+          P15: "C5" # Column
+          P14: "C6" # Column
+          P16: "C7" # Column
 #          P10: "F10" # Free
         adjust:
           rotate: 270
@@ -592,29 +527,29 @@ pcbs:
         where:
           ref: mcu
           shift: [-mcu_y/2 -10, 8.5]
-      logo:
-        what: ceoloide/utility_ergogen_logo
-        where:
-          ref: mcu
-          shift: [-mcu_y/2 -20, 0]
-      url:
-        what: ceoloide/utility_text
-        params:
-          text: *kb_url
-          reversible: true
-        adjust:
-          shift: [0,-6]
-        where: 
-          - [/^spaces_.*/, key, -1_5u, space]
-      version:
-        what: ceoloide/utility_text
-        params:
-          text: *kb_version
-        adjust:
-          shift: [0,-6]
-        where: 
-          ref: mcu
-          shift: [-mcu_y/2 -22,  -2]
+      # logo:
+      #   what: ceoloide/utility_ergogen_logo
+      #   where:
+      #     ref: mcu
+      #     shift: [-mcu_y/2 -20, 0]
+      # url:
+      #   what: ceoloide/utility_text
+      #   params:
+      #     text: *kb_url
+      #     reversible: true
+      #   adjust:
+      #     shift: [0,-6]
+      #   where: 
+      #     - [key, -1_5u, space]
+      # version:
+      #   what: ceoloide/utility_text
+      #   params:
+      #     text: *kb_version
+      #   adjust:
+      #     shift: [0,-6]
+      #   where: 
+      #     ref: mcu
+      #     shift: [-mcu_y/2 -22,  -2]
       jlc:
         what: ceoloide/utility_text
         params:
@@ -623,13 +558,13 @@ pcbs:
         adjust:
           shift: [0, 10]
         where: 
-          - [/^spaces_.*/, key, -1_5u, space]
+          - [key, -1_5u, space]
 
-  right:
+  right_pcb:
     template: kicad8
     outlines:
       right:
-        outline: pcb_right
+        outline: r_pcb_outline
     footprints:
       choc:
         what: ceoloide/switch_choc_v1_v2
@@ -644,22 +579,6 @@ pcbs:
           reversible: false
           hotswap: true
           keycap_width: 16.5
-          keycap_height: 16.5
-          from: "{{colrow}}"
-          to: "{{column_net}}"
-      choc_1_5u:
-        what: ceoloide/switch_choc_v1_v2
-        where: 
-          - [/^mirror.*/, 1_5u]
-          - [/rightcluster_.*/, 1_5u]
-          - [/right.*/, 1_5u]
-        params:
-          include_keycap: true
-          choc_v2_support: false
-          #solder: true
-          reversible: false
-          hotswap: true
-          keycap_width: keycap_x_1_5u
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
@@ -705,10 +624,10 @@ pcbs:
           # GND
           # GND
           P2: "DPE" # Display CS (nice!view only) FIXME? ZPM default?
-          P3: "R1" # Row
-          P4: "R2" # Row
-          P5: "R3" # Row
-          P6: "R4" # Row
+          P3: "R2" # Row
+          P4: "R3" # Row
+          P5: "R4" # Row
+          P6: "R5" # Row
           P7: "R5" # Row
           P8: "R6" # Row
           P9: "R7" # Row
@@ -718,14 +637,14 @@ pcbs:
           # GND       # Ground / Battery Neg
           # RST       # Reset pin
           # VCC       # External Power
-          P21: "C0" # Column
-          P20: "C1" # Column
-          P19: "C2" # Column
-          P18: "C3" # Column
-          P15: "C4" # Column
-          P14: "C5" # Column
-          P16: "C6" # Column
-#          P10: "C7" # Column
+          P21: "C1" # Column
+          P20: "C2" # Column
+          P19: "C3" # Column
+          P18: "C4" # Column
+          P15: "C5" # Column
+          P14: "C6" # Column
+          P16: "C7" # Column
+          # P10: "C7" # Column
         adjust:
           rotate: 270
         where:
@@ -771,11 +690,6 @@ pcbs:
         where:
           ref: mirror_mcu
           shift: [-mcu_y/2 -10, 8.5]
-      logo:
-        what: ceoloide/utility_ergogen_logo
-        where:
-          ref: mirror_mcu
-          shift: [-mcu_y/2 -20, 0]
       url:
         what: ceoloide/utility_text
         params:
@@ -785,15 +699,7 @@ pcbs:
           shift: [0,-6]
         where: 
           - [/^mirror.*/, key, -1_5u, space]
-      version:
-        what: ceoloide/utility_text
-        params:
-          text: *kb_version
-        adjust:
-          shift: [0,-6]
-        where: 
-          ref: mirror_mcu
-          shift: [-mcu_y/2 -22,  -2]
+
       jlc:
         what: ceoloide/utility_text
         params:
@@ -803,3 +709,17 @@ pcbs:
           shift: [0, 10]
         where: 
           - [/^mirror.*/, key, -1_5u, space]
+      # logo:
+      #   what: ceoloide/utility_ergogen_logo
+      #   where:
+      #     ref: mirror_mcu
+      #     shift: [-mcu_y/2 -20, 0]
+      # version:
+      #   what: ceoloide/utility_text
+      #   params:
+      #     text: *kb_version
+      #   adjust:
+      #     shift: [0,-6]
+      #   where: 
+      #     ref: mirror_mcu
+      #     shift: [-mcu_y/2 -22,  -2]
