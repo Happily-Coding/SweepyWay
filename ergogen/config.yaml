@@ -12,8 +12,8 @@ presets:
     # Standard Choc spacing
     kx: 17 # spacing between key ccol7s (X-axis)
     ky: 18 # spacing between key ccol7s (Y-axis)
-    px: 3.5 #How much to pad horizontally
-    py: 3.5 #how much to pad vertically
+    px: 30 #10 #3.5 #How much to pad horizontally
+    py: 30 #10 #3.5 #how much to pad vertically
     plate_kx: 13.8 # key cutout hole width (cherry, choc v2: 14, choc v1: 13.8)
     plate_ky: 13.8 # key cutout hole height (cherry, choc v2: 14, choc v1: 13.8)
     keycap_x_1u: 17.5
@@ -100,7 +100,7 @@ units:
   controller_bump_y: mcu_x 
   controller_bump_shift: kx
   
-  controller_area_y_pad: 11
+  controller_area_y_pad: 0
 
 points:
   key:
@@ -183,19 +183,19 @@ points:
         col1:
           key:
             spread: kx
-            column_net: col_index
+            column_net: C5
         col2:
           key:
             spread: kx
             splay: -15
             origin: [-0.5 kx, -0.5 ky]
-            column_net: col_inner
+            column_net: C6
         col3:
           key:
             spread: kx
             splay: -5
             origin: [-0.5 kx, -0.5 ky]
-            column_net: col_extra_inner
+            column_net: C7
       rows:
         thumb_row_1:
           row_net: R5
@@ -206,8 +206,8 @@ points:
 
     controller:
       anchor:
-        ref: matrix_col6_row2
-        shift: [-0.5*kx - mcu_y/2, 0.5 ky + mcu_x/2 + controller_area_y_pad + ky]
+        ref: matrix_col4_row1
+        shift: [-0.25*kx, 0.5 ky + mcu_y/2 + controller_area_y_pad]
       key:
         name: mcu
         width: mcu_y
@@ -215,10 +215,25 @@ points:
         tags: ["controller", "leftcontroller"]
         mirror.tags: ["controller", "rightcontroller"]
       mirror:
-        ref: matrix_col6_row2
+        ref: matrix_col4_row1
         distance: 100
       #mirror: 200 #Mirrors 200 away from the controller which isnt right
 
+    jsph_area_center:
+      anchor:
+        ref: mcu
+        shift: [mcu_x/2 +19, -14]
+        rotate: 270
+      key:
+        tags:
+          ['jsph_area_center']
+
+    controller_area_center:
+      anchor:
+        ref: mcu
+        shift: [+8, -8]
+      key:
+        tags: ['controller_area_center']
   #Creates the mirror for the entire matrix x units way from the ref
   #mirror: 200 #&mirror
     #ref: matrix_col7_row2
@@ -249,10 +264,16 @@ outlines:
       points:
         - ref: matrix_col6_row4
           shift: [0.5 kx + 0.5px, -0.5 ky + 0.5 py]
+        - ref: matrix_col6_row4
+          shift: [0.5 kx + 0.5px, -0.5 ky + 0.5 py - 5]
         - ref: thumbfan_col3_thumb_row_1
           shift: [0.5 kx - 0.5px, 0.5 ky + 0.5 py]
         - ref: thumbfan_col3_thumb_row_1
           shift: [0.5 kx - 0.5px, -0.5 ky - 0.5 py]
+        - ref: thumbfan_col2_thumb_row_1
+          shift: [0.5 kx - 0.5px, -0.5 ky - 0.5 py]
+        - ref: thumbfan_col2_thumb_row_1
+          shift: [-0.5 kx - 0.5px, -0.5 ky - 0.5 py]
         - ref: thumbfan_col1_thumb_row_1
           shift: [-0.5 kx + 0.5 px, -0.5 ky - 0.5 py]
         - ref: matrix_col2_row4
@@ -298,18 +319,27 @@ outlines:
 
   l_controller_area:
     - what: rectangle
-      where: leftcontroller
-      size: [70, 42]
+      where: controller_area_center
+      size: [50, 37]
+      corner: 3
+
 
   r_controller_area:
     - what: rectangle
       where: rightcontroller
-      size: [70, 42]
+      size: [49, 36]
+
+  l_jsph_area:
+    - what: rectangle
+      where: jsph_area_center
+      size: [18, 14]
+      corner: 3
 
   l_pcb_outline:
     - "+l_key_based_board_outline"
     - "+l_thumb_suplementary_outline"
     - "+l_controller_area"
+    - "+l_jsph_area"
 
   r_pcb_outline:
     - "+r_key_based_board_outline"
@@ -400,7 +430,7 @@ pcbs:
       choc:
         what: ceoloide/switch_choc_v1_v2
         where:
-          - [/^matrix_.*/, key, -1_5u]
+          #- [/^matrix_.*/, key, -1_5u]
           - [ leftkey, -space]
         params:
           include_keycap: true
@@ -477,7 +507,7 @@ pcbs:
           P16: "C7" # Column
 #          P10: "F10" # Free
         adjust:
-          rotate: 270
+          rotate: 90
         where:
           ref: mcu
       pads_bat:
@@ -485,8 +515,8 @@ pcbs:
         params:
         where:
           ref: mcu
-          shift: [-mcu_y/2 -7,-7]
-          rotate: 180
+          shift: [mcu_x/2 +22, -10]
+          rotate: 270
       reset:
         what: ceoloide/reset_switch_smd_side
         params:
@@ -494,10 +524,10 @@ pcbs:
           from: GND
           to: RST
         adjust:
-          rotate: 90
+          rotate: 270
         where:
           ref: mcu
-          shift: [-mcu_y/2 -14, -0]
+          shift: [mcu_x/2 +18 +2, -0]
       power:
         what: ceoloide/power_switch_smd_side
         params:
@@ -508,7 +538,7 @@ pcbs:
           rotate: 90
         where:
           ref: mcu
-          shift: [-mcu_y/2 -10, 8.5]
+          shift: [mcu_x/2 +16, 8]
       # logo:
       #   what: ceoloide/utility_ergogen_logo
       #   where:
@@ -593,7 +623,6 @@ pcbs:
           shift: [horizontal_diode_shift,vertical_diode_shift]
           rotate: 90 + diode_rotation
 
-      # Controller Area
       promicro:
         what: ceoloide/mcu_nice_nano
         params:
@@ -628,7 +657,7 @@ pcbs:
           P16: "C7" # Column
           # P10: "C7" # Column
         adjust:
-          rotate: 270
+          rotate: 90
         where:
           ref: mirror_mcu
 
