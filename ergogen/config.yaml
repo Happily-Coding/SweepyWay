@@ -12,8 +12,8 @@ presets:
     # Standard Choc spacing
     kx: 17 # spacing between key ccol7s (X-axis)
     ky: 18 # spacing between key ccol7s (Y-axis)
-    px: 10 #10 #3.5 #How much to pad horizontally
-    py: 10 #10 #3.5 #how much to pad vertically
+    px: 20 #10 #3.5 #How much to pad horizontally
+    py: 20 #10 #3.5 #how much to pad vertically
     plate_kx: 13.8 # key cutout hole width (cherry, choc v2: 14, choc v1: 13.8)
     plate_ky: 13.8 # key cutout hole height (cherry, choc v2: 14, choc v1: 13.8)
     keycap_x_1u: 17.5
