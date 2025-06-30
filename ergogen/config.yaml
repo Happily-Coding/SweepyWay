@@ -201,7 +201,7 @@ points:
           row_net: R5
       mirror:
         ref: matrix_col6_row4
-        distance: 100
+        distance: 93.5
         #200 #mirrors 200 away from the other cluster which isnt right
 
     controller:
@@ -216,24 +216,42 @@ points:
         mirror.tags: ["controller", "rightcontroller"]
       mirror:
         ref: matrix_col4_row1
-        distance: 100
+        #shift: [-0.25*kx, 0.5 ky + mcu_y/2 + controller_area_y_pad]
+        distance: 165
       #mirror: 200 #Mirrors 200 away from the controller which isnt right
 
-    jsph_area_center:
+    l_jsph_area_center:
       anchor:
         ref: mcu
         shift: [mcu_x/2 +19, -14]
         rotate: 270
       key:
         tags:
-          ['jsph_area_center']
+          ['l_jsph_area_center']
 
-    controller_area_center:
+    r_jsph_area_center:
+      anchor:
+        ref: mirror_mcu
+        shift: [mcu_x/2 +19, -14]
+        rotate: 270
+      key:
+        tags:
+          ['r_jsph_area_center']
+
+
+    l_controller_area_center:
       anchor:
         ref: mcu
         shift: [+8, -8]
       key:
-        tags: ['controller_area_center']
+        tags: ['l_controller_area_center']
+
+    r_controller_area_center:
+      anchor:
+        ref: mirror_mcu
+        shift: [+8, -8]
+      key:
+        tags: ['r_controller_area_center']
   #Creates the mirror for the entire matrix x units way from the ref
   #mirror: 200 #&mirror
     #ref: matrix_col7_row2
@@ -319,19 +337,25 @@ outlines:
 
   l_controller_area:
     - what: rectangle
-      where: controller_area_center
+      where: l_controller_area_center
       size: [50, 37]
       corner: 3
 
-
   r_controller_area:
     - what: rectangle
-      where: rightcontroller
-      size: [49, 36]
+      where: r_controller_area_center
+      size: [50, 37]
+      corner: 3
 
   l_jsph_area:
     - what: rectangle
-      where: jsph_area_center
+      where: l_jsph_area_center
+      size: [18, 14]
+      corner: 3
+
+  r_jsph_area:
+    - what: rectangle
+      where: r_jsph_area_center
       size: [18, 14]
       corner: 3
 
@@ -345,6 +369,7 @@ outlines:
     - "+r_key_based_board_outline"
     - "+r_thumb_suplementary_outline"
     - "+r_controller_area"
+    - "+r_jsph_area"
 
   l_cover_outline:
     - name: l_all_key_clusters_outline
@@ -461,8 +486,9 @@ pcbs:
       diode:
         what: ceoloide/diode_tht_sod123
         where:
-          - /^matrix_.*/
-          - /leftcluster_.*/
+          - leftkey
+          #- /^matrix_.*/
+          #- /thumbfan_.*/
         params:
           from: "{{colrow}}"
           to: "{{row_net}}"
@@ -611,8 +637,10 @@ pcbs:
       diode:
         what: ceoloide/diode_tht_sod123
         where:
-          - [/^mirror.*/, key]
-          - /rightcluster_.*/
+          - rightkey
+          #This works only bcause of the /mirror/ which is generic
+          #- [/^mirror.*/, key]
+          #- /rightcluster_.*/
         params:
           from: "{{colrow}}"
           to: "{{row_net}}"
@@ -666,19 +694,19 @@ pcbs:
         params:
         where:
           ref: mirror_mcu
-          shift: [-mcu_y/2 -7,-7]
-          rotate: 180
+          shift: [mcu_x/2 +22, -10]
+          rotate: 270
       reset:
-        what: ceoloide/reset_switch_tht_top
+        what: ceoloide/reset_switch_smd_side
         params:
           side: B
           from: GND
           to: RST
         adjust:
-          rotate: 90
+          rotate: 270
         where:
           ref: mirror_mcu
-          shift: [-mcu_y/2 -14, -0]
+          shift: [mcu_x/2 +18 +2, -0]
       power:
         what: ceoloide/power_switch_smd_side
         params:
@@ -689,7 +717,7 @@ pcbs:
           rotate: 270
         where:
           ref: mirror_mcu
-          shift: [-mcu_y/2 -10, 8.5]
+          shift: [mcu_x/2 +16, 8]
       url:
         what: ceoloide/utility_text
         params:
