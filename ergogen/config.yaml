@@ -13,9 +13,10 @@ presets:
     kx: 17 # spacing between key ccol7s (X-axis)
     ky: 18 # spacing between key ccol7s (Y-axis)
     px: 20 #10 #3.5 #How much to pad horizontally
-    py: 20 #10 #3.5 #how much to pad vertically
+    py: 10 #10 #3.5 #how much to pad vertically
     plate_kx: 13.8 # key cutout hole width (cherry, choc v2: 14, choc v1: 13.8)
     plate_ky: 13.8 # key cutout hole height (cherry, choc v2: 14, choc v1: 13.8)
+    #Mbk keycaps
     keycap_x_1u: 17.5
     keycap_y_1u: 16.5
     keycap_x_1_5u: cx * 1.5 - 0.5 
@@ -25,20 +26,15 @@ presets:
     diode_rotation: -180 # Diode rotation
     switch_rotation: 180 # Hotswap south, led north
   cfx:
-    # CFX 1u are 15.5x15x5 keys for a tighter 17x17 matrix.  This is an idealised grid as to my knowledge no 1.5u keycaps exist for that size
+    #chosfox keycaps
+    # CFX 1u are 16.5x16.5 keys for a tighter 17x17 matrix.  This is an idealised grid as to my knowledge no 1.5u keycaps exist for that size
     $extends: presets.choc
     kx: 17 # spacing between key ccol7s (X-axis)
     ky: 17 # spacing between key ccol7s (Y-axis)
     keycap_x_1u: 16.5
-  chocfox_wob:
-    # ChocFox WOB 1u are CFX. However the larger keys don't work on that grid.
-    $extends: presets.cfx
-    keycap_x_1_5u: 26
-    keycap_x_1_5u_span: 13.25 + kx/2
-
 
 units:
-  $extends: presets.chocfox_wob
+  $extends: presets.cfx
 
   # Physical measures
   screw_radius: 1.1 # M2 screws
@@ -108,11 +104,11 @@ points:
     spread: kx
     width: keycap_x_1u
     height: keycap_x_1u
-    mirror: #When they are mirrored tag them with test
+    mirror:
       tags: ["key", "rightkey"]
   zones:
     matrix:
-      # Fix placement on KiCAD sheet.
+      # Make placement on kicad sheet fixed
       anchor:
         shift: [35, -150]
       key.tags: [
@@ -455,7 +451,6 @@ pcbs:
       choc:
         what: ceoloide/switch_choc_v1_v2
         where:
-          #- [/^matrix_.*/, key, -1_5u]
           - [ leftkey, -space]
         params:
           include_keycap: true
@@ -487,8 +482,6 @@ pcbs:
         what: ceoloide/diode_tht_sod123
         where:
           - leftkey
-          #- /^matrix_.*/
-          #- /thumbfan_.*/
         params:
           from: "{{colrow}}"
           to: "{{row_net}}"
@@ -565,11 +558,6 @@ pcbs:
         where:
           ref: mcu
           shift: [mcu_x/2 +16, 8]
-      # logo:
-      #   what: ceoloide/utility_ergogen_logo
-      #   where:
-      #     ref: mcu
-      #     shift: [-mcu_y/2 -20, 0]
       # url:
       #   what: ceoloide/utility_text
       #   params:
@@ -638,9 +626,6 @@ pcbs:
         what: ceoloide/diode_tht_sod123
         where:
           - rightkey
-          #This works only bcause of the /mirror/ which is generic
-          #- [/^mirror.*/, key]
-          #- /rightcluster_.*/
         params:
           from: "{{colrow}}"
           to: "{{row_net}}"
@@ -737,11 +722,6 @@ pcbs:
           shift: [0, 10]
         where: 
           - [/^mirror.*/, key, -1_5u, space]
-      # logo:
-      #   what: ceoloide/utility_ergogen_logo
-      #   where:
-      #     ref: mirror_mcu
-      #     shift: [-mcu_y/2 -20, 0]
       # version:
       #   what: ceoloide/utility_text
       #   params:
