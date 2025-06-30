@@ -321,12 +321,12 @@ outlines:
 
   l_keys_outline:
     - what: rectangle
-      where: [[leftkey, -space]]
+      where: [[leftkey]]
       size: [plate_kx/2, plate_ky/2]
 
   r_keys_outline:
     - what: rectangle
-      where: [[rightkey, -space]]
+      where: [[rightkey]]
       size: [plate_kx/2, plate_ky/2]
 
   l_controller_area:
@@ -449,7 +449,7 @@ pcbs:
       choc:
         what: ceoloide/switch_choc_v1_v2
         where:
-          - [ leftkey, -space]
+          - [ leftkey]
         params:
           include_keycap: true
           choc_v2_support: false
