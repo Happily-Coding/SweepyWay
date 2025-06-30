@@ -9,26 +9,26 @@ meta:
   # Select a preset in the `units` section below
 presets:
   choc:
-    # Standard Choc spacing
-    kx: 17 # spacing between key ccol7s (X-axis)
-    ky: 18 # spacing between key ccol7s (Y-axis)
+    # Standard Choc spacing, compatible with MBK keycaps which are 16.5 x 17.5
+    kx: 17 # spacing between keys (X-axis) 
+    ky: 18 # spacing between key (Y-axis)  # Will be overwritten by cfx spacing if you use cfx in units extends
+    keycap_x_1u: 17.5
+    keycap_y_1u: 16.5 # Will be overwritten by cfx spacing if you use cfx in units extends
+
     px: 5 #10 #3.5 #How much to pad horizontally
-    py: 10 #10 #3.5 #how much to pad vertically
+    py: 5 #10 #3.5 #how much to pad vertically
     plate_kx: 13.8 # key cutout hole width (cherry, choc v2: 14, choc v1: 13.8)
     plate_ky: 13.8 # key cutout hole height (cherry, choc v2: 14, choc v1: 13.8)
-    #Mbk keycaps
-    keycap_x_1u: 17.5
-    keycap_y_1u: 16.5
     vertical_diode_shift: 1.5 # How much to shift to avoid overlap
     horizontal_diode_shift: -0.5 plate_kx - 0.85
     diode_rotation: -180 # Diode rotation
     switch_rotation: 180 # Hotswap south, led north
-  cfx:
-    #chosfox keycaps
+    
+  cfx: # a preset that can be chosen in the units section, to create a pcb made for chosfox keycaps spacing, which is tighter vertically, allowing you to easily reach the number keys.
     # CFX 1u are 16.5x16.5 keys for a tighter 17x17 matrix.  This is an idealised grid as to my knowledge no 1.5u keycaps exist for that size
     $extends: presets.choc
-    kx: 17 # spacing between key ccol7s (X-axis)
-    ky: 17 # spacing between key ccol7s (Y-axis)
+    kx: 17 # spacing between keys (X-axis) 
+    ky: 17 # spacing between keys(Y-axis)
     keycap_x_1u: 16.5
 
 units:
