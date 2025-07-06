@@ -745,6 +745,16 @@ pcbs:
       #     shift: [-mcu_y/2 -22,  -2]
 
 cases:
+  #TODO add spacing between case wall and pcb
+  #TODO: Add a piece of plastic that goes inward from the top of the border and fits in it to cover the pcb
+  #TODO: add hand rest.
+  #TODO: Add screws
+  #TODO: Add usb connector spacing
+  #TODO Add an additional outline to covert the controller
+  #TODO: Add holes to make water drain.
+  #TODO: try to create the stl with cli
+  #TODO: Make base tilting and tenting compatible and or adjustable height
+
   #We need to do something like this for the bottom plate:
   #left_plate_3d:
   #  - name: l_bottom_plate_outline #ref to extrude
