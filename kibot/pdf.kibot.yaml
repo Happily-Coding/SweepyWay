@@ -18,5 +18,6 @@ outputs:
     options:
       include_fame: true
       frame: A4
+      paper: A4
   #    options:
   #      pages: all
