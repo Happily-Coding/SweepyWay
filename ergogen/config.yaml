@@ -522,7 +522,7 @@ pcbs:
           P15: "C5" # Column
           P14: "C6" # Column
           P16: "C7" # Column
-#          P10: "F10" # Free
+          # P10: "F10" # Free
         adjust:
           rotate: 90
         where:
