@@ -7,7 +7,7 @@ left side | right side
 -|-
 ![left](https://happily-coding.github.io/SweepyWay/images/left_pcb-top.png) | ![right](https://happily-coding.github.io/SweepyWay/images/right_pcb-top.png)
 
-[More outputs](https://happily-coding.github.io/SweepyWay/) 
+[More outputs](https://happily-coding.github.io/SweepyWay/) (images, pdfs, jscads 3d models you can [view and transform to stl](https://neorama.de/))
 <!-- 
 ![left bottom](https://happily-coding.github.io/SweepyWay/images/left_pcb-bottom.png) | ![right bottom](https://happily-coding.github.io/SweepyWay/images/right_pcb-bottom.png)
 -->
@@ -130,3 +130,7 @@ See the [workflow](.github/workflows/build.yml) or the [Makefile](Makefile) for 
 
 ## Important
 Only connect battery if a nice!nano board is used!
+
+## Addittional notes
+You can transform jscad files (which are the output of cases for ergogen) to stls (which can be opened by many cad softwares) using https://neorama.de/
+Apparently you can open them locally with https://github.com/openscad/openscad/ (but im not sure if the output of ergogen is compatible with the current version). also the current version of https://openjscad.xyz/ does not seem to be compatible
