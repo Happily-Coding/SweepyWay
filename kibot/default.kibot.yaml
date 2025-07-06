@@ -82,3 +82,11 @@ outputs:
     extends: top_view
     options:
       bottom: true
+
+  - name: pcb_pdf
+    comment: "PDF of the PCB layout"
+    type: pdf_pcb_print
+    dir: ergogen/output/docs
+    options:
+      output: '%f-pcb.pdf'
+      pages: all
