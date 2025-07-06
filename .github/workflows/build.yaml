@@ -65,15 +65,15 @@ jobs:
         uses: jayanta525/github-pages-directory-listing@v4.0.0
         with:
           FOLDER: ergogen/output
-      # - name: Delete cache
-      #   run: |
-      #     # Delete problematic file before upload
-      #     rm -f ergogen/output/pcbs/fp-info-cache
-      - name: Persist output
+      - name: Make filtered output (excluding fp-info-cache)
+        run: |
+          mkdir filtered-output
+          rsync -a --exclude='fp-info-cache' ergogen/output/ filtered-output/
+      - name: Upload filtered output
         uses: actions/upload-artifact@v4
         with:
-          name: typematrix_split 
-          path: ergogen/output
+          name: typematrix_split
+          path: filtered-output
       - name: Persist output for pages
         uses: actions/upload-pages-artifact@v3
         with:
