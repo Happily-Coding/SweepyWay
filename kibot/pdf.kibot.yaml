@@ -15,3 +15,4 @@ outputs:
     comment: "PDF of the PCB layout"
     type: pdf_pcb_print
     dir: ergogen/output/pdfs/%f
+
