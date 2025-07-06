@@ -51,6 +51,8 @@ units:
   bottom_plate_thickness: 1.0
   top_plate_thickness: 1.6
   internal_distance_between_plates: 4
+  case_border_height: 10 # added by me
+  case_bottom_thickness: 3
 
   # Font units
   font_x: 1
@@ -261,6 +263,14 @@ outlines:
       size: [kx + px, ky + py]
       #corner: px #Havig it set to 3.5 (while px was 3.5) made ergogen create a huge arc for some reason. it did not happen with other decimals, nor 3, nor 4
       corner: 3
+  
+  l_key_based_board_outline_with_extra_padding:
+    - what: rectangle
+      where: leftkey
+      #asym: source
+      size: [kx + px + 3, ky + py +3]
+      #corner: px #Havig it set to 3.5 (while px was 3.5) made ergogen create a huge arc for some reason. it did not happen with other decimals, nor 3, nor 4
+      corner: 3
 
   r_key_based_board_outline:
     - what: rectangle
@@ -382,8 +392,12 @@ outlines:
   r_bottom_plate_outline:
     - name: r_pcb_outline
 
-
-
+  l_case_border_outline:
+    # remove the pcb outline from an outline with exta padding
+    - name: l_key_based_board_outline_with_extra_padding
+    - operation: subtract
+      name: l_key_based_board_outline
+    
   # Combination preview showing outline and keys.
   #combined:
   #  - name: r_cover_outline
@@ -729,3 +743,24 @@ pcbs:
       #   where: 
       #     ref: mirror_mcu
       #     shift: [-mcu_y/2 -22,  -2]
+
+cases:
+  #We need to do something like this for the bottom plate:
+  #left_plate_3d:
+  #  - name: l_bottom_plate_outline #ref to extrude
+  #    extrude: 1.2
+
+  l_case_3d:
+    - name: l_key_based_board_outline_with_extra_padding
+      extrude: case_bottom_thickness
+    - name: l_case_border_outline
+      extrude: case_border_height
+
+  l_3d_preview:
+    #Pasting all components here with vertical offsets we can verify that everything fits where it should
+    - name: l_key_based_board_outline_with_extra_padding
+      extrude: case_bottom_thickness
+    - name: l_case_border_outline
+      extrude: case_border_height
+    - name: l_pcb_outline
+      shift: [0, 0, 20]
