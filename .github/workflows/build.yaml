@@ -82,7 +82,7 @@ jobs:
       - name: Persist output for pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ergogen/output
+          path: filtered-output/ #ergogen/output
   deploy-pages:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
