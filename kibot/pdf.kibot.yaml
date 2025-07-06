@@ -15,9 +15,3 @@ outputs:
     comment: "PDF of the PCB layout"
     type: pdf_pcb_print
     dir: ergogen/output/pdfs/%f
-    options:
-      include_fame: true
-      frame: A4
-      paper: A4
-  #    options:
-  #      pages: all
