@@ -40,12 +40,9 @@ outputs:
       - B.Mask
       - Edge.Cuts
 
-
-
-  #  - name: pcb_pdf
-  #    comment: "PDF of the PCB layout"
-  #    type: pdf_pcb_print
-  #    dir: ergogen/output/docs
+  - name: pcb_pdf
+    comment: "PDF of the PCB layout"
+    type: pdf_pcb_print
+    dir: ergogen/output/pdfs/%f
   #    options:
-  #      output: '%f-pcb.pdf'
   #      pages: all
