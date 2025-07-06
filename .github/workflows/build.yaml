@@ -65,10 +65,10 @@ jobs:
         uses: jayanta525/github-pages-directory-listing@v4.0.0
         with:
           FOLDER: ergogen/output
-      - name: Delete cache
-        run: |
-          # Delete problematic file before upload
-          rm -f ergogen/output/pcbs/fp-info-cache
+      # - name: Delete cache
+      #   run: |
+      #     # Delete problematic file before upload
+      #     rm -f ergogen/output/pcbs/fp-info-cache
       - name: Persist output
         uses: actions/upload-artifact@v4
         with:
