@@ -66,10 +66,6 @@ jobs:
         with:
           boards: left_pcb right_pcb
           config: pdf
-      - name: Generate Directory Listings
-        uses: jayanta525/github-pages-directory-listing@v4.0.0
-        with:
-          FOLDER: ergogen/output
       - name: Make filtered output (excluding fp-info-cache)
         run: |
           mkdir filtered-output
@@ -82,10 +78,14 @@ jobs:
             -v ${{ github.workspace }}/filtered-output/cases:/designs \
             openjscad-cli \
             bash -c convert-all.sh
+      - name: Generate Directory Listings
+        uses: jayanta525/github-pages-directory-listing@v4.0.0
+        with:
+          FOLDER: ergogen/output
       - name: Upload filtered output
         uses: actions/upload-artifact@v4
         with:
-          name: typematrix_split
+          name: compressed_keyboard_files
           path: filtered-output
       - name: Persist output for pages
         uses: actions/upload-pages-artifact@v3
