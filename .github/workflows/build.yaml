@@ -74,6 +74,14 @@ jobs:
         run: |
           mkdir filtered-output
           rsync -a --exclude='fp-info-cache' ergogen/output/ filtered-output/
+      - name: Build OpenJSCAD cli image (for converting jscads to stl)
+        run: docker build -t openjscad-cli -f openjscad/Dockerfile openjscad/
+      - name: Run OpenJSCAD CLI to convert jscads to stl
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/filtered-output/cases:/designs \
+            openjscad-cli \
+            bash -c convert-all.sh
       - name: Upload filtered output
         uses: actions/upload-artifact@v4
         with:
@@ -83,6 +91,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: filtered-output/ #ergogen/output
+
   deploy-pages:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
