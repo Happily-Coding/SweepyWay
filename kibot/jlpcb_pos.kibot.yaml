@@ -6,58 +6,15 @@ preflight:
   drc: false
   run_erc: false
 
-filters:
-  - name: only_jlc_parts
-    comment: 'Only parts with JLC code'
-    type: generic
-    include_only:
-      - column: _field_lcsc_part
-        regex: '^C\d+'
+
 
 outputs:
-  # - name: 'position'
-  #   dir: ergogen/output/pos/%f
-  #   comment: "Pick and place file, JLC style"
-  #   type: position
-  #   options:
-  #     pre_transform: _rot_footprint_jlcpcb
-  #     #output: '%f_cpl_jlc.%x'
-  #     format: CSV
-  #     units: millimeters
-  #     separate_files_for_front_and_back: false
-  #     only_smd: true
-  #     columns:
-  #       - id: Ref
-  #         name: Designator
-  #       - Val
-  #       - Package
-  #       - id: PosX
-  #         name: "Mid X"
-  #       - id: PosY
-  #         name: "Mid Y"
-  #       - id: Rot
-  #         name: Rotation
-  #       - id: Side
-  #         name: Layer
-
-  - name: 'bom'
-    comment: "BoM for JLC"
-    type: bom
+  - name: 'position'
+    comment: "Pick and place file"
+    type: position
+    dir: ergogen/output/pos/
     options:
-      dir: ergogen/output/pos/%f
-      #output: '%f_%i_jlc.%x'
-      exclude_filter: 'only_jlc_parts'
-      ref_separator: ','
-      columns:
-        - field: Value
-          name: Comment
-        - field: References
-          name: Designator
-        - Footprint
-        - field: _field_lcsc_part
-          name: 'LCSC Part #'
-      csv:
-        hide_pcb_info: true
-        hide_stats_info: true
-        quote_all: true
-
+      format: ASCII   # CSV or ASCII format
+      units: millimeters  # millimeters or inches
+      separate_files_for_front_and_back: true
+      only_smd: true
