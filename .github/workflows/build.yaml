@@ -66,13 +66,16 @@ jobs:
         with:
           boards: left_pcb right_pcb
           config: pdf
-
-      # - name: Run KiBot to generate jlpcb pos
-      #   uses: ./.github/actions/kibot
-      #   with:
-      #     boards: left_pcb right_pcb
-      #     config: jlpcb_pos
-      - name: Make filtered output (excluding fp-info-cache)
+      - name: Make filtered output (excluding fp-info-cache) 1
+        run: |
+          mkdir filtered-output
+          rsync -a --exclude='fp-info-cache' ergogen/output/ filtered-output/
+      - name: Run KiBot to generate jlpcb pos
+        uses: ./.github/actions/kibot
+        with:
+          boards: left_pcb right_pcb
+          config: jlpcb_pos
+      - name: Make filtered output (excluding fp-info-cache) 2
         run: |
           mkdir filtered-output
           rsync -a --exclude='fp-info-cache' ergogen/output/ filtered-output/
