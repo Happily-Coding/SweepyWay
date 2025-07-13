@@ -67,11 +67,11 @@ jobs:
           boards: left_pcb right_pcb
           config: pdf
 
-      - name: Run KiBot to generate images, gerbers for the autorouted board
-        uses: ./.github/actions/kibot
-        with:
-          boards: left_pcb right_pcb
-          config: jlpcb_pos
+      # - name: Run KiBot to generate jlpcb pos
+      #   uses: ./.github/actions/kibot
+      #   with:
+      #     boards: left_pcb right_pcb
+      #     config: jlpcb_pos
       - name: Make filtered output (excluding fp-info-cache)
         run: |
           mkdir filtered-output
