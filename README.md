@@ -124,6 +124,7 @@ See the [workflow](.github/workflows/build.yml) or the [Makefile](Makefile) for 
 - [Soundmonster Samaklova Keyboard](https://github.com/soundmonster/samoklava/tree/main) for automatic electronic routing
 - [tbaumann typematrix](https://github.com/tbaumann/typematrix_split_new/tree/main/ergogen) for automatic documentation, and example of how to use celoide ergonomic footprints
 - [Celoide](https://github.com/ceoloide/ergogen-footprints) for the library of additional ergogen footprints for more parts.
+- [alakuu/skree](https://www.reddit.com/user/alakuu/) for taking the time to answer questions about pcb assembly services
 
 ## Disclaimer
 **Work in progress!**
@@ -132,5 +133,5 @@ See the [workflow](.github/workflows/build.yml) or the [Makefile](Makefile) for 
 Only connect battery if a nice!nano board is used!
 
 ## Addittional notes
-You can transform jscad files (which are the output of cases for ergogen) to stls (which can be opened by many cad softwares) using https://neorama.de/
-Apparently you can open them locally with https://github.com/openscad/openscad/ (but im not sure if the output of ergogen is compatible with the current version). also the current version of https://openjscad.xyz/ does not seem to be compatible
+The pipeline outputs jscad files for the case, which are incompatible with most cad software.
+I'm in the process of automating their conversion to stl, (which can be opened by many cad softwares), but for now you can manually conver it using [neorama openjscad](https://neorama.de/) . [Modern openjscad](https://openjscad.xyz/) seems to be incompatible with the output of ergogen.
