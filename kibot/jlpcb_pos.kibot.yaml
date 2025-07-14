@@ -27,17 +27,17 @@ outputs:
     options:
       dir: ergogen/output/pos/%f
       #output: '%f_%i_jlc.%x'
-      exclude_filter: 'only_jlc_parts'
-      ref_separator: ','
-      columns:
-        - field: Value
-          name: Comment
-        - field: References
-          name: Designator
-        - Footprint
-        - field: _field_lcsc_part
-          name: 'LCSC Part #'
-      csv:
-        hide_pcb_info: true
-        hide_stats_info: true
-        quote_all: true
+      # exclude_filter: 'only_jlc_parts'
+      # ref_separator: ','
+      # columns:
+      #   - field: Value
+      #     name: Comment
+      #   - field: References
+      #     name: Designator
+      #   - Footprint
+      #   - field: _field_lcsc_part
+      #     name: 'LCSC Part #'
+      # csv:
+      #   hide_pcb_info: true
+      #   hide_stats_info: true
+      #   quote_all: true
