@@ -23,9 +23,9 @@ outputs:
   - name: 'bom'
     comment: "BoM for JLC"
     type: bom
-    dir: ergogen/output/pos/
+    dir: ergogen/output/bom/
     options:
-      dir: ergogen/output/pos/%f
+      dir: ergogen/output/bom/%f
       #output: '%f_%i_jlc.%x'
       # exclude_filter: 'only_jlc_parts'
       # ref_separator: ','
