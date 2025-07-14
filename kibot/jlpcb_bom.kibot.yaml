@@ -6,6 +6,7 @@ preflight:
   drc: false
   run_erc: false
 
+outputs:
   - name: 'bom'
     comment: "BoM for JLC"
     type: bom
