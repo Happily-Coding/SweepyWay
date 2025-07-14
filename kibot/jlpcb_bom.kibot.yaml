@@ -1,0 +1,13 @@
+kibot:
+  version: 1.8.0
+
+preflight:
+  fill_zones: true
+  drc: false
+  run_erc: false
+
+  - name: 'bom'
+    comment: "BoM for JLC"
+    type: bom
+    options:
+      dir: ergogen/output/bom/
