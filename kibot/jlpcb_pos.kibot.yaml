@@ -19,3 +19,8 @@ outputs:
       separate_files_for_front_and_back: true
       only_smd: true
       dir: ergogen/output/pos/%f
+
+  - name: 'bom'
+    comment: "BoM for JLC"
+    type: bom
+    dir: ergogen/output/bom/
