@@ -19,3 +19,5 @@ runs:
         echo "Processing $board";
         kibot -b $GITHUB_WORKSPACE/ergogen/output/pcbs/${board}.kicad_pcb -c $GITHUB_WORKSPACE/kibot/${{ inputs.config }}.kibot.yaml
       done
+      wait
+      echo "✅ Finished kibot step"

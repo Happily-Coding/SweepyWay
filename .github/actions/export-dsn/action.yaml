@@ -23,3 +23,5 @@ runs:
           $GITHUB_WORKSPACE/kibot/export_dsn.py -b $GITHUB_WORKSPACE/ergogen/output/pcbs/${board}.kicad_pcb -o $GITHUB_WORKSPACE/ergogen/output/pcbs/${board}.dsn 
         fi
       done
+      wait
+      echo "✅ DSN export completed for all boards."
