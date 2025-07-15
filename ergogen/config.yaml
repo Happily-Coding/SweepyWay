@@ -326,7 +326,7 @@ outlines:
 
   r_all_key_clusters_outline:
     - "+r_key_based_board_outline"
-    - "+r_thumb_suplementary_outline"
+  #  - "+r_thumb_suplementary_outline"
 
 
   l_controller_area:
@@ -361,7 +361,7 @@ outlines:
 
   r_pcb_outline:
     - "+r_key_based_board_outline"
-    - "+r_thumb_suplementary_outline"
+    #- "+r_thumb_suplementary_outline"
     - "+r_controller_area"
     - "+r_jsph_area"
 
