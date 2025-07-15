@@ -538,13 +538,14 @@ pcbs:
           # GND
           # GND
           P2: "DPE" # Display CS (nice!view only) FIXME? ZPM default?
+          #MODIFIED
           P3: "R2" # Row
           P4: "R3" # Row
-          P5: "R4" # Row
-          P6: "R5" # Row
-          P7: "R5" # Row
+          P5: "R5" # Row
+          P6: "R4" # Row
+          P7: "R7" # Row
           P8: "R6" # Row
-          P9: "R7" # Row
+          P9: "R5" # Row
 
           # Left Side
           # RAW:      # Battery Pos
