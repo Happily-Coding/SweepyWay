@@ -1,6 +1,6 @@
 (rules PCB corney_island
   (snap_angle 
-    fortyfive_degree
+    none
   )
   (autoroute_settings
     (fanout off)
