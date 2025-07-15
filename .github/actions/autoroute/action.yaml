@@ -23,3 +23,5 @@ runs:
           java -jar /opt/freerouting_cli.jar -de ergogen/output/pcbs/${board}.dsn -do ergogen/output/pcbs/${board}.ses -dr freerouting/freerouting.rules -mp 20
         fi
       done
+      wait
+      echo "✅ All board autorouting completed."
