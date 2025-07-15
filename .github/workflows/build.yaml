@@ -39,11 +39,11 @@ jobs:
         with:
           boards: left_pcb right_pcb
           config: default
-      - name: Run KiBot to generate images, gerbers for the unrouted board
-        uses: ./.github/actions/kibot
-        with:
-          boards: left_pcb right_pcb
-          config: default
+      # - name: Run KiBot to generate images, gerbers for the unrouted board
+      #   uses: ./.github/actions/kibot
+      #   with:
+      #     boards: left_pcb right_pcb
+      #     config: default
       - name: Export DSN file for Freerouting
         uses: ./.github/actions/export-dsn
         with:
@@ -61,7 +61,7 @@ jobs:
         with:
           boards: left_pcb right_pcb
           config: boards
-      - name: Run KiBot to generate images, gerbers for the autorouted board
+      - name: Run KiBot to generate the pdf from the auto routed board
         uses: ./.github/actions/kibot
         with:
           boards: left_pcb right_pcb
@@ -75,11 +75,11 @@ jobs:
         with:
           boards: left_pcb right_pcb
           config: jlpcb_pos
-      - name: Run KiBot to generate jlpcb bom
-        uses: ./.github/actions/kibot
-        with:
-          boards: left_pcb right_pcb
-          config: jlpcb_bom
+      # - name: Run KiBot to generate jlpcb bom
+      #   uses: ./.github/actions/kibot
+      #   with:
+      #     boards: left_pcb right_pcb
+      #     config: jlpcb_bom
       - name: Build OpenJSCAD cli image (for converting jscads to stl)
         run: docker build -t openjscad-cli -f openjscad/Dockerfile openjscad/
       - name: Run OpenJSCAD CLI to convert jscads to stl
