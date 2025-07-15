@@ -718,7 +718,7 @@ pcbs:
       reset:
         what: ceoloide/reset_switch_smd_side
         params:
-          side: B
+          side: F
           from: GND
           to: RST
         adjust:
@@ -729,7 +729,7 @@ pcbs:
       power:
         what: ceoloide/power_switch_smd_side
         params:
-          side: B
+          side: F
           #          from: GND
           #          to: RST
         adjust:
