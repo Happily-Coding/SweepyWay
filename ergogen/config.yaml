@@ -322,7 +322,7 @@ outlines:
 
   l_all_key_clusters_outline:
     - "+l_key_based_board_outline"
-    - "+l_thumb_suplementary_outline"
+    #- "+l_thumb_suplementary_outline"
 
   r_all_key_clusters_outline:
     - "+r_key_based_board_outline"
@@ -355,7 +355,7 @@ outlines:
 
   l_pcb_outline:
     - "+l_key_based_board_outline"
-    - "+l_thumb_suplementary_outline"
+    #- "+l_thumb_suplementary_outline"
     - "+l_controller_area"
     - "+l_jsph_area"
 
