@@ -140,12 +140,60 @@ function addMarkersOnBottomYHalf(model) {
   return union(model, ...markers);
 }
 
+function addLowestYMarkersPerX(model) {
+  const bounds = model.getBounds();
+  const minY = bounds[0].y;
+  const maxY = bounds[1].y;
+  const centerY = minY + (maxY - minY) / 2;
+
+  const polygons = model.toPolygons();
+  const pointsByX = new Map();
+
+  // Step 1: collect points in bottom half of Y
+  polygons.forEach(poly => {
+    poly.vertices.forEach(vertex => {
+      const pos = vertex.pos;
+
+      if (pos.y < centerY) {
+        // Round x for grouping tolerance (floating point safety)
+        const xKey = pos.x.toFixed(4);
+
+        if (!pointsByX.has(xKey)) {
+          pointsByX.set(xKey, pos);
+        } else {
+          const existing = pointsByX.get(xKey);
+          if (pos.y < existing.y) {
+            pointsByX.set(xKey, pos);
+          }
+        }
+      }
+    });
+  });
+
+  // Step 2: Create markers for the selected points
+  const markers = [];
+  for (const pos of pointsByX.values()) {
+    const marker = cube({size: 1, center: true});
+    const markerPos = [pos.x, pos.y, pos.z + 20]; // offset up in Z
+    markers.push(translate(markerPos, marker));
+  }
+
+  return union(model, ...markers);
+}
 
 function main() {
   const model = l_case_3d_case_fn();
-  const result = addMarkersOnBottomYHalf(model);
+  const result = addLowestYMarkersPerX(model);
   return result;
 }
+
+
+
+// function main() {
+//   const model = l_case_3d_case_fn();
+//   const result = addMarkersOnBottomYHalf(model);
+//   return result;
+// }
 
 
 
