@@ -1,0 +1,7 @@
+# A copy of default.kibot so it can be ran later than default.kibot and make the jlpcb pos files without intefering with autorouting
+
+kibot:
+  version: 1
+
+import:
+  - file: JLCPCB

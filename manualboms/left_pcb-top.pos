@@ -1,0 +1,39 @@
+### Footprint positions - created on 2025-07-13T17:45:53-0300 ###
+### Printed by KiCad version 9.0.2
+## Unit = mm, Angle = deg.
+## Side : top
+# Ref     Val       Package                          PosX       PosY       Rot  Side
+D1                  diode_tht_sod123              27.2500  -131.5000  -90.0000  top
+D2                  diode_tht_sod123              27.2500  -114.5000  -90.0000  top
+D3                  diode_tht_sod123              27.2500   -97.5000  -90.0000  top
+D4                  diode_tht_sod123              27.2500   -80.5000  -90.0000  top
+D5                  diode_tht_sod123              44.2500  -144.2500  -90.0000  top
+D6                  diode_tht_sod123              44.2500  -127.2500  -90.0000  top
+D7                  diode_tht_sod123              44.2500  -110.2500  -90.0000  top
+D8                  diode_tht_sod123              44.2500   -93.2500  -90.0000  top
+D9                  diode_tht_sod123              44.2500   -76.2500  -90.0000  top
+D10                 diode_tht_sod123              61.2500  -133.0300  -90.0000  top
+D11                 diode_tht_sod123              61.2500  -116.0300  -90.0000  top
+D12                 diode_tht_sod123              61.2500   -99.0300  -90.0000  top
+D13                 diode_tht_sod123              61.2500   -82.0300  -90.0000  top
+D14                 diode_tht_sod123              61.2500   -65.0300  -90.0000  top
+D15                 diode_tht_sod123              78.2500  -120.2800  -90.0000  top
+D16                 diode_tht_sod123              78.2500  -103.2800  -90.0000  top
+D17                 diode_tht_sod123              78.2500   -86.2800  -90.0000  top
+D18                 diode_tht_sod123              78.2500   -69.2800  -90.0000  top
+D19                 diode_tht_sod123              95.2500  -122.8300  -90.0000  top
+D20                 diode_tht_sod123              95.2500  -105.8300  -90.0000  top
+D21                 diode_tht_sod123              95.2500   -88.8300  -90.0000  top
+D22                 diode_tht_sod123              95.2500   -71.8300  -90.0000  top
+D23                 diode_tht_sod123             112.2500  -126.2300  -90.0000  top
+D24                 diode_tht_sod123             112.2500  -109.2300  -90.0000  top
+D25                 diode_tht_sod123             112.2500   -92.2300  -90.0000  top
+D26                 diode_tht_sod123             112.2500   -75.2300  -90.0000  top
+D27                 diode_tht_sod123             129.2500  -122.8300  -90.0000  top
+D28                 diode_tht_sod123             129.2500  -105.8300  -90.0000  top
+D29                 diode_tht_sod123             129.2500   -88.8300  -90.0000  top
+D30                 diode_tht_sod123             101.4082  -141.9070  -100.0000  top
+D31                 diode_tht_sod123             120.5808  -145.8308  -115.0000  top
+D32                 diode_tht_sod123             136.7316  -153.4761  -120.0000  top
+JST1                battery_connector_jst_ph_2   114.0000   -55.7700  -90.0000  top
+## End

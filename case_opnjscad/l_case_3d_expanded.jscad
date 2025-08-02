@@ -140,7 +140,7 @@ function addMarkersOnBottomYHalf(model) {
   return union(model, ...markers);
 }
 
-function addLowestYMarkersPerX(model) {
+function addLowestYMarkersPerXWithZFilter(model, yThreshold1, xThreshold1, yThreshold2, xThreshold2) {
   const bounds = model.getBounds();
   const minY = bounds[0].y;
   const maxY = bounds[1].y;
@@ -149,15 +149,13 @@ function addLowestYMarkersPerX(model) {
   const polygons = model.toPolygons();
   const pointsByX = new Map();
 
-  // Step 1: collect points in bottom half of Y
+  // Step 1: collect points in bottom Y half
   polygons.forEach(poly => {
     poly.vertices.forEach(vertex => {
       const pos = vertex.pos;
 
       if (pos.y < centerY) {
-        // Round x for grouping tolerance (floating point safety)
         const xKey = pos.x.toFixed(4);
-
         if (!pointsByX.has(xKey)) {
           pointsByX.set(xKey, pos);
         } else {
@@ -170,22 +168,44 @@ function addLowestYMarkersPerX(model) {
     });
   });
 
-  // Step 2: Create markers for the selected points
   const markers = [];
+
+  // Step 2: filter with Z thresholds and create markers
   for (const pos of pointsByX.values()) {
+    const x = pos.x;
+    const z = pos.z;
+
+    // Apply Z filters
+    if (x > xThreshold1 && z < yThreshold1) continue;
+    if (x > xThreshold2 && z < yThreshold2) continue;
+
     const marker = cube({size: 1, center: true});
-    const markerPos = [pos.x, pos.y, pos.z + 20]; // offset up in Z
+    const markerPos = [x, pos.y, z + 20];
     markers.push(translate(markerPos, marker));
   }
 
   return union(model, ...markers);
 }
 
+
+function errorMessage(message, value) {
+  //usage example: errorMessage('model bounds are:', bounds);
+  // Convert value to string safely
+  const valueStr = (typeof value === 'object') ? JSON.stringify(value) : String(value);
+  throw new Error(`${message}: ${valueStr}`);
+}
+
+
 function main() {
   const model = l_case_3d_case_fn();
-  const result = addLowestYMarkersPerX(model);
-  return result;
+  // model bounds are:
+  // {"_x":22.5,"_y":-174.62330181673732,"_z":0}
+  // {"_x":158.6664392167374,"_y":-54.03,"_z":16.000000000000007}
+  const result = addLowestYMarkersPerXWithZFilter(model, 5, 50, 10, 100); // example values
+
+  return result //union(result, boundLabels);
 }
+
 
 
 
