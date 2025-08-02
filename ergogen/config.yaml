@@ -539,6 +539,8 @@ pcbs:
           # GND
           P2: "DPE" # Display CS (nice!view only) FIXME? ZPM default?
           #MODIFIED
+          # Creo que tal vez la lcave no es separarlos si no poner bien al borde los de rows, empezando mas afuera los de mas abajo y
+          #los de columns si lo mas separados posibles para el lugar correcot.
           P3: "R2" # Row
           P4: "R3" # Row
           P5: "R5" # Row

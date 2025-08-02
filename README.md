@@ -44,21 +44,13 @@ left side | right side
 <!-- from original repo
 ## Todo
 Mio:
-Paso 1: mover todos los electronicos para arriba con mismo ofset
-mcu_nice_nano
-display_nice_view
-battery_connector_jst_ph_2
-reset_switch_tht_top
-utility_ergogen_logo
-version_txt
-power_switch_smd_side
-polygon arriba
+Crear palmrest solution: 
+- crear un poligono desde bastante arriba del keyboard hasta el punto en el que quiero que termine el palmrest a la isquierda y a la derecha
+- Tiene que ser un poco mas irregular para crear relleno en lugares innecesarios
+- Removerle todo lo que sea espacio ocupado por el teclado
+- En open jscad cambiar la altura de los 2 puntos finales a la altura que quiero, automaticamente se va a generar un ángulo. smoothearlo de alguna manera. creo que tal vez es simple smoothear el costado creando puntos intermedios que unan la parte superior con el borde de abajo y quedaria hecho.
 
-Paso 2: sacar cosas raras/ tratar de simplificar el file
-
-Paso 3:
-hay que recrear el area, y reorganizar componentes como mi original
-hay que recrear el outline y organizar componentes como el original (pero todavia no)
+cortado por el poligono orilfin
 
 * Bottom Plate (Thick PCB with cutouts for all components placed at the bottom. Optimised for maximum thinness)
 * Remove or document magic numbers
@@ -125,6 +117,7 @@ See the [workflow](.github/workflows/build.yml) or the [Makefile](Makefile) for 
 - [tbaumann typematrix](https://github.com/tbaumann/typematrix_split_new/tree/main/ergogen) for automatic documentation, and example of how to use celoide ergonomic footprints
 - [Celoide](https://github.com/ceoloide/ergogen-footprints) for the library of additional ergogen footprints for more parts.
 - [alakuu/skree](https://www.reddit.com/user/alakuu/) for taking the time to answer questions about pcb assembly services
+- [Choco-rain](https://www.reddit.com/r/MechanicalKeyboards/comments/qanrr8/corne_with_3d_printed_cases_wrist_rests_and_plates/) for palmrest inspiration
 
 ## Disclaimer
 **Work in progress!**

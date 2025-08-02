@@ -1,0 +1,8 @@
+### Footprint positions - created on 2025-07-13T17:45:53-0300 ###
+### Printed by KiCad version 9.0.2
+## Unit = mm, Angle = deg.
+## Side : bottom
+# Ref     Val       Package                     PosX       PosY       Rot  Side
+PWR1                power_switch_smd_side   108.0000   -37.7700   90.0000  bottom
+RST1                reset_switch_smd_side   112.0000   -45.7700  -90.0000  bottom
+## End
