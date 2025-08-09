@@ -1,0 +1,17 @@
+You want the top surface of the shape to be:
+
+    Flat along the Y direction (from front to back),
+
+    But gently sloping downward along the X direction (left to right),
+
+    With the curve defined like this:
+
+y = height * cos(t * π / 2)
+
+That means:
+
+    At x = 0, height is maximum (cos(0) = 1),
+
+    At x = width, height is 0 (cos(π/2) = 0),
+
+    This creates a smooth downward curve, perfect for ergonomic shapes.

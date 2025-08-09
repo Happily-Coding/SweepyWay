@@ -1,0 +1,29 @@
+todo 1 mm width o mas (menos dificil bien con width filamento estandard)
+arms requieren overhang, overhang triangles dont
+circulos son mas faciles que corners
+
+no trates de ahuecar,, se puede llenar con honicomb structure
+
+puttexture on your part to hide layer lines
+
+if things need to go together make small preassure relieaving lines or smething
+
+
+try to minimize first layer contact (and support)
+
+https://www.youtube.com/watch?v=Bd7Yyn61XWQ&pp=0gcJCccJAYcqIYzv
+
+https://www.youtube.com/watch?v=Bd7Yyn61XWQ&pp=0gcJCccJAYcqIYzv
+
+https://www.youtube.com/watch?v=CxbidoZCw1A
+
+
+https://www.freecad.org/
+https://openscad.org/
+
+
+meshmixter: fix 
+
+https://www.youtube.com/watch?v=CfyvdsrkPCM
+
+https://www.youtube.com/watch?v=1Ff_NcZhBSo

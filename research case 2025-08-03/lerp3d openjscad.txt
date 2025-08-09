@@ -1,0 +1,37 @@
+/**
+ * Easing function: easeInOutQuad
+ * Creates a smooth acceleration and deceleration (S-curve)
+ * 
+ * @param {number} t - Value between 0 and 1
+ * @returns {number}
+ */
+function easeInOutQuad(t) {
+  return t < 0.5
+    ? 2 * t * t
+    : -1 + (4 - 2 * t) * t
+}
+
+/**
+ * Linearly interpolates between two 3D points, with smooth slope (easing).
+ * 
+ * @param {Array<number>} a - First 3D point [x, y, z]
+ * @param {Array<number>} b - Second 3D point [x, y, z]
+ * @param {number} steps - Number of segments (returns steps + 1 points)
+ * @returns {Array<Array<number>>} Array of eased 3D points
+ */
+function lerp3DPoints(a, b, steps) {
+  const result = []
+
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps
+    const easedT = easeInOutQuad(t)
+
+    const x = a[0] + (b[0] - a[0]) * easedT
+    const y = a[1] + (b[1] - a[1]) * easedT
+    const z = a[2] + (b[2] - a[2]) * easedT
+
+    result.push([x, y, z])
+  }
+
+  return result
+}

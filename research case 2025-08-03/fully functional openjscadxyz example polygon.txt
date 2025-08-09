@@ -1,0 +1,23 @@
+const { fromPointsConvex } = require('@jscad/modeling').geometries.geom3
+const { colorize, colorNameToRgb } = require('@jscad/modeling').colors
+const { geom3 } = require('@jscad/modeling')
+const { rotateX } = require('@jscad/modeling').transforms
+
+const main = () => {
+  // Define the 5 pyramid points
+  const points = [
+    [-1, -1, 0], // base corner
+    [ 1, -1, 0], // base corner
+    [ 1,  1, 0], // base corner
+    [-1,  1, 0], // base corner
+    [ 0,  0, 2]  // apex
+  ]
+
+  // Automatically generate a convex shape (pyramid)
+  const pyramid = fromPointsConvex(points)
+
+  // Optional: add color or rotate if desired
+  return colorize([1, 0.7, 0.2], pyramid)
+}
+
+module.exports = { main }

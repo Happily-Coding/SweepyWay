@@ -1,0 +1,13 @@
+The strongest infill is the triangular pattern.
+but others to remember are:
+Fast print speed: Zig-zag, Lines, Lightning.
+
+Least amount of filament: Lightning.
+
+Stiffness: Tri-hexagon, Cubic.
+
+Strength by weight and printing time: Cubic Subdivision.
+
+Strength in vertical direction: Grid.
+
+Strength in horizontal directions: Tri-hexagon

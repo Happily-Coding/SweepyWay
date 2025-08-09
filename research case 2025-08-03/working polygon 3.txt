@@ -1,0 +1,40 @@
+const { geometries, extrusions } = require('@jscad/modeling')
+const { fromPoints, appendArc, appendPoints, close, toPoints } = geometries.path2
+const { fromPoints: geom2FromPoints } = geometries.geom3
+const { extrudeLinear } = extrusions
+
+function l_hand_rest_polygon_extrude_3_outline_fn() {
+let path = fromPoints({ closed: false }, [[29, -183, 0], [25.2489477, -145.489477, 0]])
+path = appendArc({ endpoint: [25.5, -145.5, 0], radius: [3, 3], clockwise: false, large: false }, path)
+path = appendPoints([[39.5, -145.5, 0]], path)
+path = appendPoints([[39.5, -155.25, 0]], path)
+path = appendArc({ endpoint: [42.5, -158.25, 0], radius: [3, 3], clockwise: false, large: false }, path)
+path = appendPoints([[61.5, -158.25, 0]], path)
+path = appendArc({ endpoint: [64.5, -155.25, 0], radius: [3, 3], clockwise: false, large: false }, path)
+path = appendPoints([[64.5, -147.03, 0]], path)
+path = appendPoints([[78.5, -147.03, 0]], path)
+path = appendArc({ endpoint: [81.5, -144.03, 0], radius: [3, 3], clockwise: false, large: false }, path)
+path = appendPoints([[81.5, -134.28, 0]], path)
+path = appendPoints([[90.533942, -134.28, 0]], path)
+path = appendArc({ endpoint: [93.5, -136.83, 0], radius: [3, 3], clockwise: false, large: false }, path)
+path = appendPoints([[97.4801505, -136.83, 0]], path)
+path = appendPoints([[94.8202454, -151.9150714, 0]], path)
+path = appendArc({ endpoint: [97.2537242, -155.3904393, 0], radius: [3, 3], clockwise: false, large: false }, path)
+path = appendPoints([[114.4616542, -158.4246616, 0]], path)
+path = appendPoints([[129.233335, -165.3128094, 0]], path)
+path = appendPoints([[144.670546, -174.2254874, 0]], path)
+path = appendArc({ endpoint: [144.8932252, -174.3419004, 0], radius: [3, 3], clockwise: false, large: false }, path)
+path = appendPoints([[122.8894571, -204.9514401, 0]], path) //
+path = appendPoints([[29, -183, 0]], path) //
+
+
+  path = close(path)
+
+  //const shape2D = geom2FromPoints(toPoints(path))
+  //const extruded = extrudeLinear({ height: 3 }, shape2D)
+
+  return path
+  //return extruded
+}
+
+module.exports = { main: l_hand_rest_polygon_extrude_3_outline_fn }
