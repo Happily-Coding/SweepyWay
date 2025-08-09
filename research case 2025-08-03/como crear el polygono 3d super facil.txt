@@ -1,0 +1,2 @@
+empezar del lado irregular, de isquierda a derecha al llegar al fondo ir para arriba en el ultimo punto.
+ir para la derecha siempre a la misma altura de arriba, ir para el frente, bajar

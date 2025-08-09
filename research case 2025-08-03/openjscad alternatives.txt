@@ -1,0 +1,45 @@
+ Trimesh (Python)
+
+✅ 1. Trimesh (Python)
+
+    Mesh-level manipulation
+
+    Fully inspectable, print vertices and faces as arrays
+
+    Works well with DXF, STL, OBJ, and programmatic geometry
+
+Example:
+
+import trimesh
+
+mesh = trimesh.load("l_hand_rest_polygon.dxf")  # works if the DXF is closed paths
+print(mesh.vertices)
+print(mesh.faces)
+
+mesh.export("out.stl")
+
+You can also build lofts using trimesh.creation.extrude_polygon() and custom slicing.
+
+
+
+✅ 3. OpenCascade via PythonOCC
+
+    The engine behind FreeCAD and CadQuery
+
+    Lower-level and far more powerful
+
+    You can extract vertices, faces, edges, points — all exactly like you’re describing
+
+But: it’s complex and verbose, not ideal for fast prototyping.
+
+
+
+
+
+5. FreeCAD + Python
+
+    Great for inspecting everything
+
+    Good for boolean modeling and parametric CAD
+
+    You can run Python scripts in FreeCAD to control modeling

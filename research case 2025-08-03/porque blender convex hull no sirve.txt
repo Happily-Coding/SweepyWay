@@ -1,0 +1,99 @@
+import bpy, bmesh
+
+bm = bmesh.new()
+# Add bottom and top star verts, ordered in 2D
+bottom = [bm.verts.new(co) for co in bottom_star_coords]
+top    = [bm.verts.new((x,y,z_height)) for (x,y) in bottom_star_coords]
+bm.verts.ensure_lookup_table()
+
+# Fill (auto-create) face on bottom layer
+bmesh.ops.contextual_create(bm, geom=bottom)
+
+# Fill face on top layer
+bmesh.ops.contextual_create(bm, geom=top)
+
+# Then extrude the boundary edges to build sides
+edges = [e for e in bm.edges if e.is_boundary]
+res = bmesh.ops.extrude_edge_only(bm, edges=edges)
+# translate these to form side faces
+
+bm.to_mesh(mesh)
+
+
+
+En teoria  est deberia poder servir par auna estrella o otra cosa con concavidad 
+import bpy, bmesh
+
+bm = bmesh.new()
+# Add bottom and top star verts, ordered in 2D
+bottom = [bm.verts.new(co) for co in bottom_star_coords]
+top    = [bm.verts.new((x,y,z_height)) for (x,y) in bottom_star_coords]
+bm.verts.ensure_lookup_table()
+
+# Fill (auto-create) face on bottom layer
+bmesh.ops.contextual_create(bm, geom=bottom)
+
+# Fill face on top layer
+bmesh.ops.contextual_create(bm, geom=top)
+
+# Then extrude the boundary edges to build sides
+edges = [e for e in bm.edges if e.is_boundary]
+res = bmesh.ops.extrude_edge_only(bm, edges=edges)
+# translate these to form side faces
+
+bm.to_mesh(mesh)
+
+
+
+
+you can still define the top and bottom in the same order, even if the top is sloped, curved, or uneven in height — BUT:
+
+    It will still "work" for creating side faces only if you build the side faces manually (or use an operation like lofting or bridge_loops).
+
+    You cannot rely on automatic face-filling (like contextual_create or convex_hull) anymore for the top or bottom if they aren't flat and planar.
+
+🧱 Let’s take a cube with a sloped top:
+
+Bottom (flat):
+
+(0, 0, 0)
+(1, 0, 0)
+(1, 1, 0)
+(0, 1, 0)
+
+Top (sloped):
+
+(0, 0, 1)
+(1, 0, 1)
+(1, 1, 2)  # higher corner
+(0, 1, 2)
+
+You can define the top and bottom points in the same order (winding), and then:
+✅ Use bmesh.ops.bridge_loops():
+
+This will automatically create the side faces between two loops of vertices, even if they’re at different heights or sloped.
+
+bmesh.ops.bridge_loops(bm, edges=your_edge_loop)
+
+This is commonly used for lofting between two edge rings — perfect for your sloped star or cube.
+
+
+
+⭐ Star with sloped top?
+
+Same logic applies:
+
+    Define the 10-star points on the bottom,
+
+    Copy them to the top, change the Z values to add the slope (even a wave or curve),
+
+    Keep them in the same order (to preserve face orientation),
+
+    Then use bridge_loops() or manual edge/face construction to link the top and bottom.
+
+
+
+
+
+
+

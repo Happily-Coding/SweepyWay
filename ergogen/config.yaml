@@ -414,6 +414,30 @@ outlines:
     - operation: subtract
       name: l_key_based_board_outline
 
+  l_hand_rest_overlapping_polygon:
+    - what: polygon
+      operation: stack
+      points: 
+      - ref: matrix_col1_row4
+        shift: [-0.5*kx-0.5*px,0] #end at the left border of the key instead of the center
+      - ref: matrix_col6_row4
+        shift: [0,0]
+      - ref: thumbfan_col1_thumb_row_1
+        shift: [0,0]
+      - ref: thumbfan_col2_thumb_row_1
+        shift: [0,0]
+      - ref: thumbfan_col3_thumb_row_1
+        shift: [0.5*kx+0.5*px,0]
+      - ref: thumbfan_col3_thumb_row_1
+        shift: [0.5*kx+0.5*px-5,-50] #make each bottom border end slightly inner in comparison with the original shape, to look better
+      - ref: matrix_col1_row4
+        shift: [-0.5*kx-0.5*px+5,-50]
+
+  l_hand_rest_polygon:
+    - name: l_hand_rest_overlapping_polygon
+    - operation: subtract
+      name: l_key_based_board_outline_with_extra_padding #l_case_border_outline
+
   # l_bottom_plate_outline:
   #   - name: l_pcb_outline
 
@@ -803,4 +827,10 @@ cases:
       extrude: 10 #10 More than necessary for a cable to fit with the border inside the case, but i use 12 for more leeway just in case
       shift: [-20,5,case_bottom_thickness]
       operation: subtract
+    # - name: l_hand_rest_overlapping_polygon # test
+    #   extrude: 3
+    #   shift: [0,0, 30]
+    - name: l_hand_rest_polygon
+      extrude: 3
+      shift: [0, 0, 0]
 

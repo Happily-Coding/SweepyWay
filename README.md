@@ -12,7 +12,7 @@ left side | right side
 ![left bottom](https://happily-coding.github.io/SweepyWay/images/left_pcb-bottom.png) | ![right bottom](https://happily-coding.github.io/SweepyWay/images/right_pcb-bottom.png)
 -->
 
-## Features
+## Planned Features
 * **Beginner friendly**
   * Abundant keys, but in non disruptive places.
 * **Truly ergonomic**
@@ -119,8 +119,8 @@ See the [workflow](.github/workflows/build.yml) or the [Makefile](Makefile) for 
 - [alakuu/skree](https://www.reddit.com/user/alakuu/) for taking the time to answer questions about pcb assembly services
 - [Choco-rain](https://www.reddit.com/r/MechanicalKeyboards/comments/qanrr8/corne_with_3d_printed_cases_wrist_rests_and_plates/) for palmrest inspiration
 
-## Disclaimer
-**Work in progress!**
+## Disclaimer **Work in progress!**
+
 
 ## Important
 Only connect battery if a nice!nano board is used!
