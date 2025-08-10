@@ -30,6 +30,7 @@ presets:
     kx: 17 # spacing between keys (X-axis) 
     ky: 17 # spacing between keys(Y-axis)
     keycap_x_1u: 16.5
+  #pcb_to_case_wall_tolerance: 0.25 <-- asi era ref, debe ser ultra exagerado lo mio
 
 units:
   $extends: presets.cfx
@@ -53,6 +54,11 @@ units:
   internal_distance_between_plates: 4
   case_border_height: 16 # added by me, in a quick search soffle choic was arround 17 theoretically
   case_bottom_thickness: 3
+  screw_offset_x: -0.35 kx #How much to move the screw from the reference point.
+  screw_offset_y: -0.35 ky #how much to move the screw from the referene point
+  controller_area_height: 5 #How tall relative to the switch plate the controller area cover should be at
+  controller_area_wall_thickness: 2 #How thick (wide) the wall of the controller area should be
+  controller_area_cover_thickness: 1.6 #How thick (tall) the cover should be 
 
   # Font units
   font_x: 1
@@ -238,7 +244,7 @@ points:
     l_controller_area_center:
       anchor:
         ref: mcu
-        shift: [+8, -8]
+        shift: [+8, 0]
       key:
         tags: ['l_controller_area_center']
 
@@ -254,6 +260,38 @@ points:
     #shift: [0, + ky]
     #distance: 100
     #key.tags: [key,mirrorkey]
+    
+    #Define the points at which we need to make each screw hole
+    l_screw_left_top:
+      anchor:
+        - ref: matrix_col1_row1
+          shift: [screw_offset_x , screw_offset_y]
+      key.tags:
+        - left_screw
+    l_screw_left_bottom:
+      anchor:
+        - ref: matrix_col1_row4
+          shift: [screw_offset_x , screw_offset_y]
+      key.tags:
+        - left_screw
+    l_screw_right_top:
+      anchor:
+        - ref: matrix_col6_row1
+          shift: [screw_offset_x , screw_offset_y]
+      key.tags:
+        - left_screw
+    l_screw_right_bottom:
+      anchor:
+        - ref: matrix_col6_row4
+          shift: [screw_offset_x , screw_offset_y]
+      key.tags:
+        - left_screw
+    l_screw_thumb:
+      anchor:
+        - ref: thumbfan_col2_thumb_row_1
+          shift: [screw_offset_x , screw_offset_y]
+      key.tags:
+        - left_screw
 
 outlines:
   l_key_based_board_outline:
@@ -332,7 +370,7 @@ outlines:
   l_controller_area:
     - what: rectangle
       where: l_controller_area_center
-      size: [50, 37]
+      size: [50, 29] #[50, 37]
       corner: 3
 
   r_controller_area:
@@ -365,10 +403,43 @@ outlines:
     - "+r_controller_area"
     - "+r_jsph_area"
 
+  l_controller_area_cover: #The area that will cover the controller
+    - what: outline
+      name: l_controller_area
+      expand: controller_area_wall_thickness
+
+  #Create the wall for the left controller area that sits below the area that covers it.
+  l_controller_area_border:
+    - what: outline
+      name: l_controller_area_cover
+    - operation: subtract
+      what: outline
+      name: l_controller_area
+
+  l_jsph_area_cover: #The area that will cover the jsph
+    - what: outline
+      name: l_jsph_area
+      expand: controller_area_wall_thickness
+
+  #Create the wall for the left jsph area that sits below the area that covers it.
+  l_jsph_area_border:
+    - what: outline
+      name: l_jsph_area_cover
+    - operation: subtract
+      what: outline
+      name: l_jsph_area
+
+  l_screws_outline:
+    - what: circle
+      where: [left_screw]
+      radius: screw_radius
+
   l_case_bottom:
     - what: outline
       name: l_pcb_outline
       expand: 4
+    - operation: subtract
+      name: l_screws_outline
 
   l_case_border_do_not_ocupy:
     - what: outline
@@ -383,6 +454,12 @@ outlines:
       what: outline
       name: l_case_border_do_not_ocupy
 
+  # l_case_border_outline:
+  #   # remove the pcb outline from an outline with exta padding
+  #   - name: l_key_based_board_outline_with_extra_padding
+  #   - operation: subtract
+  #     name: l_key_based_board_outline
+
   l_keys_outline:
     - what: rectangle
       where: [[leftkey]]
@@ -393,13 +470,18 @@ outlines:
       where: [[rightkey]]
       size: [plate_kx/2, plate_ky/2]
 
-  l_cover_outline:
+  l_coverpart_switch_plate_outline: 
+  # The top plate of the keyboard with the holes for the key switches bottom to go through and the edges for their middle to sit at.
+  #Probably should not use the left pcb outline directly because the MCU is probably taller than the height we want the plate to have
+  #And therefore htat should be 
     - name: l_all_key_clusters_outline
     - operation: subtract
       name: l_keys_outline
+    - operation: subtract
+      name: l_screws_outline
 
   r_cover_outline:
-    - name: r_all_key_clusters_outline
+    - name: r_pcb_outline #r_all_key_clusters_outline
     - operation: subtract
       name: r_keys_outline
 
@@ -408,13 +490,9 @@ outlines:
       where: mcu
       size: [15, 15] #usbc connectors are apparently ~8.94 width, and ~ 4mm high , width is the second value in my file. With 15 a cable fits with the case with room to spare
 
-  l_case_border_outline:
-    # remove the pcb outline from an outline with exta padding
-    - name: l_key_based_board_outline_with_extra_padding
-    - operation: subtract
-      name: l_key_based_board_outline
 
-  l_hand_rest_overlapping_polygon:
+
+  l_hand_rest_overlapping_polygon: #A polygon that extends above the keyboard, from which we need to remove the keyboard in order to make the hand rest polygon.
     - what: polygon
       operation: stack
       points: 
@@ -438,13 +516,7 @@ outlines:
     - operation: subtract
       name: l_key_based_board_outline_with_extra_padding #l_case_border_outline
 
-  # l_bottom_plate_outline:
-  #   - name: l_pcb_outline
-
-  # r_bottom_plate_outline:
-  #   - name: r_pcb_outline
-
-  # Combination preview showing outline and keys.
+  # preview showing outline and keys.
   #combined:
   #  - name: r_cover_outline
     # - operation: stack
@@ -480,7 +552,7 @@ pcbs:
     template: kicad8
     outlines:
       right:
-        outline: l_cover_outline
+        outline: l_coverpart_switch_plate_outline
     footprints:
       url:
         what: ceoloide/utility_text
@@ -646,6 +718,12 @@ pcbs:
           shift: [0, 10]
         where: 
           - [key, -1_5u, space]
+      screws:
+        what: ceoloide/mounting_hole_npth
+        where: left_screw
+        params:
+          hole_size: screw_diameter
+          hole_drill: screw_diameter
 
   right_pcb:
     template: kicad8
@@ -794,14 +872,11 @@ pcbs:
       #     shift: [-mcu_y/2 -22,  -2]
 
 cases:
-  #TODO add spacing between case wall and pcb
+  #TODO add spacing between case wall and pcb (add some more padding in addition to the wall thickness)
   #TODO: Add a piece of plastic that goes inward from the top of the border and fits in it to cover the pcb
   #TODO: add hand rest.
-  #TODO: Add screws
-  #TODO: Add usb connector spacing
   #TODO Add an additional outline to covert the controller
-  #TODO: Add holes to make water drain.
-  #TODO: try to create the stl with cli
+  #TODO: Add holes to make water drain
   #TODO: Make base tilting and tenting compatible and or adjustable height
 
   #We need to do something like this for the bottom plate:
@@ -810,10 +885,25 @@ cases:
   #    extrude: 1.2
 
   l_case_3d:
-    - name: l_key_based_board_outline_with_extra_padding
+    - name: l_case_bottom #l_key_based_board_outline_with_extra_padding
       extrude: case_bottom_thickness
-    - name: l_case_border_outline
+    - name: l_case_border #l_case_border_outline
       extrude: case_border_height
+    - name : l_usbc_border_outline
+      extrude: 10 #10 More than necessary for a cable to fit with the border inside the case, but i use 12 for more leeway just in case
+      shift: [-20,5,case_bottom_thickness]
+
+  l_cover:
+    - name: l_coverpart_switch_plate_outline
+      extrude: top_plate_thickness
+      shift: [0, 0, 25]
+    - name: l_controller_area_border
+      extrude: controller_area_height
+      shift: [0, 0, 25]
+  #   - name: l_controller_area_cover
+  #     extrude: controller_area_cover_thickness
+  #     shift: [0, 0, 25+ controller_area_height]
+
 
   l_3d_preview:
     #Pasting all components here with vertical offsets we can verify that everything fits where it should
@@ -821,16 +911,20 @@ cases:
       extrude: case_bottom_thickness
     - name: l_case_border #l_case_border_outline
       extrude: case_border_height
-    - name: l_pcb_outline
-      shift: [0, 0, 20]
     - name : l_usbc_border_outline
       extrude: 10 #10 More than necessary for a cable to fit with the border inside the case, but i use 12 for more leeway just in case
       shift: [-20,5,case_bottom_thickness]
       operation: subtract
-    # - name: l_hand_rest_overlapping_polygon # test
-    #   extrude: 3
-    #   shift: [0,0, 30]
+    - name: l_coverpart_switch_plate_outline
+      extrude: 3
+      shift: [0, 0, 25]
+
+    #Components that shoulndt really be printed
+    - name: l_pcb_outline
+      shift: [0, 0, 20]
     - name: l_hand_rest_polygon
       extrude: 3
       shift: [0, 0, 0]
-
+    # - name: l_hand_rest_overlapping_polygon # test
+    #   extrude: 3
+    #   shift: [0,0, 30]
