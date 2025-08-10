@@ -7,7 +7,7 @@ left side | right side
 -|-
 ![left](https://happily-coding.github.io/SweepyWay/images/left_pcb-top.png) | ![right](https://happily-coding.github.io/SweepyWay/images/right_pcb-top.png)
 
-[More outputs](https://happily-coding.github.io/SweepyWay/) (images, pdfs, jscads 3d models you can [view and transform to stl](https://neorama.de/))
+[More outputs](https://happily-coding.github.io/SweepyWay/) (images, pdfs, stl 3d models, etc)
 <!-- 
 ![left bottom](https://happily-coding.github.io/SweepyWay/images/left_pcb-bottom.png) | ![right bottom](https://happily-coding.github.io/SweepyWay/images/right_pcb-bottom.png)
 -->
@@ -54,17 +54,7 @@ Crear palmrest solution:
 - En open jscad cambiar la altura de los 2 puntos finales a la altura que quiero, automaticamente se va a generar un ángulo. smoothearlo de alguna manera. creo que tal vez es simple smoothear el costado creando puntos intermedios que unan la parte superior con el borde de abajo y quedaria hecho.
 
 cortado por el poligono orilfin
-
-* Bottom Plate (Thick PCB with cutouts for all components placed at the bottom. Optimised for maximum thinness)
-* Remove or document magic numbers
-* SMD footrints
-* Middle bracked PCB with touchpad (Holds both halves together rigidly)
-* stabilizer cutouts Needs more research...
-  Thanks https://github.com/jasonhazel for measuring the ChocFox WOB 3u spacebar stabilizer spacing. (40mm)
-  watch https://www.youtube.com/watch?v=5tERUZ_BSPM
 -->
-
-
 
 ## How to modify it
 <!-- from original repo
