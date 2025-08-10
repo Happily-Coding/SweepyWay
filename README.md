@@ -74,8 +74,7 @@ If you would like to modify this:
 * change `ergogen/config.yaml` to your liking
 * reactivate github workflows
 * reactivate github pages at https://github.com/your-name/your-repo/settings/pages, choose github actions instead of a branch
-* push your changes; the `build.yml` GitHub Workflow will pick it up, autoroute and generate Gerbers, all in a zip file.
-  See https://github.com/soundmonster/samoklava/actions
+* push your changes; the `build.yml` GitHub Workflows(https://github.com/your-name/your-repo/actions) will pick it up, autoroute and generate Gerbers, all in a zip file, and then deploy it to github pages(https://your-name.github.io/your-repo/).
 * or:
   * make sure to have Docker CLI and NodeJS installed
   * run `make setup clean all`
@@ -133,7 +132,7 @@ cortado por el poligono orilfin
 
 ## Credits
 - [mxooaar](https://www.reddit.com/r/ErgoMechKeyboards/comments/1lanvon/comment/mxooaar/) for peaking my interest in actually building my idea for a keyboard
-- [christianselig caldera keyboard](https://github.com/christianselig/caldera-keyboard) for showing that creating a custom keyboard was reasonably easy
+- [christianselig caldera keyboard](https://github.com/christianselig/caldera-keyboard) for showing that creating a custom keyboard is reasonably easy
 - [Ergogen](https://github.com/ergogen/ergogen) for the awesome tool for building most of the keyboard
 - [Soundmonster Samaklova Keyboard](https://github.com/soundmonster/samoklava/tree/main) for automatic electronic routing
 - [tbaumann typematrix](https://github.com/tbaumann/typematrix_split_new/tree/main/ergogen) for automatic documentation, and example of how to use celoide ergonomic footprints
