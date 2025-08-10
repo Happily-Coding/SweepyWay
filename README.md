@@ -41,23 +41,56 @@ left side | right side
   * Uses [KiKit](https://github.com/yaqwsx/KiKit) to render PCB previews and production-ready **Gerber files**
   * Compatible with [no solder spring headers](https://typeractive.xyz/products/no-solder-spring-headers) 
 
+## Disclaimer: Work in progress!
+### TODO list:
+- perfect top case, and replicate for right side
+  - the controller area is delicate, we need to only increase height on the part that the controller and maybe the jsph and reset switch are, since otherwise they wont fit with the plate cutting into them
+  - We need to keep the reset butotn exposed to the outside if we want to be able to use the keyboard flash with the cover on (which may be important for typing)
+- add the batery and microcontroller 3d model to check there are no issues
+- add a lengua in the wall of the case below the top plate to en sure no drainage on the corners?
+- Add parametric tenting legs.
+- Add spacing between case wall and pcb (add some more padding in addition to the wall thickness)
+- Finish making hand rest parametric and integrate it into the pipeline
+- Fix the additional outline to cover the controller
+- make sure the bom & pos are outputed correctly and ideally automated
+- Nice haves:
+  - Make base tilting and tenting compatible and or adjustable height
+  - add water draining holes
+  - Add a piece of plastic that goes inward from the top of the border and fits in it to cover the pcb
+  - add leds and spacing for a big batery in the tenting solution
+  - add other controller types
+  - improve controller pin assignment for better routing
+  - Add headers soldering from jlpcb
+
 ## Build Status
 [![Build](https://github.com/Happily-Coding/SweepyWay/actions/workflows/build.yaml/badge.svg)](https://github.com/Happily-Coding/SweepyWay/actions/workflows/build.yaml)
 
-<!-- from original repo
-## Todo
-Mio:
-Crear palmrest solution: 
-- crear un poligono desde bastante arriba del keyboard hasta el punto en el que quiero que termine el palmrest a la isquierda y a la derecha
-- Tiene que ser un poco mas irregular para crear relleno en lugares innecesarios
-- Removerle todo lo que sea espacio ocupado por el teclado
-- En open jscad cambiar la altura de los 2 puntos finales a la altura que quiero, automaticamente se va a generar un ángulo. smoothearlo de alguna manera. creo que tal vez es simple smoothear el costado creando puntos intermedios que unan la parte superior con el borde de abajo y quedaria hecho.
-
-cortado por el poligono orilfin
--->
-
 ## How to modify it
-<!-- from original repo
+
+### Setup
+If you would like to modify this:
+* fork it
+* clone it locally with celoide submodule git clone --recurse-submodules https://github.com/Happily-Coding/SweepyWay.git
+* change `ergogen/config.yaml` to your liking
+* reactivate github workflows
+* reactivate github pages at https://github.com/your-name/your-repo/settings/pages, choose github actions instead of a branch
+* push your changes; the `build.yml` GitHub Workflow will pick it up, autoroute and generate Gerbers, all in a zip file.
+  See https://github.com/soundmonster/samoklava/actions
+* or:
+  * make sure to have Docker CLI and NodeJS installed
+  * run `make setup clean all`
+  * check the `output` folder for KiCad PCBs and Gerbers
+* you can find the latest build artifacts [here](https://happily-coding.github.io/SweepyWay/)
+
+See the [workflow](.github/workflows/build.yml) or the [Makefile](Makefile) for more details.
+
+### Quickly previewing the pcb
+Open the project, open a terminal, run ```cd ergogen``` and ```ergogen .```
+
+### Quickly previewing the case and other jscad files
+Open [neorama openjscad](https://neorama.de/) , and drag the jscad file to the button, you can pan and move using right click or shift rightclick.
+
+<!-- 
 ### Add more keys in places that don't interfere with the controller
 Add elements to the row or column matrix, and map them (WIP, TODO explain with more detail)
 
@@ -84,28 +117,19 @@ https://github.com/AtomicJon/jonkey/blob/main/jonkey-v2.yml other celoide footpr
 https://github.com/scipioni/clavis alternative stup for auto routing 
 #asym in theory can be used in outlines to get only mirrored or only normal points https://docs.ergogen.xyz/outlines/
 -->
-### Setup
-If you would like to modify this:
-* fork it
-* clone it locally with celoide submodule git clone --recurse-submodules https://github.com/Happily-Coding/SweepyWay.git
-* change `ergogen/config.yaml` to your liking
-* reactivate github workflows
-* reactivate github pages at https://github.com/your-name/your-repo/settings/pages, choose github actions instead of a branch
-* push your changes; the `build.yml` GitHub Workflow will pick it up, autoroute and generate Gerbers, all in a zip file.
-  See https://github.com/soundmonster/samoklava/actions
-* or:
-  * make sure to have Docker CLI and NodeJS installed
-  * run `make setup clean all`
-  * check the `output` folder for KiCad PCBs and Gerbers
-* you can find the latest build artifacts [here](https://happily-coding.github.io/SweepyWay/)
 
-See the [workflow](.github/workflows/build.yml) or the [Makefile](Makefile) for more details.
+<!-- 
+## Todo
+Mio:
+Crear palmrest solution: 
+- crear un poligono desde bastante arriba del keyboard hasta el punto en el que quiero que termine el palmrest a la isquierda y a la derecha
+- Tiene que ser un poco mas irregular para crear relleno en lugares innecesarios
+- Removerle todo lo que sea espacio ocupado por el teclado
+- En open jscad cambiar la altura de los 2 puntos finales a la altura que quiero, automaticamente se va a generar un ángulo. smoothearlo de alguna manera. creo que tal vez es simple smoothear el costado creando puntos intermedios que unan la parte superior con el borde de abajo y quedaria hecho.
 
-### Quickly previewing the pcb
-Open the project, open a terminal, run ```cd ergogen``` and ```ergogen .```
+cortado por el poligono orilfin
+-->
 
-### Quickly previewing the case and other jscad files
-Open [neorama openjscad](https://neorama.de/) , and drag the jscad file to the button, you can pan and move using right click or shift rightclick.
 
 ## Credits
 - [mxooaar](https://www.reddit.com/r/ErgoMechKeyboards/comments/1lanvon/comment/mxooaar/) for peaking my interest in actually building my idea for a keyboard
@@ -113,27 +137,6 @@ Open [neorama openjscad](https://neorama.de/) , and drag the jscad file to the b
 - [Ergogen](https://github.com/ergogen/ergogen) for the awesome tool for building most of the keyboard
 - [Soundmonster Samaklova Keyboard](https://github.com/soundmonster/samoklava/tree/main) for automatic electronic routing
 - [tbaumann typematrix](https://github.com/tbaumann/typematrix_split_new/tree/main/ergogen) for automatic documentation, and example of how to use celoide ergonomic footprints
-- [Celoide](https://github.com/ceoloide/ergogen-footprints) for the library of additional ergogen footprints for more parts.
+- [Celoide](https://github.com/ceoloide/ergogen-footprints) for the library of additional ergogen footprints for more parts and the awesome discord.
 - [alakuu/skree](https://www.reddit.com/user/alakuu/) for taking the time to answer questions about pcb assembly services
 - [Choco-rain](https://www.reddit.com/r/MechanicalKeyboards/comments/qanrr8/corne_with_3d_printed_cases_wrist_rests_and_plates/) for palmrest inspiration
-
-## Disclaimer: Work in progress!
-### TODO list:
-- perfect top case, and replicate for right side
-  - the controller area is delicate, we need to only increase height on the part that the controller and maybe the jsph and reset switch are, since otherwise they wont fit with the plate cutting into them
-  - We need to keep the reset butotn exposed to the outside if we want to be able to use the keyboard flash with the cover on (which may be important for typing)
-- add the batery and microcontroller 3d model to check there are no issues
-- add a lengua in the wall of the case below the top plate to en sure no drainage on the corners?
-- Add parametric tenting legs.
-- Add spacing between case wall and pcb (add some more padding in addition to the wall thickness)
-- Finish making hand rest parametric and integrate it into the pipeline
-- Fix the additional outline to cover the controller
-- make sure the bom & pos are outputed correctly and ideally automated
-- Nice haves:
-  - Make base tilting and tenting compatible and or adjustable height
-  - add water draining holes
-  - Add a piece of plastic that goes inward from the top of the border and fits in it to cover the pcb
-  - add leds and spacing for a big batery in the tenting solution
-  - add other controller types
-  - improve controller pin assignment for better routing
-  - Add headers soldering from jlpcb
