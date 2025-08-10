@@ -37,6 +37,7 @@ left side | right side
   * Uses Ergogen to translate YAML to a KiCad PCB and plate files for FR-4 fab or laser cutting
   * Uses [kicad-automation-scripts](https://github.com/productize/kicad-automation-scripts) and [FreeRouting](https://github.com/freerouting/freerouting) to **automatically route the traces on the PCB**
   * Uses [KiKit](https://github.com/yaqwsx/KiKit) to render PCB previews and production-ready **Gerber files**
+  * Compatible with [no solder spring headers](https://typeractive.xyz/products/no-solder-spring-headers) 
 
 ## Build Status
 [![Build](https://github.com/Happily-Coding/SweepyWay/actions/workflows/build.yaml/badge.svg)](https://github.com/Happily-Coding/SweepyWay/actions/workflows/build.yaml)
@@ -122,9 +123,25 @@ See the [workflow](.github/workflows/build.yml) or the [Makefile](Makefile) for 
 ## Disclaimer
 **Work in progress!**
 ### TODO list:
-- Add screw holes to the bottom case and pcb
-- Add plate/topcase 
+- perfect top case, and replicate for right side
+  - the controller area is delicate, we need to only increase height on the part that the controller and maybe the jsph and reset switch are, since otherwise they wont fit with the plate cutting into them
+  - We need to keep the reset butotn exposed to the outside if we want to be able to use the keyboard flash with the cover on (which may be important for typing)
+- add the batery and microcontroller 3d model to check there are no issues
+- add a lengua in the wall of the case below the top plate to en sure no drainage on the corners?
 - Add parametric tenting legs.
+- Add spacing between case wall and pcb (add some more padding in addition to the wall thickness)
+- Finish making hand rest parametric and integrate it into the pipeline
+- Fix the additional outline to cover the controller
+- make sure the bom & pos are outputed correctly and ideally automated
+- Nice haves:
+  - Make base tilting and tenting compatible and or adjustable height
+  - add water draining holes
+  - Add a piece of plastic that goes inward from the top of the border and fits in it to cover the pcb
+  - add leds and spacing for a big batery in the tenting solution
+  - add other controller types
+  - improve controller pin assignment for better routing
+  - Add headers soldering from jlpcb
+
 
 ## Important
 Only connect battery if a nice!nano board is used!
