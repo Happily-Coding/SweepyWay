@@ -14,6 +14,7 @@ left side | right side
 
 ## Planned Features
 * **Beginner friendly**
+  * Available pdfs, so you can print the layout and see how it feels
   * Abundant keys, but in non disruptive places.
 * **Truly ergonomic**
   * Aggressive column stagger, like Ferris Sweep, to match how fingers are staggered.
@@ -35,6 +36,7 @@ left side | right side
 * **Easy to modify** (Declarative design done via yaml)
   * Layout is declared using [Ergogen](https://github.com/mrzealot/ergogen/). 
   * Uses Ergogen to translate YAML to a KiCad PCB and plate files for FR-4 fab or laser cutting
+  * Uses Ergogen to output jscad files for the case, and openjscad to convert them to stl.
   * Uses [kicad-automation-scripts](https://github.com/productize/kicad-automation-scripts) and [FreeRouting](https://github.com/freerouting/freerouting) to **automatically route the traces on the PCB**
   * Uses [KiKit](https://github.com/yaqwsx/KiKit) to render PCB previews and production-ready **Gerber files**
   * Compatible with [no solder spring headers](https://typeractive.xyz/products/no-solder-spring-headers) 
@@ -92,7 +94,7 @@ https://github.com/AtomicJon/jonkey/blob/main/jonkey-v2.yml other celoide footpr
 https://github.com/scipioni/clavis alternative stup for auto routing 
 #asym in theory can be used in outlines to get only mirrored or only normal points https://docs.ergogen.xyz/outlines/
 -->
-
+### Setup
 If you would like to modify this:
 * fork it
 * clone it locally with celoide submodule git clone --recurse-submodules https://github.com/Happily-Coding/SweepyWay.git
@@ -109,6 +111,11 @@ If you would like to modify this:
 
 See the [workflow](.github/workflows/build.yml) or the [Makefile](Makefile) for more details.
 
+### Quickly previewing the pcb
+Open the project, open a terminal, run ```cd ergogen``` and ```ergogen .```
+
+### Quickly previewing the case and other jscad files
+Open [neorama openjscad](https://neorama.de/) , and drag the jscad file to the button, you can pan and move using right click or shift rightclick.
 
 ## Credits
 - [mxooaar](https://www.reddit.com/r/ErgoMechKeyboards/comments/1lanvon/comment/mxooaar/) for peaking my interest in actually building my idea for a keyboard
@@ -120,8 +127,7 @@ See the [workflow](.github/workflows/build.yml) or the [Makefile](Makefile) for 
 - [alakuu/skree](https://www.reddit.com/user/alakuu/) for taking the time to answer questions about pcb assembly services
 - [Choco-rain](https://www.reddit.com/r/MechanicalKeyboards/comments/qanrr8/corne_with_3d_printed_cases_wrist_rests_and_plates/) for palmrest inspiration
 
-## Disclaimer
-**Work in progress!**
+## Disclaimer: Work in progress!
 ### TODO list:
 - perfect top case, and replicate for right side
   - the controller area is delicate, we need to only increase height on the part that the controller and maybe the jsph and reset switch are, since otherwise they wont fit with the plate cutting into them
@@ -141,11 +147,3 @@ See the [workflow](.github/workflows/build.yml) or the [Makefile](Makefile) for 
   - add other controller types
   - improve controller pin assignment for better routing
   - Add headers soldering from jlpcb
-
-
-## Important
-Only connect battery if a nice!nano board is used!
-
-## Addittional notes
-The pipeline outputs jscad files for the case, which are incompatible with most cad software.
-I'm in the process of automating their conversion to stl, (which can be opened by many cad softwares), but for now you can manually conver it using [neorama openjscad](https://neorama.de/) . [Modern openjscad](https://openjscad.xyz/) seems to be incompatible with the output of ergogen.
