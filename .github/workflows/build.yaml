@@ -88,6 +88,17 @@ jobs:
             -v ${{ github.workspace }}/filtered-output/cases:/designs \
             openjscad-cli \
             bash -c convert-all.sh
+      - name: Install UV to prepare python dependencies
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true # enable cache to speed up installationshttps://github.com/astral-sh/setup-uv
+          version: "0.5.11"
+      - name: Install Python dependencies for parametric palm rest modeling 
+        run: |
+          uv sync --all-extras --dev
+      - name: Create palmrest & Tenting system 3d models.
+        run: |
+          uv run ./palmrest_and_tenting_creation/create_palmrest.py
       - name: Generate Directory Listings # Create the list of all the github pages to be deployed based on the files on folder.
         uses: jayanta525/github-pages-directory-listing@v4.0.0
         with:
