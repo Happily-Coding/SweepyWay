@@ -129,5 +129,5 @@ if __name__ == "__main__":
 
     # Final mesh
     mesh = trimesh.Trimesh(vertices=vertices, faces=final_faces, process=True)
-    mesh.export("palm_rest_fixed_with_inner_points.stl")
-    print("STL file saved as 'palm_rest_fixed_with_inner_points.stl'")
+    mesh.export("./filtered_output/palm_rest.stl")
+    print("STL file saved as 'palm_rest.stl'")
