@@ -46,7 +46,7 @@ left side | right side
   * Uses Kibot to produce jlpcb pos files and BOM so you can order your pcb assembled and not have to solder. (WIP) 
   * Compatible with [no solder spring headers](https://typeractive.xyz/products/no-solder-spring-headers) 
 
-## Disclaimer:! [![Build](https://github.com/Happily-Coding/SweepyWay/actions/workflows/build.yaml/badge.svg)](https://github.com/Happily-Coding/SweepyWay/actions/workflows/build.yaml)
+[![Build](https://github.com/Happily-Coding/SweepyWay/actions/workflows/build.yaml/badge.svg)](https://github.com/Happily-Coding/SweepyWay/actions/workflows/build.yaml)
 <details><summary><span style="font-size: 2em; font-weight: bold;"> Work in progress. TODO List:</span></summary> 
 
 - perfect top case, and replicate for right side
@@ -133,8 +133,8 @@ https://github.com/scipioni/clavis alternative stup for auto routing
 -->
 </details>
 
+<details><summary><span style="font-size: 2em; font-weight: bold;">Credits</span></summary> 
 
-## Credits
 - [mxooaar](https://www.reddit.com/r/ErgoMechKeyboards/comments/1lanvon/comment/mxooaar/) for peaking my interest in actually building my idea for a keyboard
 - [christianselig caldera keyboard](https://github.com/christianselig/caldera-keyboard) for showing that creating a custom keyboard is reasonably easy
 - [Ergogen](https://github.com/ergogen/ergogen) for the awesome tool for building most of the keyboard
@@ -143,3 +143,4 @@ https://github.com/scipioni/clavis alternative stup for auto routing
 - [Celoide](https://github.com/ceoloide/ergogen-footprints) for the library of additional ergogen footprints for more parts and the awesome discord.
 - [alakuu/skree](https://www.reddit.com/user/alakuu/) for taking the time to answer questions about pcb assembly services
 - [Choco-rain](https://www.reddit.com/r/MechanicalKeyboards/comments/qanrr8/corne_with_3d_printed_cases_wrist_rests_and_plates/) for palmrest inspiration
+</details>
