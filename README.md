@@ -75,7 +75,6 @@ left side | right side
 
 
 <details><summary><h1 style="display:inline-block"> How to modify it</h1></summary>
-
 ### Setup
 If you would like to modify this:
 * fork it
