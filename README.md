@@ -2,7 +2,7 @@
 
 A truly ergonomic, begginner friendly keyboard.
 
-<details open><summary><h1 style="display:inline-block">Photos & Outputs</h1></summary>
+<details open><summary><h2 style="display:inline-block">Photos & Outputs</h2></summary>
 
 left side | right side
 -|-
@@ -14,7 +14,7 @@ left side | right side
 -->
 </details>
 
-<details open><summary><h1 style="display:inline-block">Features</span></summary> 
+<details open><summary><h2 style="display:inline-block">Features</span></summary> 
 
 * **Beginner friendly**
   * Available pdfs, so you can print the layout and see how it feels
@@ -46,8 +46,7 @@ left side | right side
   * Uses Kibot to produce jlpcb pos files and BOM so you can order your pcb assembled and not have to solder. (WIP) 
   * Compatible with [no solder spring headers](https://typeractive.xyz/products/no-solder-spring-headers) 
 
-[![Build](https://github.com/Happily-Coding/SweepyWay/actions/workflows/build.yaml/badge.svg)](https://github.com/Happily-Coding/SweepyWay/actions/workflows/build.yaml)
-<details><summary><h1 style="display:inline-block"> Work in progress. TODO List</h1></summary>
+<details><summary><h2 style="display:inline-block"> Work in progress. TODO List</h2></summary>
 
 - perfect top case, and replicate for right side
   - the controller area is delicate, we need to only increase height on the part that the controller and maybe the jsph and reset switch are, since otherwise they wont fit with the plate cutting into them
@@ -74,7 +73,8 @@ left side | right side
 </details>
 
 
-<details><summary><h1 style="display:inline-block"> How to modify it</h1></summary>
+<details><summary><h2 style="display:inline-block"> How to modify it</h2></summary>
+
 ### Setup
 If you would like to modify this:
 * fork it
@@ -132,7 +132,7 @@ https://github.com/scipioni/clavis alternative stup for auto routing
 -->
 </details>
 
-<details><summary><h1 style="display:inline-block"> Credits</h1></summary>
+<details><summary><h2 style="display:inline-block"> Credits</h2></summary>
 
 - [mxooaar](https://www.reddit.com/r/ErgoMechKeyboards/comments/1lanvon/comment/mxooaar/) for peaking my interest in actually building my idea for a keyboard
 - [christianselig caldera keyboard](https://github.com/christianselig/caldera-keyboard) for showing that creating a custom keyboard is reasonably easy
