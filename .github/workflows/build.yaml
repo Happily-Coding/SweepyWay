@@ -10,6 +10,7 @@ on:
       - 'freerouting/*'
       - 'package.json'
       - '*.nix'
+      - 'palmrest_and_tenting_creation/*.py'
 
 name: Build
 jobs:
