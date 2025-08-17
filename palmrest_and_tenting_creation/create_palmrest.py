@@ -130,5 +130,5 @@ if __name__ == "__main__":
     # Final mesh
     mesh = trimesh.Trimesh(vertices=vertices, faces=final_faces, process=True)
     #mesh.export("./filtered_output/palm_rest.stl")
-    mesh.export("./palm_rest.stl")
-    print("STL file saved as 'palm_rest.stl'")
+    #mesh.export("./palm_rest.stl")
+    print("STL file would have been saved as 'palm_rest.stl'")
