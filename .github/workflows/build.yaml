@@ -96,9 +96,9 @@ jobs:
       - name: Install Python dependencies (for parametric palm rest modeling) 
         run: |
           uv sync --all-extras --dev
-      - name: Create palmrest & Tenting system 3d models.
-        run: |
-          uv run ./palmrest_and_tenting_creation/create_palmrest.py
+      # - name: Create palmrest & Tenting system 3d models.
+      #   run: |
+      #     uv run ./palmrest_and_tenting_creation/create_palmrest.py
       - name: Generate Directory Listings # Create the list of all the github pages to be deployed based on the files on folder.
         uses: jayanta525/github-pages-directory-listing@v4.0.0
         with:
