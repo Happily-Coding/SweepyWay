@@ -2,7 +2,7 @@
 
 A truly ergonomic, begginner friendly keyboard.
 
-<details open><summary><span style="font-size: 2em; font-weight: bold;">Photos & Outputs</span></summary> 
+<details> <summary><h1 style="display:inline-block">Photos & Outputs</h2></summary>
 
 left side | right side
 -|-
