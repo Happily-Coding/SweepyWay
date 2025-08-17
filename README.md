@@ -1,10 +1,8 @@
-# SweepyWay Split Keyboard
+# SweepyWay Split Keyboard 
+
 A truly ergonomic, begginner friendly keyboard.
 
-
-<details> <summary>Photos & Outputs </summary> <!-- Make the section collapsible -->
-
-## Photos & Outputs
+<details open><summary><span style="font-size: 2em; font-weight: bold;">Photos & Outputs</span></summary> 
 
 left side | right side
 -|-
@@ -16,7 +14,8 @@ left side | right side
 -->
 </details>
 
-## Planned Features
+<details open><summary><span style="font-size: 2em; font-weight: bold;">Features</span></summary> 
+
 * **Beginner friendly**
   * Available pdfs, so you can print the layout and see how it feels
   * Abundant keys, but in non disruptive places.
@@ -26,10 +25,10 @@ left side | right side
     * Very low actuation force switches available (example: nocturnal)
     * Low profile (seamless use without handrest, easier to adjust height without an adjustable desk)
     * ChocV1 spacing (reach the outer columns with less over-stretching)
-  * Tenting, negative tilting, adjustable height and hand rest solutions
+  * Tenting, negative tilting, adjustable height and hand rest solutions (WIP)
 * **Energy efficient**
   * [Nice!nano](https://nicekeyboards.com/nice-nano) optimised, but any promicro should work (bottom up) 
-  * [Nice!view](https://nicekeyboards.com/nice-view) support
+  <!-- * [Nice!view](https://nicekeyboards.com/nice-view) support Not tested, probably requires small modifications --> 
   * No leds
 * **Accident prepared** 
   * Controller far away from accidental splash zones,
@@ -47,8 +46,9 @@ left side | right side
   * Uses Kibot to produce jlpcb pos files and BOM so you can order your pcb assembled and not have to solder. (WIP) 
   * Compatible with [no solder spring headers](https://typeractive.xyz/products/no-solder-spring-headers) 
 
-## Disclaimer: Work in progress!
-### TODO list:
+## Disclaimer:! [![Build](https://github.com/Happily-Coding/SweepyWay/actions/workflows/build.yaml/badge.svg)](https://github.com/Happily-Coding/SweepyWay/actions/workflows/build.yaml)
+<details><summary><span style="font-size: 2em; font-weight: bold;"> Work in progress. TODO List:</span></summary> 
+
 - perfect top case, and replicate for right side
   - the controller area is delicate, we need to only increase height on the part that the controller and maybe the jsph and reset switch are, since otherwise they wont fit with the plate cutting into them
   - We need to keep the reset butotn exposed to the outside if we want to be able to use the keyboard flash with the cover on (which may be important for typing)
@@ -71,11 +71,10 @@ left side | right side
   - Add row staggered variants that are space efficient.
   - Make sure the keyboard is correctly produced with mbk spacing, and mx spacing.
   - Add the ability to customize keycap spacing for the outer columns and rows
+</details>
 
-## Build Status
-[![Build](https://github.com/Happily-Coding/SweepyWay/actions/workflows/build.yaml/badge.svg)](https://github.com/Happily-Coding/SweepyWay/actions/workflows/build.yaml)
 
-## How to modify it
+<details><summary><span style="font-size: 2em; font-weight: bold;">How to modify it</span></summary> 
 
 ### Setup
 If you would like to modify this:
@@ -132,18 +131,7 @@ https://github.com/AtomicJon/jonkey/blob/main/jonkey-v2.yml other celoide footpr
 https://github.com/scipioni/clavis alternative stup for auto routing 
 #asym in theory can be used in outlines to get only mirrored or only normal points https://docs.ergogen.xyz/outlines/
 -->
-
-<!-- 
-## Todo
-Mio:
-Crear palmrest solution: 
-- crear un poligono desde bastante arriba del keyboard hasta el punto en el que quiero que termine el palmrest a la isquierda y a la derecha
-- Tiene que ser un poco mas irregular para crear relleno en lugares innecesarios
-- Removerle todo lo que sea espacio ocupado por el teclado
-- En open jscad cambiar la altura de los 2 puntos finales a la altura que quiero, automaticamente se va a generar un ángulo. smoothearlo de alguna manera. creo que tal vez es simple smoothear el costado creando puntos intermedios que unan la parte superior con el borde de abajo y quedaria hecho.
-
-cortado por el poligono orilfin
--->
+</details>
 
 
 ## Credits
