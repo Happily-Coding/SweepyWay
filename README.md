@@ -1,6 +1,9 @@
 # SweepyWay Split Keyboard
 A truly ergonomic, begginner friendly keyboard.
 
+
+<details> <summary>Photos & Outputs </summary> <!-- Make the section collapsible -->
+
 ## Photos & Outputs
 
 left side | right side
@@ -11,6 +14,7 @@ left side | right side
 <!-- 
 ![left bottom](https://happily-coding.github.io/SweepyWay/images/left_pcb-bottom.png) | ![right bottom](https://happily-coding.github.io/SweepyWay/images/right_pcb-bottom.png)
 -->
+</details>
 
 ## Planned Features
 * **Beginner friendly**
@@ -39,6 +43,8 @@ left side | right side
   * Uses Ergogen to output jscad files for the case, and openjscad to convert them to stl.
   * Uses [kicad-automation-scripts](https://github.com/productize/kicad-automation-scripts) and [FreeRouting](https://github.com/freerouting/freerouting) to **automatically route the traces on the PCB**
   * Uses [KiKit](https://github.com/yaqwsx/KiKit) to render PCB previews and production-ready **Gerber files**
+  * Uses [Trimesh](https://github.com/mikedh/trimesh/tree/main) to parametrically create a palm rest for the keyboard shape.
+  * Uses Kibot to produce jlpcb pos files and BOM so you can order your pcb assembled and not have to solder. (WIP) 
   * Compatible with [no solder spring headers](https://typeractive.xyz/products/no-solder-spring-headers) 
 
 ## Disclaimer: Work in progress!
@@ -46,7 +52,7 @@ left side | right side
 - perfect top case, and replicate for right side
   - the controller area is delicate, we need to only increase height on the part that the controller and maybe the jsph and reset switch are, since otherwise they wont fit with the plate cutting into them
   - We need to keep the reset butotn exposed to the outside if we want to be able to use the keyboard flash with the cover on (which may be important for typing)
-- add the batery and microcontroller 3d model to check there are no issues
+- add the battery and microcontroller 3d model to check there are no issues
 - add a lengua in the wall of the case below the top plate to en sure no drainage on the corners?
 - Add parametric tenting legs.
 - Add spacing between case wall and pcb (add some more padding in addition to the wall thickness)
@@ -61,6 +67,10 @@ left side | right side
   - add other controller types
   - improve controller pin assignment for better routing
   - Add headers soldering from jlpcb
+  - add a tenting system with space for a larger batery or make space for a larger batery in the palm rest, so you can reasonably use the keyboard with rgb.
+  - Add row staggered variants that are space efficient.
+  - Make sure the keyboard is correctly produced with mbk spacing, and mx spacing.
+  - Add the ability to customize keycap spacing for the outer columns and rows
 
 ## Build Status
 [![Build](https://github.com/Happily-Coding/SweepyWay/actions/workflows/build.yaml/badge.svg)](https://github.com/Happily-Coding/SweepyWay/actions/workflows/build.yaml)
@@ -83,11 +93,17 @@ If you would like to modify this:
 
 See the [workflow](.github/workflows/build.yml) or the [Makefile](Makefile) for more details.
 
-### Quickly previewing the pcb
+### Quickly previewing the pcb before pushing
 Open the project, open a terminal, run ```cd ergogen``` and ```ergogen .```
 
-### Quickly previewing the case and other jscad files
+### Quickly previewing the case and other jscad files before pushing
 Open [neorama openjscad](https://neorama.de/) , and drag the jscad file to the button, you can pan and move using right click or shift rightclick.
+
+
+### Quickly previewing the palmrest before pushing
+- Install uv ```pip install uv``` and run uv sync to generate your virtual environment (only once)
+- Run ergogen to produce the outlines.
+- ```uv run palmrest_and_tenting_creation/create_palmrest.py```
 
 <!-- 
 ### Add more keys in places that don't interfere with the controller
