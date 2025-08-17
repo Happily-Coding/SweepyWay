@@ -61,7 +61,7 @@ def sample_points_in_polygon(polygon: Polygon, spacing: float) -> np.ndarray:
 
 if __name__ == "__main__":
     # Load DXF and extract polygon
-    dxf_path = "l_hand_rest_polygon.dxf"
+    dxf_path = "./ergogen/output/outlines/l_hand_rest_polygon.dxf"
     entities = trimesh.load(dxf_path, force='2D')
     shapely_poly = max(entities.polygons_full, key=lambda p: p.area)
 
