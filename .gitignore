@@ -73,3 +73,5 @@ wheels/
 
 # Virtual environments
 .venv
+
+filtered-output/*.stl
