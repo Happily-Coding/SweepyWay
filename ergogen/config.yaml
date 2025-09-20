@@ -819,7 +819,7 @@ pcbs:
       reset:
         what: ceoloide/reset_switch_smd_side
         params:
-          side: B
+          side: F #The same side that most switches height are, to avoid adding unnecessary height
           from: GND
           to: RST
         adjust:
@@ -830,7 +830,7 @@ pcbs:
       power:
         what: ceoloide/power_switch_smd_side
         params:
-          side: B
+          side: F #The same side that most switches height are, to avoid adding unnecessary height
           #          from: GND
           #          to: RST
         adjust:
@@ -970,7 +970,7 @@ pcbs:
       reset:
         what: ceoloide/reset_switch_smd_side
         params:
-          side: F
+          side: F #The same side that most switches height are, to avoid adding unnecessary height
           from: GND
           to: RST
         adjust:
