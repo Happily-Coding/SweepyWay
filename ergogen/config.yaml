@@ -1032,6 +1032,7 @@ cases:
     - name : l_usbc_border_outline
       extrude: 10 #10 More than necessary for a cable to fit with the border inside the case, but i use 12 for more leeway just in case
       shift: [-20,5,case_bottom_thickness]
+      operation: subtract
 
   l_cover:
     - name: l_coverpart_switch_plate_outline
