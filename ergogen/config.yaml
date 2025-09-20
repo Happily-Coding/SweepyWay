@@ -318,6 +318,13 @@ outlines:
       corner: 3
       #corner: px #Havig it set to this value made ergogen create a huge arc for some reason.
 
+  r_key_based_board_outline_with_extra_padding:
+    - what: rectangle
+      where: rightkey
+      #asym: source
+      size: [kx + px + 3, ky + py +3]
+      #corner: px #Havig it set to 3.5 (while px was 3.5) made ergogen create a huge arc for some reason. it did not happen with other decimals, nor 3, nor 4
+      corner: 3
 
   l_thumb_suplementary_outline:
     - what: polygon
@@ -408,6 +415,11 @@ outlines:
       name: l_controller_area
       expand: controller_area_wall_thickness
 
+  r_controller_area_cover: #The area that will cover the controller
+    - what: outline
+      name: r_controller_area
+      expand: controller_area_wall_thickness
+
   #Create the wall for the left controller area that sits below the area that covers it.
   l_controller_area_border:
     - what: outline
@@ -416,9 +428,22 @@ outlines:
       what: outline
       name: l_controller_area
 
+  #Create the wall for the left controller area that sits below the area that covers it.
+  r_controller_area_border:
+    - what: outline
+      name: r_controller_area_cover
+    - operation: subtract
+      what: outline
+      name: r_controller_area
+
   l_jsph_area_cover: #The area that will cover the jsph
     - what: outline
       name: l_jsph_area
+      expand: controller_area_wall_thickness
+
+  r_jsph_area_cover: #The area that will cover the jsph
+    - what: outline
+      name: r_jsph_area
       expand: controller_area_wall_thickness
 
   #Create the wall for the left jsph area that sits below the area that covers it.
@@ -429,9 +454,22 @@ outlines:
       what: outline
       name: l_jsph_area
 
+  #Create the wall for the left jsph area that sits below the area that covers it.
+  r_jsph_area_border:
+    - what: outline
+      name: r_jsph_area_cover
+    - operation: subtract
+      what: outline
+      name: r_jsph_area
+
   l_screws_outline:
     - what: circle
       where: [left_screw]
+      radius: screw_radius
+
+  r_screws_outline:
+    - what: circle
+      where: [right_screw]
       radius: screw_radius
 
   l_case_bottom:
@@ -441,9 +479,21 @@ outlines:
     - operation: subtract
       name: l_screws_outline
 
+  r_case_bottom:
+    - what: outline
+      name: r_pcb_outline
+      expand: 4
+    - operation: subtract
+      name: r_screws_outline
+
   l_case_border_do_not_ocupy:
     - what: outline
       name: l_pcb_outline
+      expand: 2
+
+  r_case_border_do_not_ocupy:
+    - what: outline
+      name: r_pcb_outline
       expand: 2
 
   l_case_border:
@@ -454,8 +504,27 @@ outlines:
       what: outline
       name: l_case_border_do_not_ocupy
 
+  r_case_border:
+    #Keep everything to from the border of the case bottom to slightly arround the pcb
+    - what: outline
+      name: r_case_bottom
+    - operation: subtract
+      what: outline
+      name: r_case_border_do_not_ocupy
+
   ##### Preparing for tenting system
   l_tenting_base_bottom_outline:
+    #Sorround the bottom
+    - what: outline
+      name: l_case_bottom
+      expand: 2
+    #And go inward quite a bit to hold the keyboard bottom case
+    - what: outline
+      name: l_case_bottom
+      expand : -5
+      operation: subtract
+
+  r_tenting_base_bottom_outline:
     #Sorround the bottom
     - what: outline
       name: l_case_bottom
@@ -474,6 +543,17 @@ outlines:
     #And go inward slightly to generate a wall
     - what: outline
       name: l_case_bottom
+      expand : 1
+      operation: subtract
+
+  r_tenting_base_border_outline:
+    #Sorround the bottom 
+    - what: outline
+      name: r_case_bottom
+      expand: 2
+    #And go inward slightly to generate a wall
+    - what: outline
+      name: r_case_bottom
       expand : 1
       operation: subtract
   #################################
@@ -504,6 +584,21 @@ outlines:
     - operation: subtract
       name: l_screws_outline
 
+  r_coverpart_switch_plate_outline: 
+  # The top plate of the keyboard with the holes for the key switches bottom to go through and the edges for their middle to sit at.
+  #Probably should not use the left pcb outline directly because the MCU is probably taller than the height we want the plate to have
+  #And therefore htat should be 
+    - name: r_all_key_clusters_outline
+    - operation: subtract
+      name: r_keys_outline
+    - operation: subtract
+      name: r_screws_outline
+
+  l_cover_outline:
+    - name: l_pcb_outline #r_all_key_clusters_outline
+    - operation: subtract
+      name: l_keys_outline
+
   r_cover_outline:
     - name: r_pcb_outline #r_all_key_clusters_outline
     - operation: subtract
@@ -511,9 +606,13 @@ outlines:
 
   l_usbc_border_outline:
     - what: rectangle
-      where: mcu
+      where: leftcontroller
       size: [15, 15] #usbc connectors are apparently ~8.94 width, and ~ 4mm high , width is the second value in my file. With 15 a cable fits with the case with room to spare
 
+  r_usbc_border_outline:
+    - what: rectangle
+      where: rightcontroller
+      size: [15, 15] #usbc connectors are apparently ~8.94 width, and ~ 4mm high , width is the second value in my file. With 15 a cable fits with the case with room to spare
 
 
   l_hand_rest_overlapping_polygon: #A polygon that extends above the keyboard, from which we need to remove the keyboard in order to make the hand rest polygon.
@@ -524,7 +623,7 @@ outlines:
         shift: [-0.5*kx-0.5*px,0] #end at the left border of the key instead of the center
       - ref: matrix_col6_row4
         shift: [0,0]
-      - ref: thumbfan_col1_thumb_row_1
+      - ref: mirror_thumbfan_col1_thumb_row_1
         shift: [0,0]
       - ref: thumbfan_col2_thumb_row_1
         shift: [0,0]
@@ -535,10 +634,34 @@ outlines:
       - ref: matrix_col1_row4
         shift: [-0.5*kx-0.5*px+5,-50]
 
+  r_hand_rest_overlapping_polygon: #A polygon that extends above the keyboard, from which we need to remove the keyboard in order to make the hand rest polygon.
+    - what: polygon
+      operation: stack
+      points: 
+      - ref: mirror_matrix_col1_row4
+        shift: [-0.5*kx-0.5*px,0] #end at the left border of the key instead of the center
+      - ref: mirror_matrix_col6_row4
+        shift: [0,0]
+      - ref: mirror_thumbfan_col1_thumb_row_1
+        shift: [0,0]
+      - ref: mirror_thumbfan_col2_thumb_row_1
+        shift: [0,0]
+      - ref: mirror_thumbfan_col3_thumb_row_1
+        shift: [0.5*kx+0.5*px,0]
+      - ref: mirror_thumbfan_col3_thumb_row_1
+        shift: [0.5*kx+0.5*px-5,-50] #make each bottom border end slightly inner in comparison with the original shape, to look better
+      - ref: mirror_matrix_col1_row4
+        shift: [-0.5*kx-0.5*px+5,-50]
+
   l_hand_rest_polygon:
     - name: l_hand_rest_overlapping_polygon
     - operation: subtract
       name: l_key_based_board_outline_with_extra_padding #l_case_border_outline
+
+  r_hand_rest_polygon:
+    - name: r_hand_rest_overlapping_polygon
+    - operation: subtract
+      name: r_key_based_board_outline_with_extra_padding #r_case_border_outline
 
   # preview showing outline and keys.
   #combined:
