@@ -19,6 +19,7 @@ left side | right side
 * **Beginner friendly**
   * Available pdfs, so you can print the layout and see how it feels
   * Abundant keys, but in non disruptive places.
+  * No soldering required (WIP)
 * **Truly ergonomic**
   * Aggressive column stagger, like Ferris Sweep, to match how fingers are staggered.
   * Choc V1 keys
