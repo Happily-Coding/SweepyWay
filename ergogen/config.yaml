@@ -454,6 +454,30 @@ outlines:
       what: outline
       name: l_case_border_do_not_ocupy
 
+  ##### Preparing for tenting system
+  l_tenting_base_bottom_outline:
+    #Sorround the bottom
+    - what: outline
+      name: l_case_bottom
+      expand: 2
+    #And go inward quite a bit to hold the keyboard bottom case
+    - what: outline
+      name: l_case_bottom
+      expand : -5
+      operation: subtract
+
+  l_tenting_base_border_outline:
+    #Sorround the bottom 
+    - what: outline
+      name: l_case_bottom
+      expand: 2
+    #And go inward slightly to generate a wall
+    - what: outline
+      name: l_case_bottom
+      expand : 1
+      operation: subtract
+  #################################
+
   # l_case_border_outline:
   #   # remove the pcb outline from an outline with exta padding
   #   - name: l_key_based_board_outline_with_extra_padding
