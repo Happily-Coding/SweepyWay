@@ -69,7 +69,6 @@ jobs:
           config: pdf
       - name: Make filtered output (excluding fp-info-cache) 1
         run: |
-          mkdir filtered-output
           rsync -a --exclude='fp-info-cache' ergogen/output/ filtered-output/
       - name: Run KiBot to generate jlpcb pos
         uses: ./.github/actions/kibot
