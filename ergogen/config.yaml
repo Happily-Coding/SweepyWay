@@ -97,12 +97,17 @@ units:
   sw_reset_xo: 0.5 * sw_reset_x
   sw_reset_yo: 0.5 * sw_reset_y
 
-  #ncu bumps
-  controller_bump_x: 3kx
-  controller_bump_y: mcu_x 
-  controller_bump_shift: kx
-  
-  controller_area_y_pad: 0
+  #How much pcb to generate centered in the controller,
+  #Its better for it to be on the bigger side to ensure there are no gaps between it and the keyboard pcb area
+  #As long as you also offset it with negative y it shouldnt be a problem
+  controller_sorrounding_x: 50 
+  controller_sorrounding_y: 30
+  l_controller_area_x_shift: 8
+  r_controller_area_x_shift: 8
+  l_controller_area_y_shift: -5
+  r_controller_area_y_shift: -5
+
+  controller_center_y_shift: -2 #How much to move the center of the controller upward in y
 
 points:
   key:
@@ -206,19 +211,19 @@ points:
         distance: 100
         #200 #mirrors 200 away from the other cluster which isnt right
 
-    controller:
+    controller_center: #The point exactly in the middle of the controller, the controller is drawn arround it
       anchor:
         ref: matrix_col4_row1
-        shift: [-0.25*kx, 0.5 ky + mcu_y/2 + controller_area_y_pad]
+        shift: [-0.25*kx, 0.5 ky + mcu_y/2 + controller_center_y_shift]
       key:
-        name: mcu
-        width: mcu_y
-        height: mcu_x
-        tags: ["controller", "leftcontroller"]
-        mirror.tags: ["controller", "rightcontroller"]
+        name: mcu #the name that other areas can reference to use as point
+        width: mcu_y #Likely the outline of the controller itself but does not affect the area arround it
+        height: mcu_x #Likely the outline of the controller itself but does not affect the area arround it
+        tags: ["controller_center", "left_controller_center"]
+        mirror.tags: ["controller_center", "right_controller_center"]
       mirror:
         ref: matrix_col4_row1
-        #shift: [-0.25*kx, 0.5 ky + mcu_y/2 + controller_area_y_pad]
+        #shift: [-0.25*kx, 0.5 ky + mcu_y/2 + controller_center_y_shift]
         distance: 165
       #mirror: 200 #Mirrors 200 away from the controller which isnt right
 
@@ -244,14 +249,14 @@ points:
     l_controller_area_center:
       anchor:
         ref: mcu
-        shift: [+8, 0]
+        shift: [l_controller_area_x_shift, l_controller_area_y_shift]
       key:
         tags: ['l_controller_area_center']
 
     r_controller_area_center:
       anchor:
         ref: mirror_mcu
-        shift: [+8, -8]
+        shift: [r_controller_area_x_shift, r_controller_area_y_shift]
       key:
         tags: ['r_controller_area_center']
   #Creates the mirror for the entire matrix x units way from the ref
@@ -374,16 +379,16 @@ outlines:
   #  - "+r_thumb_suplementary_outline"
 
 
-  l_controller_area:
+  l_controller_area: #The pcb arround the controller (incluiding it)
     - what: rectangle
       where: l_controller_area_center
-      size: [50, 29] #[50, 37]
+      size: [controller_sorrounding_x, controller_sorrounding_y]
       corner: 3
 
-  r_controller_area:
+  r_controller_area: #The pcb arround the controller (incluiding it)
     - what: rectangle
       where: r_controller_area_center
-      size: [50, 37]
+      size: [controller_sorrounding_x, controller_sorrounding_y]
       corner: 3
 
   l_jsph_area:
@@ -606,12 +611,12 @@ outlines:
 
   l_usbc_border_outline:
     - what: rectangle
-      where: leftcontroller
+      where: left_controller_center
       size: [15, 15] #usbc connectors are apparently ~8.94 width, and ~ 4mm high , width is the second value in my file. With 15 a cable fits with the case with room to spare
 
   r_usbc_border_outline:
     - what: rectangle
-      where: rightcontroller
+      where: right_controller_center
       size: [15, 15] #usbc connectors are apparently ~8.94 width, and ~ 4mm high , width is the second value in my file. With 15 a cable fits with the case with room to spare
 
 
