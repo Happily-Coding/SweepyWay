@@ -5,10 +5,9 @@ meta:
   author: Happily-Coding
   url: &kb_url https://github.com/Happily-Coding/SweepyWay/
 
-  # These presets provide different layout options
-  # Select a preset in the `units` section below
+# Define presets that can be selected in the units section to achieve your desired layout.
 presets:
-  choc:
+  choc_spacing:
     # Standard Choc spacing, compatible with MBK keycaps which are 16.5 x 17.5
     kx: 17 # spacing between keys (X-axis) 
     ky: 18 # spacing between key (Y-axis)  # Will be overwritten by cfx spacing if you use cfx in units extends
@@ -24,18 +23,17 @@ presets:
     diode_rotation: -180 # Diode rotation
     switch_rotation: 180 # Hotswap south, led north
     
-  cfx: # a preset that can be chosen in the units section, to create a pcb made for chosfox keycaps spacing, which is tighter vertically, allowing you to easily reach the number keys.
-    # CFX 1u are 16.5x16.5 keys for a tighter 17x17 matrix.  This is an idealised grid as to my knowledge no 1.5u keycaps exist for that size
-    $extends: presets.choc
+  cfx_spacing: # a preset that can be chosen in the units section, to create a pcb made for chosfox keycaps spacing, which is tighter vertically, allowing you to easily reach the number keys.
+    # CFX 1u are 16.5x16.5 keys for a tighter 17x17 matrix.
+    $extends: presets.choc_spacing
     kx: 17 # spacing between keys (X-axis) 
     ky: 17 # spacing between keys(Y-axis)
     keycap_x_1u: 16.5
   #pcb_to_case_wall_tolerance: 0.25 <-- asi era ref, debe ser ultra exagerado lo mio
 
 units:
-  $extends: presets.cfx
+  $extends: presets.cfx_spacing
 
-  # Physical measures
   screw_radius: 1.1 # M2 screws
   screw_diameter: screw_radius * 2
   screw_head_radius: 2.05
@@ -97,7 +95,7 @@ units:
   sw_reset_xo: 0.5 * sw_reset_x
   sw_reset_yo: 0.5 * sw_reset_y
 
-  #How much pcb to generate centered in the controller,
+  #How much pcb to generate arround the center of the controller
   #Its better for it to be on the bigger side to ensure there are no gaps between it and the keyboard pcb area
   #As long as you also offset it with negative y it shouldnt be a problem
   controller_sorrounding_x: 50 
@@ -106,8 +104,8 @@ units:
   r_controller_area_x_shift: 8
   l_controller_area_y_shift: -5
   r_controller_area_y_shift: -5
-
   controller_center_y_shift: -2 #How much to move the center of the controller upward in y
+  controller_area_roof_z_thickness: 2 
 
 points:
   key:
@@ -1049,21 +1047,19 @@ cases:
       operation: subtract
 
   l_cover:
-    - name: l_coverpart_switch_plate_outline
+    - name: l_coverpart_switch_plate_outline #Create the switch plate
       extrude: top_plate_thickness
       shift: [0, 0, 25]
-    - name: l_controller_area_to_cover_outline
+    - name: l_controller_area_to_cover_outline #create the controller housing
       extrude: controller_area_height
       shift: [0, 0, 25]
-    - name: l_controler_area_to_not_fill
+    - name: l_controler_area_to_not_fill #Make the controller housing hollow
       extrude: controller_area_height
       operation: subtract
       shift: [0, 0, 25]
-    # l_controller_area_to_cover_outline
-  #   - name: l_controller_area_cover
-  #     extrude: controller_area_cover_thickness
-  #     shift: [0, 0, 25+ controller_area_height]
-
+    - name: l_controller_area_to_cover_outline #Add a roof to the controller housing
+      extrude: controller_area_roof_z_thickness
+      shift: [0, 0, 25+ controller_area_height]
 
   l_3d_preview:
     #Pasting all components here with vertical offsets we can verify that everything fits where it should
