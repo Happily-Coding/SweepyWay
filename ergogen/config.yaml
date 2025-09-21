@@ -391,9 +391,14 @@ outlines:
       size: [controller_sorrounding_x, controller_sorrounding_y]
       corner: 3
 
-  l_controller_area_to_cover:
+  l_controller_area_to_cover_outline:
     - "+l_controller_area"
     - "-l_key_based_board_outline"
+  
+  l_controler_area_to_not_fill:
+    - what: outline
+      name: l_controller_area_to_cover_outline
+      expand: -2
 
   l_jsph_area:
     - what: rectangle
@@ -1047,10 +1052,14 @@ cases:
     - name: l_coverpart_switch_plate_outline
       extrude: top_plate_thickness
       shift: [0, 0, 25]
-    - name: l_controller_area_border
+    - name: l_controller_area_to_cover_outline
       extrude: controller_area_height
-      shift: [0, 0, 100]
-    # l_controller_area_to_cover
+      shift: [0, 0, 25]
+    - name: l_controler_area_to_not_fill
+      extrude: controller_area_height
+      operation: subtract
+      shift: [0, 0, 25]
+    # l_controller_area_to_cover_outline
   #   - name: l_controller_area_cover
   #     extrude: controller_area_cover_thickness
   #     shift: [0, 0, 25+ controller_area_height]
