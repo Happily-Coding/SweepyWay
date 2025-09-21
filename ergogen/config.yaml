@@ -391,6 +391,10 @@ outlines:
       size: [controller_sorrounding_x, controller_sorrounding_y]
       corner: 3
 
+  l_controller_area_to_cover:
+    - "+l_controller_area"
+    - "-l_key_based_board_outline"
+
   l_jsph_area:
     - what: rectangle
       where: l_jsph_area_center
@@ -1045,7 +1049,8 @@ cases:
       shift: [0, 0, 25]
     - name: l_controller_area_border
       extrude: controller_area_height
-      shift: [0, 0, 25]
+      shift: [0, 0, 100]
+    # l_controller_area_to_cover
   #   - name: l_controller_area_cover
   #     extrude: controller_area_cover_thickness
   #     shift: [0, 0, 25+ controller_area_height]
