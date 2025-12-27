@@ -24,11 +24,11 @@ def interpolate_edges(points: np.ndarray, steps: int = 10) -> np.ndarray:
             interpolated.append(interp)
     return np.array(interpolated)
 
-def find_smallest_y(points: np.ndarray) -> float:
-    return np.min(points[:, 0])  # X axis instead of Y
+def find_smallest_x(points: np.ndarray) -> float:
+    return np.min(points[:, 0])
 
-def find_biggest_y(points: np.ndarray) -> float:
-    return np.max(points[:, 0])  # X axis instead of Y
+def find_biggest_x(points: np.ndarray) -> float:
+    return np.max(points[:, 0])
 
 def calculate_point_z(x, z_max, z_min, x_threshold, x_smallest) -> float:
     ramp_range = x_threshold - x_smallest
@@ -89,14 +89,14 @@ if __name__ == "__main__":
     valid_faces = np.array(valid_faces)
 
     # Z computation
-    y_smallest = find_smallest_y(all_points)
-    y_largest = find_biggest_y(all_points)
+    x_smallest = find_smallest_x(all_points)
+    x_largest = find_biggest_x(all_points)
 
     # Bottom (flat)
     vertices_bottom = add_height(all_points, 0.0)
 
-    # Top (curved)
-    vertices_top = adjust_z(all_points, 10, 3, y_largest, y_smallest)
+    # Top (sloped)
+    vertices_top = adjust_z(all_points, 10, 3, x_largest, x_smallest)
 
     # Combine
     vertices = np.vstack((vertices_bottom, vertices_top))
