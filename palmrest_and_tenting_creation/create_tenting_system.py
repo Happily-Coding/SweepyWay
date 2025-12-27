@@ -60,8 +60,10 @@ def sample_points_in_polygon(polygon: Polygon, spacing: float) -> np.ndarray:
 
 if __name__ == "__main__":
     # Load DXF and extract polygon
-    dxf_path = "./ergogen/output/outlines/l_tenting_base_bottom_outline.dxf"
+    dxf_path = './ergogen/output/outlines/l_tenting_base_bottom_outline.dxf' # <-- el problema es que el dxf no tiene las entities
+    #dxf_path = "./ergogen/output/outlines/l_hand_rest_polygon.dxf"
     entities = trimesh.load(dxf_path, force='2D')
+
     shapely_poly = max(entities.polygons_full, key=lambda p: p.area)
 
     # Interpolate boundary for smooth edge
@@ -132,7 +134,11 @@ if __name__ == "__main__":
     print("Tenting system STL file saved as 'tenting_system.stl'")
 
 
-"""Prompt para empezar con chat gpt despues de resolver utple out of range issue
+"""
+El objetivo de este prompt es crear un tenting system (fijo) basado en un contenedor alrededor del teclado, que esté inclinado
+eso es con lo que hay que seguir!
+
+Prompt para empezar con chat gpt despues de resolver tuple out of range issue
 Im designing a parametric keyboard tenting system using python trimesh.
 
 I've already created a parametric palmrest, so i'd like to modify my working code to fit my new purpose.
