@@ -32,7 +32,7 @@ def find_biggest_y(points: np.ndarray) -> float:
 
 def calculate_point_z(x, z_max, z_min, x_threshold, x_smallest) -> float:
     ramp_range = x_threshold - x_smallest
-    if ramp_range <= 0 or x >= x_threshold:
+    if ramp_range <= 0:
         return z_max
     t = (x - x_smallest) / ramp_range
     t = max(0.0, min(t, 1.0))
@@ -91,13 +91,12 @@ if __name__ == "__main__":
     # Z computation
     y_smallest = find_smallest_y(all_points)
     y_largest = find_biggest_y(all_points)
-    last_key_end = y_largest - 20
 
     # Bottom (flat)
     vertices_bottom = add_height(all_points, 0.0)
 
     # Top (curved)
-    vertices_top = adjust_z(all_points, 10, 3, last_key_end, y_smallest)
+    vertices_top = adjust_z(all_points, 10, 3, y_largest, y_smallest)
 
     # Combine
     vertices = np.vstack((vertices_bottom, vertices_top))
@@ -142,7 +141,6 @@ Im designing a parametric keyboard tenting system using python trimesh.
 I've already created a parametric palmrest, so i'd like to modify my working code to fit my new purpose.
 I have done the bare minimun, (modified the shape i loaded) , and modified the name of the output file, but now i want to modify the code to do what i want to.
 
-The next step will be to remove the smoothing on the top adjustment, 
 the third will be to calculate the z based on a certain angle and distance from the most negative x
 
 The final step will be to add a border which should go higher than the rest of the shape, I have another dxf file which has its outline and we should adjust it in the same way.
