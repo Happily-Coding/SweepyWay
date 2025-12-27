@@ -1,3 +1,4 @@
+"""Status: creates a perfectly tented plane. Right now you'd have to glue your keyboard to it."""
 import trimesh
 import numpy as np
 from shapely.geometry import Polygon, Point
@@ -30,19 +31,14 @@ def find_smallest_x(points: np.ndarray) -> float:
 def find_biggest_x(points: np.ndarray) -> float:
     return np.max(points[:, 0])
 
-def calculate_point_z(x, z_max, z_min, x_threshold, x_smallest) -> float:
-    ramp_range = x_threshold - x_smallest
-    if ramp_range <= 0:
-        return z_max
-    t = (x - x_smallest) / ramp_range
-    t = max(0.0, min(t, 1.0))
-    return z_min + (z_max - z_min) * t
+def calculate_point_z(x, z_min, angle_rad, x_smallest) -> float:
+    return z_min + np.tan(angle_rad) * (x - x_smallest)
 
-def adjust_z(points: np.ndarray, z_max, z_min, x_threshold, x_smallest) -> np.ndarray:
+def adjust_z(points: np.ndarray, z_min, angle_rad, x_smallest) -> np.ndarray:
     result = []
     for pt in points:
         x, y = pt
-        z = calculate_point_z(x, z_max, z_min, x_threshold, x_smallest)
+        z = calculate_point_z(x, z_min, angle_rad, x_smallest)
         result.append([x, y, z])
     return np.array(result)
 
@@ -96,7 +92,9 @@ if __name__ == "__main__":
     vertices_bottom = add_height(all_points, 0.0)
 
     # Top (sloped)
-    vertices_top = adjust_z(all_points, 10, 3, x_largest, x_smallest)
+    angle_deg = 6.5
+    z_min = 3.0
+    vertices_top = adjust_z(all_points, z_min, np.deg2rad(angle_deg), x_smallest)
 
     # Combine
     vertices = np.vstack((vertices_bottom, vertices_top))
@@ -138,11 +136,11 @@ eso es con lo que hay que seguir!
 Prompt para empezar con chat gpt despues de resolver tuple out of range issue
 Im designing a parametric keyboard tenting system using python trimesh.
 
-I've already created a parametric palmrest, so i'd like to modify my working code to fit my new purpose.
-I have done the bare minimun, (modified the shape i loaded) , and modified the name of the output file, but now i want to modify the code to do what i want to.
-
-the third will be to calculate the z based on a certain angle and distance from the most negative x
-
 The final step will be to add a border which should go higher than the rest of the shape, I have another dxf file which has its outline and we should adjust it in the same way.
+
+Alternatively we can add a place for inserting something through the pcb into the tenting kit or something like that.
+Or the base can even be whats tented.
+
+For adjustable tneting we can even make it so there are additional triangles you can add on top of each other..
 
 """
