@@ -30,21 +30,19 @@ def find_smallest_y(points: np.ndarray) -> float:
 def find_biggest_y(points: np.ndarray) -> float:
     return np.max(points[:, 0])  # X axis instead of Y
 
-def calculate_point_z(x, z_max, z_min, x_threshold, x_smallest, curve_strength=1.0) -> float:
-    curve_strength = max(0.01, min(curve_strength, 10.0))
+def calculate_point_z(x, z_max, z_min, x_threshold, x_smallest) -> float:
     ramp_range = x_threshold - x_smallest
     if ramp_range <= 0 or x >= x_threshold:
         return z_max
     t = (x - x_smallest) / ramp_range
     t = max(0.0, min(t, 1.0))
-    eased = 0.5 * (1 - np.cos(np.pi * (t ** curve_strength)))
-    return z_min + (z_max - z_min) * eased
+    return z_min + (z_max - z_min) * t
 
-def adjust_z(points: np.ndarray, z_max, z_min, x_threshold, x_smallest, curve_strength=1.0) -> np.ndarray:
+def adjust_z(points: np.ndarray, z_max, z_min, x_threshold, x_smallest) -> np.ndarray:
     result = []
     for pt in points:
         x, y = pt
-        z = calculate_point_z(x, z_max, z_min, x_threshold, x_smallest, curve_strength)
+        z = calculate_point_z(x, z_max, z_min, x_threshold, x_smallest)
         result.append([x, y, z])
     return np.array(result)
 
@@ -99,7 +97,7 @@ if __name__ == "__main__":
     vertices_bottom = add_height(all_points, 0.0)
 
     # Top (curved)
-    vertices_top = adjust_z(all_points, 10, 3, last_key_end, y_smallest, curve_strength=1)
+    vertices_top = adjust_z(all_points, 10, 3, last_key_end, y_smallest)
 
     # Combine
     vertices = np.vstack((vertices_bottom, vertices_top))
