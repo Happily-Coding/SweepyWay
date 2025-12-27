@@ -53,35 +53,24 @@ def ensure_single_outer_polygon(geom) -> Polygon:
         return max(geom.geoms, key=lambda p: p.area)
     return geom
 
-if __name__ == "__main__":
-    # ===== PARAMETERS =====
-    APPLY_HOLLOW_REMOVAL = True
-    INCLUDE_PALM_REST = False
-    HOLLOW_OFFSET = 10.0  # wall thickness
-    SLOPE_ANGLE_DEG = 6.5
-    Z_MIN = 3.0 # min height
-    # ======================
-
-    # Load DXF and extract polygon
-    dxf_path = './ergogen/output/outlines/l_tenting_base_bottom_outline.dxf'
-    entities = trimesh.load(dxf_path, force='2D')
-    shapely_poly = max(entities.polygons_full, key=lambda p: p.area)
-
-    # Optionally include palm rest by merging polygons
-    if INCLUDE_PALM_REST:
-        palm_rest_path = "./ergogen/output/outlines/l_hand_rest_polygon.dxf"
-        palm_entities = trimesh.load(palm_rest_path, force='2D')
-        palm_poly = max(palm_entities.polygons_full, key=lambda p: p.area)
-        shapely_poly = ensure_single_outer_polygon(shapely_poly.union(palm_poly))
-
+def make_tented_solid(shapely_poly: Polygon,
+                      apply_hollow_removal: bool,
+                      hollow_offset: float,
+                      slope_angle_deg: float,
+                      z_min: float,
+                      global_x_smallest: float) -> trimesh.Trimesh:
     # Interpolate boundary for smooth edge
     outer_boundary = interpolate_edges(polygon_to_numpy(shapely_poly), 50)
 
     # Hollowing
     holes = []
-    if APPLY_HOLLOW_REMOVAL:
-        shrunk_poly = create_shrunk_polygon(Polygon(outer_boundary), HOLLOW_OFFSET)
-        holes.append(interpolate_edges(polygon_to_numpy(shrunk_poly), 50))
+    if apply_hollow_removal:
+        try:
+            shrunk_poly = create_shrunk_polygon(Polygon(outer_boundary), hollow_offset)
+            holes.append(interpolate_edges(polygon_to_numpy(shrunk_poly), 50))
+        except ValueError:
+            # Polygon too small to hollow safely → fall back to solid
+            holes = []
 
     # Build final polygon with holes
     final_polygon = Polygon(shell=outer_boundary, holes=holes)
@@ -89,14 +78,16 @@ if __name__ == "__main__":
     # ---- CONSTRAINED TRIANGULATION ----
     vertices_2d, faces_2d = triangulate_polygon(final_polygon)
 
-    # Z computation
-    x_smallest = find_smallest_x(vertices_2d)
-
     # Bottom (flat)
     vertices_bottom = add_height(vertices_2d, 0.0)
 
-    # Top (sloped)
-    vertices_top = adjust_z(vertices_2d, Z_MIN, np.deg2rad(SLOPE_ANGLE_DEG), x_smallest)
+    # Top (sloped) — use global X reference
+    vertices_top = adjust_z(
+        vertices_2d,
+        z_min,
+        np.deg2rad(slope_angle_deg),
+        global_x_smallest
+    )
 
     # Combine
     vertices = np.vstack((vertices_bottom, vertices_top))
@@ -124,7 +115,7 @@ if __name__ == "__main__":
         final_faces.append([b, b + offset, a + offset])
 
     # Side walls (inner boundary)
-    if APPLY_HOLLOW_REMOVAL:
+    if holes:
         inner_indices = [tree.query(p)[1] for p in holes[0]]
 
         for i in range(len(inner_indices)):
@@ -134,6 +125,62 @@ if __name__ == "__main__":
             final_faces.append([b, a + offset, b + offset])
 
     # Final mesh
-    mesh = trimesh.Trimesh(vertices=vertices, faces=final_faces, process=True)
-    mesh.export("./filtered-output/tenting_system.stl")
+    mesh = trimesh.Trimesh(vertices=vertices, faces=final_faces, process=False)
+
+    # Ensure correct orientation for slicing
+    mesh.fix_normals()
+    mesh.fill_holes()
+
+    return mesh
+
+if __name__ == "__main__":
+    # ===== PARAMETERS =====
+    APPLY_HOLLOW_REMOVAL = True
+    INCLUDE_PALM_REST = False
+    HOLLOW_OFFSET = 10.0  # wall thickness
+    SLOPE_ANGLE_DEG = 6.5
+    Z_MIN = 3.0 # min height
+    # ======================
+
+    # Load keyboard base polygon
+    dxf_path = './ergogen/output/outlines/l_tenting_base_bottom_outline.dxf'
+    entities = trimesh.load(dxf_path, force='2D')
+    keyboard_poly = max(entities.polygons_full, key=lambda p: p.area)
+
+    # Compute global X reference from the widest polygon
+    keyboard_boundary = polygon_to_numpy(keyboard_poly)
+    global_x_smallest = find_smallest_x(keyboard_boundary)
+
+    keyboard_mesh = make_tented_solid(
+        shapely_poly=keyboard_poly,
+        apply_hollow_removal=APPLY_HOLLOW_REMOVAL,
+        hollow_offset=HOLLOW_OFFSET,
+        slope_angle_deg=SLOPE_ANGLE_DEG,
+        z_min=Z_MIN,
+        global_x_smallest=global_x_smallest
+    )
+
+    final_mesh = keyboard_mesh
+
+    # Optionally include palm rest as a separate tented solid
+    if INCLUDE_PALM_REST:
+        palm_rest_path = "./ergogen/output/outlines/l_hand_rest_polygon.dxf"
+        palm_entities = trimesh.load(palm_rest_path, force='2D')
+        palm_poly = max(palm_entities.polygons_full, key=lambda p: p.area)
+
+        palm_mesh = make_tented_solid(
+            shapely_poly=palm_poly,
+            apply_hollow_removal=APPLY_HOLLOW_REMOVAL,
+            hollow_offset=HOLLOW_OFFSET,
+            slope_angle_deg=SLOPE_ANGLE_DEG,
+            z_min=Z_MIN,
+            global_x_smallest=global_x_smallest
+        )
+
+        # Merge tented solids (allow overlapping volumes)
+        final_mesh = trimesh.util.concatenate(
+            [keyboard_mesh, palm_mesh]
+        )
+
+    final_mesh.export("./filtered-output/tenting_system.stl")
     print("Tenting system STL file saved as 'tenting_system.stl'")
