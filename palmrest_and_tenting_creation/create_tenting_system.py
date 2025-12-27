@@ -25,26 +25,26 @@ def interpolate_edges(points: np.ndarray, steps: int = 10) -> np.ndarray:
     return np.array(interpolated)
 
 def find_smallest_y(points: np.ndarray) -> float:
-    return np.min(points[:, 1])
+    return np.min(points[:, 0])  # X axis instead of Y
 
 def find_biggest_y(points: np.ndarray) -> float:
-    return np.max(points[:, 1])
+    return np.max(points[:, 0])  # X axis instead of Y
 
-def calculate_point_z(y, z_max, z_min, y_threshold, y_smallest, curve_strength=1.0) -> float:
+def calculate_point_z(x, z_max, z_min, x_threshold, x_smallest, curve_strength=1.0) -> float:
     curve_strength = max(0.01, min(curve_strength, 10.0))
-    ramp_range = y_threshold - y_smallest
-    if ramp_range <= 0 or y >= y_threshold:
+    ramp_range = x_threshold - x_smallest
+    if ramp_range <= 0 or x >= x_threshold:
         return z_max
-    t = (y - y_smallest) / ramp_range
+    t = (x - x_smallest) / ramp_range
     t = max(0.0, min(t, 1.0))
     eased = 0.5 * (1 - np.cos(np.pi * (t ** curve_strength)))
     return z_min + (z_max - z_min) * eased
 
-def adjust_z(points: np.ndarray, z_max, z_min, y_threshold, y_smallest, curve_strength=1.0) -> np.ndarray:
+def adjust_z(points: np.ndarray, z_max, z_min, x_threshold, x_smallest, curve_strength=1.0) -> np.ndarray:
     result = []
     for pt in points:
         x, y = pt
-        z = calculate_point_z(y, z_max, z_min, y_threshold, y_smallest, curve_strength)
+        z = calculate_point_z(x, z_max, z_min, x_threshold, x_smallest, curve_strength)
         result.append([x, y, z])
     return np.array(result)
 
@@ -143,9 +143,6 @@ Im designing a parametric keyboard tenting system using python trimesh.
 
 I've already created a parametric palmrest, so i'd like to modify my working code to fit my new purpose.
 I have done the bare minimun, (modified the shape i loaded) , and modified the name of the output file, but now i want to modify the code to do what i want to.
-
-The first step will be to change the axis where the tilting happens, 
-It should happen on the x axis, not the y axis, 
 
 The next step will be to remove the smoothing on the top adjustment, 
 the third will be to calculate the z based on a certain angle and distance from the most negative x
