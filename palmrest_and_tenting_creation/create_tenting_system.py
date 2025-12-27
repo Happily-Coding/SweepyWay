@@ -1,4 +1,3 @@
-"""Status: creates a perfectly tented plane. Right now you'd have to glue your keyboard to it."""
 import trimesh
 import numpy as np
 from shapely.geometry import Polygon, Point
@@ -52,7 +51,23 @@ def sample_points_in_polygon(polygon: Polygon, spacing: float) -> np.ndarray:
     points = np.array([[x, y] for x in x_vals for y in y_vals if polygon.contains(Point(x, y))])
     return points
 
+def create_shrunk_polygon(polygon: Polygon, offset: float) -> Polygon:
+    """
+    Create an inward-offset (shrunk) version of the polygon.
+    """
+    shrunk = polygon.buffer(-offset)
+    if shrunk.is_empty:
+        raise ValueError("Shrink offset too large, polygon vanished.")
+    return shrunk
+
 if __name__ == "__main__":
+    # ===== PARAMETERS =====
+    APPLY_HOLLOW_REMOVAL = True
+    HOLLOW_OFFSET = 10.0  # wall thickness
+    SLOPE_ANGLE_DEG = 6.5
+    Z_MIN = 3.0 # min height
+    # ======================
+
     # Load DXF and extract polygon
     dxf_path = './ergogen/output/outlines/l_tenting_base_bottom_outline.dxf' # <-- el problema es que el dxf no tiene las entities
     #dxf_path = "./ergogen/output/outlines/l_hand_rest_polygon.dxf"
@@ -64,9 +79,21 @@ if __name__ == "__main__":
     poly_2d = polygon_to_numpy(shapely_poly)
     poly_2d = interpolate_edges(poly_2d, 50)
 
-    # Sample interior points
+    # Rebuild polygon after interpolation
     shapely_poly = Polygon(poly_2d)
+
+    # Sample interior points
     interior_points = sample_points_in_polygon(shapely_poly, spacing=2.0)
+
+    # Remove some interior points if we want it to be hollow
+    if APPLY_HOLLOW_REMOVAL:
+        shrunk_poly = create_shrunk_polygon(shapely_poly, HOLLOW_OFFSET)  # Create shrunk polygon for hollowing with the same shape as the outer
+        shrunk_boundary = polygon_to_numpy(shrunk_poly)
+        shrunk_boundary = interpolate_edges(shrunk_boundary, 50)
+        interior_points = np.array([
+            p for p in interior_points
+            if not shrunk_poly.contains(Point(p))
+        ])
 
     # Combine boundary and interior
     all_points = np.vstack((poly_2d, interior_points))
@@ -79,8 +106,15 @@ if __name__ == "__main__":
     valid_faces = []
     for tri in triangles:
         centroid = np.mean(all_points[tri], axis=0)
-        if shapely_poly.contains(Point(centroid)):
-            valid_faces.append(tri.tolist())
+
+        if not shapely_poly.contains(Point(centroid)):
+            continue
+
+        # Also filter inside the shrunk polygon if we want to hollow it.
+        if APPLY_HOLLOW_REMOVAL and shrunk_poly.contains(Point(centroid)):
+            continue
+
+        valid_faces.append(tri.tolist())
 
     valid_faces = np.array(valid_faces)
 
@@ -92,9 +126,7 @@ if __name__ == "__main__":
     vertices_bottom = add_height(all_points, 0.0)
 
     # Top (sloped)
-    angle_deg = 6.5
-    z_min = 3.0
-    vertices_top = adjust_z(all_points, z_min, np.deg2rad(angle_deg), x_smallest)
+    vertices_top = adjust_z(all_points, Z_MIN, np.deg2rad(SLOPE_ANGLE_DEG), x_smallest)
 
     # Combine
     vertices = np.vstack((vertices_bottom, vertices_top))
@@ -111,7 +143,7 @@ if __name__ == "__main__":
     for f in valid_faces:
         final_faces.append([i + offset for i in f[::-1]])
 
-    # Side walls (using boundary)
+    # Side walls (outer boundary)
     tree = cKDTree(all_points)
     boundary_indices = [tree.query(p)[1] for p in poly_2d]
 
@@ -123,24 +155,21 @@ if __name__ == "__main__":
         final_faces.append([a, b, a_top])
         final_faces.append([b, b_top, a_top])
 
+    # Side walls (inner boundary)
+    if APPLY_HOLLOW_REMOVAL:
+        inner_indices = [tree.query(p)[1] for p in shrunk_boundary]
+
+        for i in range(len(inner_indices)):
+            a = inner_indices[i]
+            b = inner_indices[(i + 1) % len(inner_indices)]
+            a_top = a + offset
+            b_top = b + offset
+
+            # Reverse winding to face inward
+            final_faces.append([a, a_top, b])
+            final_faces.append([b, a_top, b_top])
+
     # Final mesh
     mesh = trimesh.Trimesh(vertices=vertices, faces=final_faces, process=True)
     mesh.export("./filtered-output/tenting_system.stl")
     print("Tenting system STL file saved as 'tenting_system.stl'")
-
-
-"""
-El objetivo de este prompt es crear un tenting system (fijo) basado en un contenedor alrededor del teclado, que esté inclinado
-eso es con lo que hay que seguir!
-
-Prompt para empezar con chat gpt despues de resolver tuple out of range issue
-Im designing a parametric keyboard tenting system using python trimesh.
-
-The final step will be to add a border which should go higher than the rest of the shape, I have another dxf file which has its outline and we should adjust it in the same way.
-
-Alternatively we can add a place for inserting something through the pcb into the tenting kit or something like that.
-Or the base can even be whats tented.
-
-For adjustable tneting we can even make it so there are additional triangles you can add on top of each other..
-
-"""
