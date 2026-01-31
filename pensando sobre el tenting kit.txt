@@ -1,0 +1,19 @@
+tornillo a travez de bandeja a teclado  y no debería hacer falta borde, aunque es mas dificil de cambiar
+
+el problema con el approach canasta es que sería molesto en la parte del palm rest cercana a la mano
+
+Podría sostenerlo plastiquitos que se incerten hacia dentro del teclado desde abajo en cualquier lado, de esa manera es facil de cambiar pero al mismo tiempo y cuando esta no tenteado actuan como drenaje, que tampoco esta mal
+
+llendo por el approach inserts de hecho podrían ser solo el borde, cosa de poder travelear con ellos mucho mas facil
+
+para high angle tenting podriamos tener un mini hueco para anillo y listo.
+
+y para los tenting kits standard lo mismo.
+
+ti;ting
+para la inclinación invertida está hay que pensarlo, pero me suena que la mas facil sería en el mismo lado tener un triangulo a través del cual insertar y listo.
+el mismo agujero o concepto que se usa para insertar la base desde abajo se podría usar para insertar algo desde arriba para la travel case 
+
+ese algo podría ser estilo una llave, que insertas y despues tenes que girar cosa de que no se pueda salir solo, aunque un iman suena easier
+
+incluso la base que se inserta puede insertarse entre si para regular la altura en vez de necesitar diferentes fragmentos enteros (aunque suena potentially fragile)

@@ -9,6 +9,8 @@ left side | right side
 ![left](https://happily-coding.github.io/SweepyWay/images/left_pcb-top.png?v=1) | ![right](https://happily-coding.github.io/SweepyWay/images/right_pcb-top.png?v=1)
 
 [More outputs](https://happily-coding.github.io/SweepyWay/) (images, pdfs, stl 3d models, etc)
+<details><summary><h3 style="display:inline-block"> Output details</h2></summary>
+- Cases contains 3d models (not only of the case), l_cover is the plate that holds the switches firmly in place, and houses the controller and battery, protecting them
 <!-- 
 ?v=1 was used to force the update of the cache from github (it could have been any parameter)
 ![left bottom](https://happily-coding.github.io/SweepyWay/images/left_pcb-bottom.png) | ![right bottom](https://happily-coding.github.io/SweepyWay/images/right_pcb-bottom.png)

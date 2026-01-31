@@ -525,16 +525,19 @@ outlines:
       name: r_case_border_do_not_ocupy
 
   ##### Preparing for tenting system
-  l_tenting_base_bottom_outline:
+  l_tenting_base_bottom_outline: ####HERE IS THE PROBLEM
     #Sorround the bottom
     - what: outline
       name: l_case_bottom
       expand: 2
     #And go inward quite a bit to hold the keyboard bottom case
     - what: outline
-      name: l_case_bottom
-      expand : -5
+      name: l_pcb_outline
       operation: subtract
+    #- what: outline
+    #  name: l_case_bottom
+    #  expand : -5
+    #  operation: subtract
 
   r_tenting_base_bottom_outline:
     #Sorround the bottom
@@ -547,7 +550,7 @@ outlines:
       expand : -5
       operation: subtract
 
-  l_tenting_base_border_outline:
+  l_tenting_base_border_outline: ####HERE IS NO PROBLEM
     #Sorround the bottom 
     - what: outline
       name: l_case_bottom
@@ -1078,9 +1081,11 @@ cases:
     #Components that shoulndt really be printed
     - name: l_pcb_outline
       shift: [0, 0, 20]
-    - name: l_hand_rest_polygon
-      extrude: 3
-      shift: [0, 0, 0]
+
+    #- name: l_hand_rest_polygon #This has an odd shape but i dont think we need to worry, it does not actually represent the polygon
+    #  extrude: 3
+    #  shift: [0, 0, 0]
+
     # - name: l_hand_rest_overlapping_polygon # test
     #   extrude: 3
     #   shift: [0,0, 30]
