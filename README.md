@@ -84,6 +84,7 @@ If you would like to modify this:
 * fork it
 * clone it locally with celoide submodule git clone --recurse-submodules https://github.com/Happily-Coding/SweepyWay.git
 * change `ergogen/config.yaml` to your liking
+* to test it locally if you have node, you can run npm npm i -g ergogen or just npm install from the directory of the repo.
 * reactivate github workflows
 * reactivate github pages at https://github.com/your-name/your-repo/settings/pages, choose github actions instead of a branch
 * push your changes; the `build.yml` GitHub Workflows(https://github.com/your-name/your-repo/actions) will pick it up, autoroute and generate Gerbers, all in a zip file, and then deploy it to github pages(https://your-name.github.io/your-repo/).

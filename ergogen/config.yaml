@@ -754,9 +754,10 @@ pcbs:
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
+          hotswap_3dmodel_filename: "3d/Choc_V1_Hotswap.step"
       choc_space:
         what: ceoloide/switch_choc_v1_v2
-        where: 
+        where:
           - [ leftkey, -1_5u, space]
 
         params:
@@ -770,6 +771,7 @@ pcbs:
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
+          hotswap_3dmodel_filename: "3d/Choc_V1_Hotswap.step"
       diode:
         what: ceoloide/diode_tht_sod123
         where:
@@ -898,7 +900,7 @@ pcbs:
         where:
           - [/^mirror.*/, key, -1_5u, -space]
           - /rightcluster_.*/
-        
+
         params:
           include_keycap: true
           choc_v2_support: false
@@ -909,9 +911,10 @@ pcbs:
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
+          hotswap_3dmodel_filename: "3d/Choc_V1_Hotswap.step"
       choc_space:
         what: ceoloide/switch_choc_v1_v2
-        where: 
+        where:
           - [/^mirror.*/, key, -1_5u, space]
         params:
           include_keycap: true
@@ -923,6 +926,7 @@ pcbs:
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
+          hotswap_3dmodel_filename: "3d/Choc_V1_Hotswap.step"
       diode:
         what: ceoloide/diode_tht_sod123
         where:
