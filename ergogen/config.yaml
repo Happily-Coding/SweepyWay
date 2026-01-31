@@ -20,8 +20,9 @@ presets:
     plate_ky: 13.8 # key cutout hole height (cherry, choc v2: 14, choc v1: 13.8)
     vertical_diode_shift: 1.5 # How much to shift to avoid overlap
     horizontal_diode_shift: -0.5 plate_kx - 0.85
-    diode_rotation: -180 # Diode rotation
-    switch_rotation: 180 # Hotswap south, led north
+    diode_rotation: 0
+    #diode_rotation: -180 # Diode rotation
+    #switch_rotation: 180 # Hotswap south, led north
     
   cfx_spacing: # a preset that can be chosen in the units section, to create a pcb made for chosfox keycaps spacing, which is tighter vertically, allowing you to easily reach the number keys.
     # CFX 1u are 16.5x16.5 keys for a tighter 17x17 matrix.
@@ -744,40 +745,49 @@ pcbs:
         what: ceoloide/switch_choc_v1_v2
         where:
           - [ leftkey]
+        adjust:
+          rotate: 180
         params:
           include_keycap: true
           choc_v2_support: false
           #          solder: true
           reversible: false
           hotswap: true
-          side: 'F'
+          side: 'B'
           keycap_width: 16.5
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
           hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
+          hotswap_3dmodel_xyz_rotation: [180, 0, 0]
           switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Switch.step"
+          switch_3dmodel_xyz_rotation: [180, 0, 0]
           keycap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Keycap_MBK_White_1u.step"
+          keycap_3dmodel_xyz_rotation: [180, 0, 0]
       choc_space:
         what: ceoloide/switch_choc_v1_v2
         where:
           - [ leftkey, -1_5u, space]
-
+        adjust:
+          rotate: 180
         params:
           include_keycap: true
           choc_v2_support: false
           #solder: true
           reversible: false
           hotswap: true
-          side: 'F'
+          side: 'B'
           keycap_width: keycap_x_space
 
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
           hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
+          hotswap_3dmodel_xyz_rotation: [180, 0, 0]
           switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Switch.step"
+          switch_3dmodel_xyz_rotation: [180, 0, 0]
           keycap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Keycap_MBK_White_1u.step"
+          keycap_3dmodel_xyz_rotation: [180, 0, 0]
       diode:
         what: ceoloide/diode_tht_sod123
         where:
@@ -906,39 +916,48 @@ pcbs:
         where:
           - [/^mirror.*/, key, -1_5u, -space]
           - /rightcluster_.*/
-
+        adjust:
+          rotate: 180
         params:
           include_keycap: true
           choc_v2_support: false
           #solder: true
           reversible: false
           hotswap: true
-          side: 'F'
+          side: 'B'
           keycap_width: 16.5
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
           hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
+          hotswap_3dmodel_xyz_rotation: [180, 0, 0]
           switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Switch.step"
+          switch_3dmodel_xyz_rotation: [180, 0, 0]
           keycap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Keycap_MBK_White_1u.step"
+          keycap_3dmodel_xyz_rotation: [180, 0, 0]
       choc_space:
         what: ceoloide/switch_choc_v1_v2
         where:
           - [/^mirror.*/, key, -1_5u, space]
+        adjust:
+          rotate: 180
         params:
           include_keycap: true
           choc_v2_support: false
           #solder: true
           reversible: false
           hotswap: true
-          side: 'F'
+          side: 'B'
           keycap_width: keycap_x_space
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
           hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
+          hotswap_3dmodel_xyz_rotation: [180, 0, 0]
           switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Switch.step"
+          switch_3dmodel_xyz_rotation: [180, 0, 0]
           keycap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Keycap_MBK_White_1u.step"
+          keycap_3dmodel_xyz_rotation: [180, 0, 0]
       diode:
         what: ceoloide/diode_tht_sod123
         where:
