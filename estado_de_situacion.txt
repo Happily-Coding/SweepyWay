@@ -1,0 +1,6 @@
+Cree el tenting base angulado y hueco que parece estar perfecto.
+Ahora habría que agregarle bordes o huecos o alguna otra forma de agarrar al teclado
+Y idealmente agregariamos una forma de sumar angulos o directo imprimimos varios angulos y fue.
+O directo multipels chicos (ej de 1 grado y/o medio grado.)
+
+Lo mas importante es preparar los files para impresion though.
