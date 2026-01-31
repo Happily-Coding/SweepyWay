@@ -750,11 +750,14 @@ pcbs:
           #          solder: true
           reversible: false
           hotswap: true
+          side: 'F'
           keycap_width: 16.5
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
           hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
+          switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Switch.step"
+          keycap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Keycap_MBK_White_1u.step"
       choc_space:
         what: ceoloide/switch_choc_v1_v2
         where:
@@ -766,12 +769,15 @@ pcbs:
           #solder: true
           reversible: false
           hotswap: true
+          side: 'F'
           keycap_width: keycap_x_space
 
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
           hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
+          switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Switch.step"
+          keycap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Keycap_MBK_White_1u.step"
       diode:
         what: ceoloide/diode_tht_sod123
         where:
@@ -907,11 +913,14 @@ pcbs:
           #solder: true
           reversible: false
           hotswap: true
+          side: 'F'
           keycap_width: 16.5
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
           hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
+          switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Switch.step"
+          keycap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Keycap_MBK_White_1u.step"
       choc_space:
         what: ceoloide/switch_choc_v1_v2
         where:
@@ -922,11 +931,14 @@ pcbs:
           #solder: true
           reversible: false
           hotswap: true
+          side: 'F'
           keycap_width: keycap_x_space
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
           hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
+          switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Switch.step"
+          keycap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Keycap_MBK_White_1u.step"
       diode:
         what: ceoloide/diode_tht_sod123
         where:
