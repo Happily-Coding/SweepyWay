@@ -754,7 +754,7 @@ pcbs:
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
-          hotswap_3dmodel_filename: "3d/Choc_V1_Hotswap.step"
+          hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
       choc_space:
         what: ceoloide/switch_choc_v1_v2
         where:
@@ -771,7 +771,7 @@ pcbs:
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
-          hotswap_3dmodel_filename: "3d/Choc_V1_Hotswap.step"
+          hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
       diode:
         what: ceoloide/diode_tht_sod123
         where:
@@ -911,7 +911,7 @@ pcbs:
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
-          hotswap_3dmodel_filename: "3d/Choc_V1_Hotswap.step"
+          hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
       choc_space:
         what: ceoloide/switch_choc_v1_v2
         where:
@@ -926,7 +926,7 @@ pcbs:
           keycap_height: 16.5
           from: "{{colrow}}"
           to: "{{column_net}}"
-          hotswap_3dmodel_filename: "3d/Choc_V1_Hotswap.step"
+          hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
       diode:
         what: ceoloide/diode_tht_sod123
         where:

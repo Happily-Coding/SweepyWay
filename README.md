@@ -85,6 +85,7 @@ If you would like to modify this:
 * clone it locally with celoide submodule git clone --recurse-submodules https://github.com/Happily-Coding/SweepyWay.git
 * change `ergogen/config.yaml` to your liking
 * to test it locally if you have node, you can run npm npm i -g ergogen or just npm install from the directory of the repo.
+* to be able to view the 3d models in kicad you need go to the top menu -> preferences -> path and add the value for PATH_TO_SWEEPYWAY_COMPONENT_MODELS, which should be the location of your 3d models folder for example C:\Users\YourName\KeyboardDesign\SweepyWay\component_3d_models. Then, after opening kicad , you can open the 3d viewer in the toolbar (or using alt 3).
 * reactivate github workflows
 * reactivate github pages at https://github.com/your-name/your-repo/settings/pages, choose github actions instead of a branch
 * push your changes; the `build.yml` GitHub Workflows(https://github.com/your-name/your-repo/actions) will pick it up, autoroute and generate Gerbers, all in a zip file, and then deploy it to github pages(https://your-name.github.io/your-repo/).
