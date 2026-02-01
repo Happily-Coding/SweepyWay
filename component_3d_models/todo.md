@@ -1,4 +1,5 @@
 - hacer que kilo renobmre las variables del footprint que modifico, y posiblemente hacer un pr o usar mi propia branch para que no erroree ergogen
 - sumar modelo a footprint de jsph
 - Sumar modelo de la batería ? 
-- hacer que pos se incluya para hotswap sockets, tal como se hace para smd diodes y botones, y posiblemente sumar footprint de millimax headers y que se posisionen también.
+- hacer que pos se incluya para hotswap sockets, tal como se hace para smd diodes y botones, y posiblemente sumar footprint de millimax headers y que se posisionen también. Se puede verificar facilmente en la vista 3d de kicad.
+- probar reactivar automatización de pos.
