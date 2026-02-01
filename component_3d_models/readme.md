@@ -13,7 +13,6 @@ It also contaisn instructions with how to use them https://github.com/infused-ki
 https://grabcad.com/library/kailh-low-profile-mechanical-keyboard-switch-1
 Choc alternative: kailh-low-profile-mechanical-keyboard-switch-1.snapshot.1 
 
-
 https://grabcad.com/library/kailh-low-profile-mechanical-keyboard-switch-pg1353-1
 choc v2: kailh-low-profile-mechanical-keyboard-switch-pg1353-1.snapshot.6
 
@@ -23,8 +22,18 @@ mx-cherry-relegendable-keycaps-1.snapshot.6
 
 More potentially useful switches https://github.com/kiswitch/kiswitch
 
-
 3d files for printing dummy chocv2 and v1
 https://www.printables.com/model/716753-kaliah-choc-v1-v2-dummy/files
 
 lot more models including silents: https://github.com/koktoh/keyswitch_model
+
+From [the builtin diodes library](https://kicad.github.io/packages3d/Diode_SMD)
+D_SOD-123.step 
+
+[from snap magic](https://www.snapeda.com/parts/SSSS811101/ALPS/view-part/?company=-&amp;welcome=home) ALPS power switch SSSS811101--3DModel-STEP-269445
+
+from [componentsearchengnine](https://componentsearchengine.com/part-view/EVQ-PUC02K/Panasonic) EVQ-PUC02K
+
+
+IMPORTANT, THE NICE NANO + the headers is still less tall than the switches, but not by much
+https://typeractive.xyz/pages/build#corne_choc

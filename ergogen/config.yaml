@@ -798,6 +798,10 @@ pcbs:
           side: F
           include_tht: false
           reversible: false
+          diode_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/D_SOD-123.step"
+          diode_3dmodel_xyz_offset: [0, 0, 0]
+          diode_3dmodel_xyz_scale: [1, 1, 1]
+          diode_3dmodel_xyz_rotation: [0, 0, 0]
         adjust:
           shift: [horizontal_diode_shift,vertical_diode_shift]
           rotate: 90 + diode_rotation
@@ -807,6 +811,10 @@ pcbs:
         params:
           reverse_mount: true
           include_extra_pins: true
+          mcu_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Nice_Nano_V2.step"
+          mcu_3dmodel_xyz_offset: [0, 0, 5]
+          mcu_3dmodel_xyz_scale: [1, 1, 1]
+          mcu_3dmodel_xyz_rotation: [0, 0, 0]
           # Pin Assignments (Controller on top facing down)
           # Right Side
           P0: "DPD" # Display Data
@@ -855,6 +863,9 @@ pcbs:
           side: F #The same side that most switches height are, to avoid adding unnecessary height
           from: GND
           to: RST
+          switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/EVQ-PUC02K.stp"
+          switch_3dmodel_xyz_offset: [0, 0, 0]
+          switch_3dmodel_xyz_rotation: [180, 180, 0]
         adjust:
           rotate: 270
         where:
@@ -866,6 +877,9 @@ pcbs:
           side: F #The same side that most switches height are, to avoid adding unnecessary height
           #          from: GND
           #          to: RST
+          switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/SSSS811101--3DModel-STEP-269445.STEP"
+          switch_3dmodel_xyz_offset: [0, 0, 0]
+          switch_3dmodel_xyz_rotation: [90, 180, 90]
         adjust:
           rotate: 90
         where:
@@ -968,6 +982,10 @@ pcbs:
           side: F
           include_tht: false
           reversible: false
+          diode_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/D_SOD-123.step"
+          diode_3dmodel_xyz_offset: [0, 0, 0]
+          diode_3dmodel_xyz_scale: [1, 1, 1]
+          diode_3dmodel_xyz_rotation: [0, 0, 0]
         adjust:
           shift: [horizontal_diode_shift,vertical_diode_shift]
           rotate: 90 + diode_rotation
@@ -977,6 +995,10 @@ pcbs:
         params:
           reverse_mount: true
           include_extra_pins: true
+          mcu_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Nice_Nano_V2.step"
+          mcu_3dmodel_xyz_offset: [0, 0, 5]
+          mcu_3dmodel_xyz_scale: [1, 1, 1]
+          mcu_3dmodel_xyz_rotation: [0, 0, 0]
           # Pin Assignments (Controller on top facing down)
           # Right Side
           P0: "DPD" # Display Data
@@ -1023,6 +1045,10 @@ pcbs:
           side: F #The same side that most switches height are, to avoid adding unnecessary height
           from: GND
           to: RST
+          switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/EVQ-PUC02K.stp"
+          switch_3dmodel_xyz_offset: [0, 0, 0]
+          switch_3dmodel_xyz_scale: [1, 1, 1]
+          switch_3dmodel_xyz_rotation: [180, 180, 0]
         adjust:
           rotate: 270
         where:
@@ -1034,6 +1060,10 @@ pcbs:
           side: F
           #          from: GND
           #          to: RST
+          switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/SSSS811101--3DModel-STEP-269445.STEP"
+          switch_3dmodel_xyz_offset: [0, 0, 0]
+          switch_3dmodel_xyz_scale: [1, 1, 1]
+          switch_3dmodel_xyz_rotation: [90, 180, 90]
         adjust:
           rotate: 270
         where:
