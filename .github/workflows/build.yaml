@@ -75,6 +75,26 @@ jobs:
         with:
           boards: left_pcb right_pcb
           config: jlpcb_pos
+      - name: Post-process POS files for JLCPCB
+        run: |
+          for board in left_pcb right_pcb; do
+            for side in bottom top; do
+              input_file="ergogen/output/pos/${board}/${board}-${side}.pos"
+              if [ -f "$input_file" ]; then
+                python kibot/fix_pos_package_name.py "$input_file" "${input_file}-jlcpcb.pos"
+              fi
+            done
+          done
+      - name: Copy processed POS files to filtered-output
+        run: |
+          mkdir -p filtered-output/pos
+          for board in left_pcb right_pcb; do
+            for side in bottom top; do
+              if [ -f "ergogen/output/pos/${board}/${board}-${side}-jlcpcb.pos" ]; then
+                cp "ergogen/output/pos/${board}/${board}-${side}-jlcpcb.pos" "filtered-output/pos/"
+              fi
+            done
+          done
       - name: Run KiBot to generate jlpcb bom
         uses: ./.github/actions/kibot
         with:
