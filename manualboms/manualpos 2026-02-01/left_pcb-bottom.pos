@@ -1,0 +1,38 @@
+### Footprint positions - created on 2026-02-01T18:28:28-0300 ###
+### Printed by KiCad version 9.0.2
+## Unit = mm, Angle = deg.
+## Side : bottom
+# Ref     Val       Package                 PosX       PosY       Rot  Side
+S1                  switch_choc_v1_v2    35.0000  -133.0000  180.0000  bottom
+S2                  switch_choc_v1_v2    35.0000  -116.0000  180.0000  bottom
+S3                  switch_choc_v1_v2    35.0000   -99.0000  180.0000  bottom
+S4                  switch_choc_v1_v2    35.0000   -82.0000  180.0000  bottom
+S5                  switch_choc_v1_v2    52.0000  -145.7500  180.0000  bottom
+S6                  switch_choc_v1_v2    52.0000  -128.7500  180.0000  bottom
+S7                  switch_choc_v1_v2    52.0000  -111.7500  180.0000  bottom
+S8                  switch_choc_v1_v2    52.0000   -94.7500  180.0000  bottom
+S9                  switch_choc_v1_v2    52.0000   -77.7500  180.0000  bottom
+S10                 switch_choc_v1_v2    69.0000  -134.5300  180.0000  bottom
+S11                 switch_choc_v1_v2    69.0000  -117.5300  180.0000  bottom
+S12                 switch_choc_v1_v2    69.0000  -100.5300  180.0000  bottom
+S13                 switch_choc_v1_v2    69.0000   -83.5300  180.0000  bottom
+S14                 switch_choc_v1_v2    69.0000   -66.5300  180.0000  bottom
+S15                 switch_choc_v1_v2    86.0000  -121.7800  180.0000  bottom
+S16                 switch_choc_v1_v2    86.0000  -104.7800  180.0000  bottom
+S17                 switch_choc_v1_v2    86.0000   -87.7800  180.0000  bottom
+S18                 switch_choc_v1_v2    86.0000   -70.7800  180.0000  bottom
+S19                 switch_choc_v1_v2   103.0000  -124.3300  180.0000  bottom
+S20                 switch_choc_v1_v2   103.0000  -107.3300  180.0000  bottom
+S21                 switch_choc_v1_v2   103.0000   -90.3300  180.0000  bottom
+S22                 switch_choc_v1_v2   103.0000   -73.3300  180.0000  bottom
+S23                 switch_choc_v1_v2   120.0000  -127.7300  180.0000  bottom
+S24                 switch_choc_v1_v2   120.0000  -110.7300  180.0000  bottom
+S25                 switch_choc_v1_v2   120.0000   -93.7300  180.0000  bottom
+S26                 switch_choc_v1_v2   120.0000   -76.7300  180.0000  bottom
+S27                 switch_choc_v1_v2   137.0000  -124.3300  180.0000  bottom
+S28                 switch_choc_v1_v2   137.0000  -107.3300  180.0000  bottom
+S29                 switch_choc_v1_v2   137.0000   -90.3300  180.0000  bottom
+S30                 switch_choc_v1_v2   108.7800  -144.7300  170.0000  bottom
+S31                 switch_choc_v1_v2   126.9707  -150.4655  155.0000  bottom
+S32                 switch_choc_v1_v2   142.6933  -158.6502  150.0000  bottom
+## End

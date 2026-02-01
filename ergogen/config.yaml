@@ -756,6 +756,7 @@ pcbs:
           side: 'B'
           keycap_width: 16.5
           keycap_height: 16.5
+          include_in_pos_files: true
           from: "{{colrow}}"
           to: "{{column_net}}"
           hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
@@ -780,6 +781,7 @@ pcbs:
           keycap_width: keycap_x_space
 
           keycap_height: 16.5
+          include_in_pos_files: true
           from: "{{colrow}}"
           to: "{{column_net}}"
           hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
@@ -941,6 +943,7 @@ pcbs:
           side: 'B'
           keycap_width: 16.5
           keycap_height: 16.5
+          include_in_pos_files: true
           from: "{{colrow}}"
           to: "{{column_net}}"
           hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
@@ -964,6 +967,7 @@ pcbs:
           side: 'B'
           keycap_width: keycap_x_space
           keycap_height: 16.5
+          include_in_pos_files: true
           from: "{{colrow}}"
           to: "{{column_net}}"
           hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
