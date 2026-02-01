@@ -30,7 +30,7 @@ presets:
     kx: 17 # spacing between keys (X-axis) 
     ky: 17 # spacing between keys(Y-axis)
     keycap_x_1u: 16.5
-  #pcb_to_case_wall_tolerance: 0.25 <-- asi era ref, debe ser ultra exagerado lo mio
+  #pcb_to_case_wall_tolerance: 0.25 <-- asi era ref, debe ser ultra exagerado lo mio.
 
 units:
   $extends: presets.cfx_spacing
