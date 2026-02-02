@@ -6,8 +6,6 @@ preflight:
   drc: false
   run_erc: false
 
-
-
 outputs:
   - name: 'position'
     comment: "Pick and place file"
@@ -18,3 +16,16 @@ outputs:
       separate_files_for_front_and_back: true
       only_smd: true
       dir: ergogen/output/pos/%f
+      columns:
+        - id: Ref
+          name: Designator
+        - Val
+        - Package
+        - id: PosX
+          name: "Mid X"
+        - id: PosY
+          name: "Mid Y"
+        - id: Rot
+          name: Rotation
+        - id: Side
+          name: Layer
