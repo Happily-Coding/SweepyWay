@@ -93,14 +93,21 @@ jobs:
           ls -laR . 2>/dev/null | head -100 || echo "Cannot list current directory"
       - name: Post-process POS files for JLCPCB
         run: |
+          # Process files in temp directory (user-owned) to avoid permission issues
+          TEMP_DIR=$(mktemp -d)
           for board in left_pcb right_pcb; do
             for side in bottom top; do
               input_file="filtered-output/pos/${board}/${board}-${side}_pos.pos"
+              output_file="${input_file}-jlcpcb.pos"
               if [ -f "$input_file" ]; then
-                python kibot/fix_pos_package_name.py "$input_file" "${input_file}-jlcpcb.pos"
+                # Copy input to temp dir, process, copy output back with sudo
+                cp "$input_file" "$TEMP_DIR/temp.pos"
+                python kibot/fix_pos_package_name.py "$TEMP_DIR/temp.pos" "$TEMP_DIR/temp-jlcpcb.pos"
+                sudo cp "$TEMP_DIR/temp-jlcpcb.pos" "$output_file"
               fi
             done
           done
+          rm -rf "$TEMP_DIR"
       - name: Run KiBot to generate jlpcb bom
         uses: ./.github/actions/kibot
         with:
