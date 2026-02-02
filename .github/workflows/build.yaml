@@ -95,7 +95,7 @@ jobs:
         run: |
           for board in left_pcb right_pcb; do
             for side in bottom top; do
-              input_file="ergogen/output/pos/${board}/${side}.pos"
+              input_file="ergogen/output/pos/${board}/${board}-${side}_pos.pos"
               if [ -f "$input_file" ]; then
                 python kibot/fix_pos_package_name.py "$input_file" "${input_file}-jlcpcb.pos"
               fi
@@ -106,8 +106,8 @@ jobs:
           mkdir -p filtered-output/pos
           for board in left_pcb right_pcb; do
             for side in bottom top; do
-              if [ -f "ergogen/output/pos/${board}/${side}-jlcpcb.pos" ]; then
-                cp "ergogen/output/pos/${board}/${side}-jlcpcb.pos" "filtered-output/pos/"
+              if [ -f "ergogen/output/pos/${board}/${board}-${side}_pos-jlcpcb.pos" ]; then
+                cp "ergogen/output/pos/${board}/${board}-${side}_pos-jlcpcb.pos" "filtered-output/pos/"
               fi
             done
           done
