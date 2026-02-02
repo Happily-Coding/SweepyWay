@@ -75,6 +75,22 @@ jobs:
         with:
           boards: left_pcb right_pcb
           config: jlpcb_pos
+      - name: Debug - List POS file locations
+        run: |
+          echo "=== Searching for all .pos files in workspace ==="
+          find . -name "*.pos" -type f 2>/dev/null || echo "No .pos files found"
+          echo ""
+          echo "=== Listing all directories under ergogen/output ==="
+          find ergogen/output -type d 2>/dev/null | head -50 || echo "No directories found"
+          echo ""
+          echo "=== Detailed listing of ergogen/output ==="
+          ls -laR ergogen/output/ 2>/dev/null | head -100 || echo "Directory ergogen/output does not exist"
+          echo ""
+          echo "=== Detailed listing of ergogen/output/pos ==="
+          ls -laR ergogen/output/pos/ 2>/dev/null | head -100 || echo "Directory ergogen/output/pos does not exist"
+          echo ""
+          echo "=== Detailed listing of current working directory ==="
+          ls -laR . 2>/dev/null | head -100 || echo "Cannot list current directory"
       - name: Post-process POS files for JLCPCB
         run: |
           for board in left_pcb right_pcb; do
