@@ -12,7 +12,6 @@ outputs:
   - name: 'position'
     comment: "Pick and place file"
     type: position
-    dir: ergogen/output/pos/
     options:
       format: ASCII   # CSV or ASCII format
       units: millimeters  # millimeters or inches
