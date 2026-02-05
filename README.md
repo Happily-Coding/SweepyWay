@@ -9,6 +9,18 @@ left side | right side
 ![left](https://happily-coding.github.io/SweepyWay/images/left_pcb-top.png?v=1) | ![right](https://happily-coding.github.io/SweepyWay/images/right_pcb-top.png?v=1)
 
 [More outputs](https://happily-coding.github.io/SweepyWay/) (images, pdfs, stl 3d models, etc)
+
+<details><summary><h3 style="display:inline-block"> 3D Preview</h3></summary>
+
+The 3D preview shows how the keyboard looks with all components in place (switches, diodes, MCU, and keycaps).
+
+left side | right side
+-|-
+![left 3D top](https://happily-coding.github.io/SweepyWay/images/3d/left_pcb-3d-top.png?v=1) | ![right 3D top](https://happily-coding.github.io/SweepyWay/images/3d/right_pcb-3d-top.png?v=1)
+![left 3D bottom](https://happily-coding.github.io/SweepyWay/images/3d/left_pcb-3d-bottom.png?v=1) | ![right 3D bottom](https://happily-coding.github.io/SweepyWay/images/3d/right_pcb-3d-bottom.png?v=1)
+
+</details>
+
 <details><summary><h3 style="display:inline-block"> Output details</h2></summary>
 - Cases contains 3d models (not only of the case), l_cover is the plate that holds the switches firmly in place, and houses the controller and battery, protecting them
 <!-- 
