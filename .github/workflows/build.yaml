@@ -62,6 +62,13 @@ jobs:
         with:
           boards: left_pcb right_pcb
           config: boards
+      - name: Run KiBot to generate 3D previews
+        uses: ./.github/actions/kibot
+        with:
+          boards: left_pcb right_pcb
+          config: 3d_preview
+        env:
+          KICAD9_3DMODEL_DIR: ${{ github.workspace }}/component_3d_models
       - name: Run KiBot to generate the pdf from the auto routed board
         uses: ./.github/actions/kibot
         with:

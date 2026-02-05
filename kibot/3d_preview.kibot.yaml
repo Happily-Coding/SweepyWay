@@ -1,0 +1,65 @@
+# 3D preview exports for SweepyWay keyboard
+# Generates STEP models and PNG renders from KiCad 3D viewer
+
+kibot:
+  version: 1
+
+# Import default outputs (gerbers, drill, images, etc.)
+import:
+  - ./default.kibot.yaml
+
+# Preflight settings
+preflight:
+  fill_zones: true
+  drc: false
+  run_erc: false
+
+# 3D export outputs
+outputs:
+  # 3D Model File Export (STEP format)
+  - name: 3d_model_step
+    comment: "3D model in STEP format"
+    type: export_3d
+    dir: ergogen/output/3d-models
+    options:
+      format: step
+      output: '%f-3d.%x'
+      origin: grid
+      no_virtual: false
+      download: true
+
+  # 3D Rendered Images (top view)
+  - name: 3d_render_top
+    comment: "3D rendered top view"
+    type: render_3d
+    dir: ergogen/output/images/3d
+    options:
+      view: top
+      zoom: 0
+      background1: '#66667F'
+      background2: '#CCCCE5'
+      board: '#332B16'
+      output: '%f-3d-top.%x'
+      download: true
+      no_virtual: false
+
+  # 3D Rendered Images (bottom view)
+  - name: 3d_render_bottom
+    comment: "3D rendered bottom view"
+    type: render_3d
+    dir: ergogen/output/images/3d
+    extends: 3d_render_top
+    options:
+      view: bottom
+
+# Global filters to suppress warnings
+global:
+  filters:
+    - number: 8
+      regex: 'Unable to find KiCad configuration file'
+    - number: 10
+      regex: 'Unable to find KiCad user templates'
+    - number: 10
+      regex: 'Unable to find KiCad 3D models'
+    - number: 58
+      regex: 'KiCad project file not found|Missing KiCad main config file'
