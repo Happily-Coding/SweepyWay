@@ -50,6 +50,11 @@ outputs:
       origin: grid
       no_virtual: false
       download: true
+      # Quality settings to reduce facet count and file size
+      # Default grid_size is 0.01 (too aggressive), using 0.2 for reasonable quality
+      # Default min_angle is 5 (too aggressive), using 15 for reasonable quality
+      grid_size: 0.2
+      min_angle: 15
 
   # 3D Rendered Images (top view)
   - name: 3d_render_top
