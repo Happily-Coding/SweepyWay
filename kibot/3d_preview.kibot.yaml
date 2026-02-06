@@ -31,9 +31,21 @@ outputs:
   - name: 3d_model_step
     comment: "3D model in STEP format"
     type: export_3d
-    dir: ergogen/output/pcbs
+    dir: filtered-output/pcbs/3d
     options:
       format: step
+      output: '%f-3d.%x'
+      origin: grid
+      no_virtual: false
+      download: true
+
+  # 3D Model File Export (STL format)
+  - name: 3d_model_stl
+    comment: "3D model in STL format"
+    type: export_3d
+    dir: filtered-output/pcbs/3d
+    options:
+      format: stl
       output: '%f-3d.%x'
       origin: grid
       no_virtual: false
@@ -43,7 +55,7 @@ outputs:
   - name: 3d_render_top
     comment: "3D rendered top view"
     type: render_3d
-    dir: ergogen/output/images
+    dir: filtered-output/pcbs/images
     options:
       view: top
       zoom: 0
@@ -58,7 +70,7 @@ outputs:
   - name: 3d_render_bottom
     comment: "3D rendered bottom view"
     type: render_3d
-    dir: ergogen/output/images
+    dir: filtered-output/pcbs/images
     extends: 3d_render_top
     options:
       view: bottom

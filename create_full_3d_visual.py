@@ -7,8 +7,10 @@ import numpy as np
 # -----------------------------
 # Paths
 # -----------------------------
-TENTING_STL = "./filtered-output/tenting_system.stl"
-PALM_REST_STL = "./filtered-output/palm_rest.stl"
+TENTING_STL = "./filtered-output/cases/tenting_system.stl"
+PALM_REST_STL = "./filtered-output/palmrest/palm_rest.stl"
+LEFT_PCB_STEP = "./filtered-output/pcbs/3d/left_pcb-3d.step"
+RIGHT_PCB_STEP = "./filtered-output/pcbs/3d/right_pcb-3d.step"
 OUTPUT_GLB = "./filtered-output/combined_scene.glb"
 
 # -----------------------------
@@ -16,6 +18,10 @@ OUTPUT_GLB = "./filtered-output/combined_scene.glb"
 # -----------------------------
 tenting_mesh = trimesh.load(TENTING_STL, force="mesh")
 palm_mesh = trimesh.load(PALM_REST_STL, force="mesh")
+
+# Load PCB 3D models (STEP format)
+left_pcb_mesh = trimesh.load(LEFT_PCB_STEP, force="mesh")
+right_pcb_mesh = trimesh.load(RIGHT_PCB_STEP, force="mesh")
 
 # -----------------------------
 # Assign colors (RGBA)
@@ -28,11 +34,27 @@ palm_mesh.visual.vertex_colors = np.tile(
     [60, 60, 200, 255], (len(palm_mesh.vertices), 1)
 )
 
+# Keep original colors for PCB models (they should have colors from KiCad)
+
 # -----------------------------
 # Create scene with named objects
 # -----------------------------
 scene = trimesh.Scene()
 
+# Add PCB models
+scene.add_geometry(
+    left_pcb_mesh,
+    node_name="Left_PCB",
+    geom_name="Left_PCB"
+)
+
+scene.add_geometry(
+    right_pcb_mesh,
+    node_name="Right_PCB",
+    geom_name="Right_PCB"
+)
+
+# Add tenting and palm rest
 scene.add_geometry(
     tenting_mesh,
     node_name="Tenting_System",
