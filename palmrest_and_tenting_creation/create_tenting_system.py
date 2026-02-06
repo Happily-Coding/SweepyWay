@@ -181,6 +181,11 @@ if __name__ == "__main__":
         final_mesh = trimesh.util.concatenate(
             [keyboard_mesh, palm_mesh]
         )
-
+    
+    # Add color (red for tenting system)
+    final_mesh.visual.vertex_colors = np.tile(
+        [200, 60, 60, 255], (len(final_mesh.vertices), 1)
+    )
+    
     final_mesh.export("./filtered-output/cases/tenting_system.stl")
     print("Tenting system STL file saved as 'tenting_system.stl'")

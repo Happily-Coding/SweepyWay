@@ -20,8 +20,18 @@ tenting_mesh = trimesh.load(TENTING_STL, force="mesh")
 palm_mesh = trimesh.load(PALM_REST_STL, force="mesh")
 
 # Load PCB 3D models (GLB format - already contains all components with materials)
-left_pcb_mesh = trimesh.load(LEFT_PCB_GLB, force="mesh")
-right_pcb_mesh = trimesh.load(RIGHT_PCB_GLB, force="mesh")
+# Use scene mode to preserve the structure, then extract geometry
+left_pcb_scene = trimesh.load(LEFT_PCB_GLB)
+if isinstance(left_pcb_scene, trimesh.Scene):
+    left_pcb_mesh = trimesh.util.concatenate(list(left_pcb_scene.geometry.values()))
+else:
+    left_pcb_mesh = left_pcb_scene
+
+right_pcb_scene = trimesh.load(RIGHT_PCB_GLB)
+if isinstance(right_pcb_scene, trimesh.Scene):
+    right_pcb_mesh = trimesh.util.concatenate(list(right_pcb_scene.geometry.values()))
+else:
+    right_pcb_mesh = right_pcb_scene
 
 # -----------------------------
 # Create scene with named objects

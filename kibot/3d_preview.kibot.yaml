@@ -50,9 +50,9 @@ outputs:
       origin: grid
       no_virtual: false
       download: true
-      # Quality parameters to reduce file size
-      grid_size: 0.1
-      min_angle: 20
+      # Quality parameters to reduce file size (lower resolution for visualization)
+      grid_size: 1.0
+      min_angle: 45
 
   # 3D Model File Export (GLB format with materials)
   - name: 3d_model_glb
