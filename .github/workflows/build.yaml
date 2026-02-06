@@ -82,6 +82,12 @@ jobs:
               echo "Error: ${board}-3d.stl is empty"
               exit 1
             fi
+            # Check file size - warn if file is suspiciously large (corrupted)
+            # A typical PCB STL should be < 50MB. Larger files may indicate corruption.
+            file_size_mb=$(stat -f%z "ergogen/output/3d-models/${board}-3d.stl" 2>/dev/null || stat -c%s "ergogen/output/3d-models/${board}-3d.stl" 2>/dev/null)
+            if [ "$file_size_mb" -gt 50000000 ]; then
+              echo "Warning: ${board}-3d.stl file size is ${file_size_mb} bytes (${file_size_mb/1000000/} MB), which is unusually large. This may indicate a corrupted file."
+            fi
           done
 
       - name: Convert STL to ASCII for GitHub markdown

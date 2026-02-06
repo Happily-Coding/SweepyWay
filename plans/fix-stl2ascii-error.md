@@ -29,7 +29,7 @@ The current [`kibot/stl2ascii.py`](kibot/stl2ascii.py) has no error handling for
 
 ## Solution
 
-The fix requires two components:
+The fix requires three components:
 
 ### 1. Add Robust Error Handling to stl2ascii.py
 
@@ -50,18 +50,38 @@ def read_binary_stl(filename):
             raise ValueError(f"Invalid STL file: {filename} - facet count is too short")
         num_facets = struct.unpack('<I', num_facets_data)[0]
 
+        # Validate facet count - reasonable PCB models should have far fewer facets
+        # A typical PCB with 1000-5000 facets is normal. 3M+ facets indicates corruption.
+        MAX_REASONABLE_FACETS = 1000000
+        if num_facets > MAX_REASONABLE_FACETS:
+            raise ValueError(
+                f"Invalid STL file: {filename} - facet count {num_facets:,} is too high. "
+                f"Expected < {MAX_REASONABLE_FACETS:,}. File may be corrupted."
+            )
+
         facets = []
         for i in range(num_facets):
             # Read normal (3 floats * 4 bytes = 12 bytes, little endian)
-            normal = struct.unpack('<fff', f.read(12))
+            normal_data = f.read(12)
+            if len(normal_data) < 12:
+                raise ValueError(f"Invalid STL file: {filename} - normal data is too short at facet {i}")
+            normal = struct.unpack('<fff', normal_data)
 
             # Read vertices (3 vertices * 3 floats * 4 bytes = 36 bytes, little endian)
-            v1 = struct.unpack('<fff', f.read(12))
-            v2 = struct.unpack('<fff', f.read(12))
-            v3 = struct.unpack('<fff', f.read(12))
+            v1_data = f.read(12)
+            v2_data = f.read(12)
+            v3_data = f.read(12)
+            if len(v1_data) < 12 or len(v2_data) < 12 or len(v3_data) < 12:
+                raise ValueError(f"Invalid STL file: {filename} - vertex data is too short at facet {i}")
+            v1 = struct.unpack('<fff', v1_data)
+            v2 = struct.unpack('<fff', v2_data)
+            v3 = struct.unpack('<fff', v3_data)
 
             # Read attribute byte count (2 bytes, little endian)
-            attribute = struct.unpack('<H', f.read(2))[0]
+            attribute_data = f.read(2)
+            if len(attribute_data) < 2:
+                raise ValueError(f"Invalid STL file: {filename} - attribute data is too short at facet {i}")
+            attribute = struct.unpack('<H', attribute_data)[0]
 
             facets.append((normal, v1, v2, v3))
 
@@ -84,6 +104,12 @@ Add a step to check if STL files exist and have data before attempting conversio
       if [ ! -s "ergogen/output/3d-models/${board}-3d.stl" ]; then
         echo "Error: ${board}-3d.stl is empty"
         exit 1
+      fi
+      # Check file size - warn if file is suspiciously large (corrupted)
+      # A typical PCB STL should be < 50MB. Larger files may indicate corruption.
+      file_size_mb=$(stat -f%z "ergogen/output/3d-models/${board}-3d.stl" 2>/dev/null || stat -c%s "ergogen/output/3d-models/${board}-3d.stl" 2>/dev/null)
+      if [ "$file_size_mb" -gt 50000000 ]; then
+        echo "Warning: ${board}-3d.stl file size is ${file_size_mb} bytes (${file_size_mb/1000000/} MB), which is unusually large. This may indicate a corrupted file."
       fi
     done
 ```
@@ -111,12 +137,14 @@ If the conversion fails, the workflow should continue or fail with a clear messa
 1. **Add error handling to kibot/stl2ascii.py**
    - Validate header length (80 bytes)
    - Validate facet count data (4 bytes)
+   - Validate facet count is reasonable (max 1,000,000 facets)
    - Check for sufficient data before each struct.unpack() call
-   - Provide clear error messages
+   - Provide clear error messages with file and facet information
 
 2. **Add validation step to .github/workflows/build.yaml**
    - Check if STL files exist before conversion
    - Check if STL files have data (not empty)
+   - Warn if file size is suspiciously large (> 50MB)
    - Fail early if files are missing or empty
 
 3. **Update the conversion step in .github/workflows/build.yaml**
