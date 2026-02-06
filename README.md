@@ -14,22 +14,24 @@ left side | right side
 
 The 3D preview shows how the keyboard looks with all components in place (switches, diodes, MCU, and keycaps).
 
+> ⚠️ **Note about 3D rendering**: GitHub doesn't render 3D models directly in markdown. However, clicking the STL file links below will open GitHub's interactive 3D viewer where you can rotate, zoom, and inspect the complete assembly.
+
 ### 3D Model Files
 
-#### STL Files (GitHub 3D Rendering)
+#### STL Files (Interactive 3D View)
 - [Left PCB STL](https://happily-coding.github.io/SweepyWay/3d-models/left_pcb-3d.stl) 🎮
 - [Right PCB STL](https://happily-coding.github.io/SweepyWay/3d-models/right_pcb-3d.stl) 🎮
 
-> ✅ **GitHub renders STL files natively** - click the links above to see interactive 3D models!
+> ⚠️ **How to View**: Click the links above, then GitHub will automatically render the STL files in an interactive 3D viewer. You can rotate, zoom, and pan using your mouse.
 
 #### STEP Files (CAD Exchange)
 - [Left PCB STEP file](https://happily-coding.github.io/SweepyWay/3d-models/left_pcb-3d.step) 🔧
 - [Right PCB STEP file](https://happily-coding.github.io/SweepyWay/3d-models/right_pcb-3d.step) 🔧
 
-> ⚠️ **Note**: GitHub doesn't natively render STEP files, but you can:
-> - Download and open in KiCad 3D viewer
+> ⚠️ **Note**: GitHub doesn't render STEP files directly. Use these for CAD software:
+> - Download and open in KiCad 3D viewer, FreeCAD, Fusion 360, etc.
 > - Use online STEP viewers like [3DViewer.net](https://3dviewer.net/)
-> - View the STL versions above for quick GitHub rendering
+> - Convert to STL format for GitHub rendering
 
 ### 3D Rendered Images
 
@@ -40,17 +42,21 @@ left side | right side
 
 ### Troubleshooting Missing Components
 
-If the 3D renders show only the PCB without components, the environment variable `KICAD9_3DMODEL_DIR` may not be properly set. Ensure:
-1. The variable points to the `component_3d_models/` directory
-2. All footprint 3D model paths use the `${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}` variable
-3. The KiCad 9 Docker image has access to the models directory
+If the 3D renders show only the PCB without components, the environment variables may not be properly set. The PCB files use `${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}` but KiCad 9 also needs `KICAD9_3DMODEL_DIR`.
 
-**Quick Fix**: Add this to your KiBot command:
+**Solution**: Set BOTH environment variables to the same path:
 ```bash
-KICAD9_3DMODEL_DIR="/path/to/component_3d_models" kibot -c kibot/3d_preview.kibot.yaml
+PATH_TO_SWEEPYWAY_COMPONENT_MODELS="/path/to/component_3d_models" \
+KICAD9_3DMODEL_DIR="/path/to/component_3d_models" \
+kibot -c kibot/3d_preview.kibot.yaml
 ```
 
-**GitHub Actions**: The workflow already sets this variable to `${{ github.workspace }}/component_3d_models`
+**GitHub Actions**: The workflow now sets both variables to `${{ github.workspace }}/component_3d_models`
+
+**Verification**: Check that:
+1. `component_3d_models/` directory exists
+2. All required STEP files are present: `Choc_V1_Hotswap.step`, `Choc_V1_Switch.step`, `Choc_V1_Keycap_MBK_White_1u.step`, etc.
+3. The Docker container has access to the models directory
 
 </details>
 

@@ -1,5 +1,16 @@
 # 3D preview exports for SweepyWay keyboard
 # Generates STEP models and PNG renders from KiCad 3D viewer
+#
+# IMPORTANT: For 3D models to work, you must set BOTH environment variables:
+#   - PATH_TO_SWEEPYWAY_COMPONENT_MODELS (used in PCB files)
+#   - KICAD9_3DMODEL_DIR (used by KiCad 9)
+#
+# Both should point to the same directory: ./component_3d_models/
+#
+# GitHub Actions sets these automatically. For local testing:
+#   PATH_TO_SWEEPYWAY_COMPONENT_MODELS=./component_3d_models \
+#   KICAD9_3DMODEL_DIR=./component_3d_models \
+#   kibot -c kibot/3d_preview.kibot.yaml
 
 kibot:
   version: 1
