@@ -87,31 +87,33 @@ jobs:
           sudo mkdir -p filtered-output/pcbs/3d
           sudo mkdir -p filtered-output/cases
           sudo mkdir -p filtered-output/palmrest
+          # Fix ownership so Python scripts can write to these directories
+          sudo chown -R $USER:$USER filtered-output
       - name: Copy PCB files to filtered output
         run: |
           # Copy CAD files
-          sudo cp ergogen/output/pcbs/*.kicad_pcb filtered-output/pcbs/cad/ 2>/dev/null || true
-          sudo cp ergogen/output/pcbs/*.kicad_prl filtered-output/pcbs/cad/ 2>/dev/null || true
-          sudo cp ergogen/output/pcbs/*.kicad_pro filtered-output/pcbs/cad/ 2>/dev/null || true
-          sudo cp ergogen/output/pcbs/*.kicad_prl-back filtered-output/pcbs/cad/ 2>/dev/null || true
+          cp ergogen/output/pcbs/*.kicad_pcb filtered-output/pcbs/cad/ 2>/dev/null || true
+          cp ergogen/output/pcbs/*.kicad_prl filtered-output/pcbs/cad/ 2>/dev/null || true
+          cp ergogen/output/pcbs/*.kicad_pro filtered-output/pcbs/cad/ 2>/dev/null || true
+          cp ergogen/output/pcbs/*.kicad_prl-back filtered-output/pcbs/cad/ 2>/dev/null || true
           
           # Copy outlines
-          sudo rsync -a ergogen/output/outlines/ filtered-output/pcbs/outlines/ 2>/dev/null || true
+          rsync -a ergogen/output/outlines/ filtered-output/pcbs/outlines/ 2>/dev/null || true
           
           # Copy pos files
-          sudo rsync -a ergogen/output/pos/ filtered-output/pcbs/pos/ 2>/dev/null || true
+          rsync -a ergogen/output/pos/ filtered-output/pcbs/pos/ 2>/dev/null || true
           
           # Copy gerbers
-          sudo rsync -a ergogen/output/gerbers/ filtered-output/pcbs/gerbers/ 2>/dev/null || true
+          rsync -a ergogen/output/gerbers/ filtered-output/pcbs/gerbers/ 2>/dev/null || true
           
           # Copy images
-          sudo rsync -a ergogen/output/images/ filtered-output/pcbs/images/ 2>/dev/null || true
+          rsync -a ergogen/output/images/ filtered-output/pcbs/images/ 2>/dev/null || true
           
           # Copy pdfs
-          sudo rsync -a ergogen/output/pdfs/ filtered-output/pcbs/pdfs/ 2>/dev/null || true
+          rsync -a ergogen/output/pdfs/ filtered-output/pcbs/pdfs/ 2>/dev/null || true
           
           # Copy JSCAD files for OpenJSCAD CLI
-          sudo rsync -a ergogen/output/cases/ filtered-output/cases/ 2>/dev/null || true
+          rsync -a ergogen/output/cases/ filtered-output/cases/ 2>/dev/null || true
       - name: Run KiBot to generate jlpcb pos
         uses: ./.github/actions/kibot
         with:
@@ -173,13 +175,13 @@ jobs:
           uv sync --all-extras --dev
       - name: Create palmrest 3d model
         run: |
-          sudo uv run ./palmrest_and_tenting_creation/create_palmrest.py
+          uv run ./palmrest_and_tenting_creation/create_palmrest.py
       - name: Create tenting system 3d model
         run: |
-          sudo uv run ./palmrest_and_tenting_creation/create_tenting_system.py
+          uv run ./palmrest_and_tenting_creation/create_tenting_system.py
       - name: Create full 3D visual with PCBs, cases, and palm rest
         run: |
-          sudo uv run ./create_full_3d_visual.py
+          uv run ./create_full_3d_visual.py
       - name: Generate Directory Listings # Create the list of all the github pages to be deployed based on the files on folder.
         uses: jayanta525/github-pages-directory-listing@v4.0.0
         with:
