@@ -65,3 +65,7 @@ done
 # Docker runs as root and causes issues with file ownership
 sudo chown $USER -R ergogen
 sudo chown $USER -R freerouting
+
+# Fix GLB unit scale (convert meters → millimeters)
+# KiCad exports GLB in mm but glTF expects meters, so we need 1000x scale
+python3 fix_glb_scale.py --verbose

@@ -7,6 +7,8 @@ import os
 # -----------------------------
 # Paths
 # -----------------------------
+CASE_STL = "./filtered-output/cases/case.stl"
+L_COVER_STL = "./filtered-output/cases/l_cover.stl"
 TENTING_STL = "./filtered-output/cases/tenting_system.stl"
 PALM_REST_STL = "./filtered-output/palmrest/palm_rest.stl"
 LEFT_PCB_GLB = "./filtered-output/pcbs/3d/left_pcb-3d.glb"
@@ -16,6 +18,10 @@ OUTPUT_GLB = "./filtered-output/combined_scene.glb"
 # -----------------------------
 # Load meshes
 # -----------------------------
+# Load case and handrest models from OpenJSCAD exports
+case_mesh = trimesh.load(CASE_STL, force="mesh")
+l_cover_mesh = trimesh.load(L_COVER_STL, force="mesh")
+
 tenting_mesh = trimesh.load(TENTING_STL, force="mesh")
 palm_mesh = trimesh.load(PALM_REST_STL, force="mesh")
 
@@ -51,6 +57,19 @@ scene.add_geometry(
     geom_name="Right_PCB"
 )
 
+# Add case and cover models
+scene.add_geometry(
+    case_mesh,
+    node_name="Case",
+    geom_name="Case"
+)
+
+scene.add_geometry(
+    l_cover_mesh,
+    node_name="L_Cover",
+    geom_name="L_Cover"
+)
+
 # Add tenting and palm rest
 scene.add_geometry(
     tenting_mesh,
@@ -72,5 +91,7 @@ scene.export(OUTPUT_GLB)
 print(f"GLB scene saved to: {OUTPUT_GLB}")
 print(f"  Left PCB: {LEFT_PCB_GLB}")
 print(f"  Right PCB: {RIGHT_PCB_GLB}")
+print(f"  Case: {CASE_STL}")
+print(f"  L Cover: {L_COVER_STL}")
 print(f"  Tenting: {TENTING_STL}")
 print(f"  Palm Rest: {PALM_REST_STL}")

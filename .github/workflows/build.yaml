@@ -76,6 +76,11 @@ jobs:
           sudo mkdir -p filtered-output/palmrest
           # Fix ownership so Python scripts can write to these directories
           sudo chown -R $USER:$USER filtered-output
+      - name: Copy OpenJSCAD files to filtered-output/cases
+        run: |
+          # Copy case and handrest JSCAD files to filtered-output/cases for conversion
+          cp case_opnjscad/case.js filtered-output/cases/
+          cp case_opnjscad/handrest.js filtered-output/cases/
       - name: Run KiBot to generate 3D previews
         uses: ./.github/actions/kibot
         with:
@@ -84,6 +89,9 @@ jobs:
         env:
           KICAD9_3DMODEL_DIR: ${{ github.workspace }}/component_3d_models
           PATH_TO_SWEEPYWAY_COMPONENT_MODELS: ${{ github.workspace }}/component_3d_models
+      - name: Fix GLB unit scale (convert meters → millimeters)
+        run: |
+          python3 fix_glb_scale.py --verbose
       - name: Run KiBot to generate the pdf from the auto routed board
         uses: ./.github/actions/kibot
         with:
@@ -111,9 +119,6 @@ jobs:
           
           # Copy pdfs
           rsync -a ergogen/output/pdfs/ filtered-output/pcbs/pdfs/ 2>/dev/null || true
-          
-          # Copy JSCAD files for OpenJSCAD CLI
-          rsync -a ergogen/output/cases/ filtered-output/cases/ 2>/dev/null || true
       - name: Run KiBot to generate jlpcb pos
         uses: ./.github/actions/kibot
         with:
