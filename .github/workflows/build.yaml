@@ -137,9 +137,12 @@ jobs:
       - name: Install Python dependencies (for parametric palm rest modeling) 
         run: |
           uv sync --all-extras --dev
-      - name: Create palmrest & Tenting system 3d models.
+      - name: Create palmrest 3d model
         run: |
           uv run ./palmrest_and_tenting_creation/create_palmrest.py
+      - name: Create tenting system 3d model
+        run: |
+          uv run ./palmrest_and_tenting_creation/create_tenting_system.py
       - name: Create GLB assembly with palmrest and tenting
         run: |
           uv run ./palmrest_and_tenting_creation/create_visual_with_palm_rest_and_tenting.py
