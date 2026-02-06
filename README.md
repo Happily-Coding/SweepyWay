@@ -14,15 +14,18 @@ left side | right side
 
 The 3D preview shows how the keyboard looks with all components in place (switches, diodes, MCU, and keycaps).
 
-> ⚠️ **Note about 3D rendering**: GitHub doesn't render 3D models directly in markdown. However, clicking the STL file links below will open GitHub's interactive 3D viewer where you can rotate, zoom, and inspect the complete assembly.
-
 ### 3D Model Files
 
-#### STL Files (Interactive 3D View)
+#### Interactive 3D View (STL Format)
 - [Left PCB STL](https://happily-coding.github.io/SweepyWay/3d-models/left_pcb-3d.stl) 🎮
 - [Right PCB STL](https://happily-coding.github.io/SweepyWay/3d-models/right_pcb-3d.stl) 🎮
 
-> ⚠️ **How to View**: Click the links above, then GitHub will automatically render the STL files in an interactive 3D viewer. You can rotate, zoom, and pan using your mouse.
+> 🎮 **How to View**: Click the links above, then GitHub will automatically render the STL files in an interactive 3D viewer. You can rotate, zoom, and pan using your mouse.
+
+#### Markdown Rendering (ASCII STL)
+The ASCII STL files are generated in the workflow and embedded in markdown using the ```stl code block syntax. GitHub renders these automatically when viewing the README.
+
+> 💡 **Note**: The ASCII STL files are generated from the binary STL files in the workflow and embedded directly in this README for instant rendering.
 
 #### STEP Files (CAD Exchange)
 - [Left PCB STEP file](https://happily-coding.github.io/SweepyWay/3d-models/left_pcb-3d.step) 🔧
