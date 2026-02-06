@@ -14,5 +14,5 @@ outputs:
   - name: pcb_pdf
     comment: "PDF of the PCB layout"
     type: pdf_pcb_print
-    dir: ergogen/output/pdfs
+    dir: filtered-output/pcbs/pdfs
 

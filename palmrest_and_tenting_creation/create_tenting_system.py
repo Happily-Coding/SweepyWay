@@ -182,5 +182,5 @@ if __name__ == "__main__":
             [keyboard_mesh, palm_mesh]
         )
 
-    final_mesh.export("./filtered-output/tenting_system.stl")
+    final_mesh.export("./filtered-output/cases/tenting_system.stl")
     print("Tenting system STL file saved as 'tenting_system.stl'")

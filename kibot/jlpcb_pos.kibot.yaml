@@ -10,7 +10,7 @@ outputs:
   - name: 'position'
     comment: "Pick and place file"
     type: position
-    dir: filtered-output/pos/%f
+    dir: filtered-output/pcbs/pos/%f
     options:
       format: ASCII   # CSV or ASCII format
       units: millimeters  # millimeters or inches
