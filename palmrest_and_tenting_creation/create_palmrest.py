@@ -128,5 +128,11 @@ if __name__ == "__main__":
 
     # Final mesh
     mesh = trimesh.Trimesh(vertices=vertices, faces=final_faces, process=True)
+    
+    # Add color (blue for palm rest)
+    mesh.visual.vertex_colors = np.tile(
+        [60, 60, 200, 255], (len(mesh.vertices), 1)
+    )
+    
     mesh.export("./filtered-output/palmrest/palm_rest.stl")
     print("Palmrest STL file saved as 'palm_rest.stl'")
