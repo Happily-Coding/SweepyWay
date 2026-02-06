@@ -140,6 +140,9 @@ jobs:
       - name: Create palmrest & Tenting system 3d models.
         run: |
           uv run ./palmrest_and_tenting_creation/create_palmrest.py
+      - name: Create GLB assembly with palmrest and tenting
+        run: |
+          uv run ./palmrest_and_tenting_creation/create_visual_with_palm_rest_and_tenting.py
       - name: Generate Directory Listings # Create the list of all the github pages to be deployed based on the files on folder.
         uses: jayanta525/github-pages-directory-listing@v4.0.0
         with:

@@ -31,7 +31,7 @@ outputs:
   - name: 3d_model_step
     comment: "3D model in STEP format"
     type: export_3d
-    dir: ergogen/output/3d-models
+    dir: ergogen/output/pcbs
     options:
       format: step
       output: '%f-3d.%x'
@@ -43,7 +43,7 @@ outputs:
   - name: 3d_render_top
     comment: "3D rendered top view"
     type: render_3d
-    dir: ergogen/output/images/3d
+    dir: ergogen/output/images
     options:
       view: top
       zoom: 0
@@ -58,7 +58,7 @@ outputs:
   - name: 3d_render_bottom
     comment: "3D rendered bottom view"
     type: render_3d
-    dir: ergogen/output/images/3d
+    dir: ergogen/output/images
     extends: 3d_render_top
     options:
       view: bottom
