@@ -39,23 +39,6 @@ outputs:
       no_virtual: false
       download: true
 
-  # 3D Model File Export (STL format for GitHub 3D rendering)
-  - name: 3d_model_stl
-    comment: "3D model in STL format for GitHub rendering"
-    type: export_3d
-    dir: ergogen/output/3d-models
-    options:
-      format: stl
-      output: '%f-3d.%x'
-      origin: grid
-      no_virtual: false
-      download: true
-      # Quality settings to reduce facet count and file size
-      # Default grid_size is 0.01 (too aggressive), using 0.2 for reasonable quality
-      # Default min_angle is 5 (too aggressive), using 15 for reasonable quality
-      grid_size: 0.2
-      min_angle: 15
-
   # 3D Rendered Images (top view)
   - name: 3d_render_top
     comment: "3D rendered top view"
