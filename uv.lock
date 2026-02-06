@@ -72,6 +72,29 @@ wheels = [
 ]
 
 [[package]]
+name = "cascadio"
+version = "0.0.17"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8a/90/5d6ad5e0f22c423e3566ff43673ce3ee22e472bdb48d6e1cc70320993680/cascadio-0.0.17-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:82753a075593c9295dce4d5952bb378719d033fc3af3de4ab0199e70f82725db", size = 22221651 },
+    { url = "https://files.pythonhosted.org/packages/62/59/202988e973dcb6bdc057e2f8430a4feef9d7cf3efe7253d7ea64f30b27ad/cascadio-0.0.17-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:9e53708fc7ecd3ff1df54d8b44f1ab5dbfff823548195ed2cdc420eaae3c4911", size = 19730030 },
+    { url = "https://files.pythonhosted.org/packages/33/25/9406c699251935f13c40548deb16249ca680cecf229e6bf4407a0b9a895d/cascadio-0.0.17-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:e5549886d0e27dd27ae57bf6d2c93b84cf2ee63734bb59d8484e478ff9d352a3", size = 25701328 },
+    { url = "https://files.pythonhosted.org/packages/4d/79/ac8fd9d838b964f23f4ea556295b1d9d0acd85cddbb4c1bd4bd3b5651fcf/cascadio-0.0.17-cp312-cp312-win_amd64.whl", hash = "sha256:6c10ba634b512567680a1cef304f53e12fa309b1ffffc49bd74e4ff0d60f8f14", size = 13686485 },
+    { url = "https://files.pythonhosted.org/packages/45/48/dd83179375562ec65f7fc46594342cf1293c55ecb32d970bdc6d961d2731/cascadio-0.0.17-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:b00cce90f397f162a5cf00b7a39f5717f0429897d31c4bcd2ffaf4f65fbb7be0", size = 22221710 },
+    { url = "https://files.pythonhosted.org/packages/c2/d6/659505ded5e24b2e6f696aac4e3dab7ceb6488285a4a1603c8078df2341b/cascadio-0.0.17-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:81ec2ddcfea1032bb624a34dace5770196f7fecba6138bfe351b72938e33609d", size = 19730124 },
+    { url = "https://files.pythonhosted.org/packages/59/11/58e01505cc5e33e8d0f327e59ab778a665273e9769bc40fd6ab0d935cffe/cascadio-0.0.17-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:3a70ed80484e33e73f4bccd63dc21443fb213e0fe68a07315e9d26e06b410c57", size = 25701365 },
+    { url = "https://files.pythonhosted.org/packages/31/47/9533770abcccac5f4c4bd49834465bca87e41e003b5145f920029b706fd7/cascadio-0.0.17-cp313-cp313-win_amd64.whl", hash = "sha256:2310c4e37bb33324cfbd78af922f911b83b291c3fc267b7df27bcba0bd9dcd55", size = 13686474 },
+    { url = "https://files.pythonhosted.org/packages/97/94/bdb487ccca6668e6651bbaa8cc83d6fc4747abbdd43b3dcb778379238999/cascadio-0.0.17-cp314-cp314-macosx_10_15_x86_64.whl", hash = "sha256:bd5c7b5fdf22ea39689fc8759cba3c70431f1c57340a742b4a73a13771c48ac6", size = 22221894 },
+    { url = "https://files.pythonhosted.org/packages/99/d6/151285a40bbb1f154350fc41754296b77d876829c928b7bca5de26085c8f/cascadio-0.0.17-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:edabcaffa12855e23e77955f10c212db54628b437cffea7473d6bf67dce08a17", size = 19730328 },
+    { url = "https://files.pythonhosted.org/packages/df/cd/156a3dedabd863a0122ba2891a12491be56223c683344a4eb4bba5bf3453/cascadio-0.0.17-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:5061c904e7bb30a07f7b5bdfa55e09d5132da27eed46a4adae72a743c97ff1fb", size = 25701453 },
+    { url = "https://files.pythonhosted.org/packages/49/f7/08d8f6ab556ed65b3f4eb3252863f774bceca856d61ef7aeccbf18f4eef1/cascadio-0.0.17-cp314-cp314-win_amd64.whl", hash = "sha256:8f69ff5db561620a8f4250c028ec39505e0d330f4fc56a1c15fdfbf41504b307", size = 14152072 },
+    { url = "https://files.pythonhosted.org/packages/f0/6c/9cb7c76a300d65e7c59c1526c25793870d185c0489f4ee65db9407f251f6/cascadio-0.0.17-cp314-cp314t-macosx_10_15_x86_64.whl", hash = "sha256:50ecb8ea3b543fdc5bb65e332b6da1e2e5141e5fab4364dad8ea3564c864e515", size = 22224707 },
+    { url = "https://files.pythonhosted.org/packages/d0/a3/f1c2bf88f7c7f91d62e27b1d1b7df8ea440feb64e8b4adb540c0574cf56f/cascadio-0.0.17-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:5b7018e61490790a82960dcf5c610ccd3f2622cde162bbc2b8ac4110c140c66b", size = 19733499 },
+    { url = "https://files.pythonhosted.org/packages/5c/4f/e2f9c0fc730e928d54b329ab7ebeee7f36d9b399787aa4f659cd8294fbf1/cascadio-0.0.17-cp314-cp314t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:1da79dc13d634edf604828ebf7d4853d33ea7f172c79e9c48d2248a14be0c49c", size = 25702962 },
+    { url = "https://files.pythonhosted.org/packages/0f/2e/90396006c3654ab45d9abd61f5c292af131a048f4ca46542e25c7365e66a/cascadio-0.0.17-cp314-cp314t-win_amd64.whl", hash = "sha256:70102ab76ca4ee8c1bcbc93e155869234160baa234be9c8bf65035e051b000cc", size = 14157752 },
+]
+
+[[package]]
 name = "cffi"
 version = "1.17.1"
 source = { registry = "https://pypi.org/simple" }
@@ -898,6 +921,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "cadquery" },
+    { name = "cascadio" },
     { name = "ezdxf" },
     { name = "ipykernel" },
     { name = "mapbox-earcut" },
@@ -915,6 +939,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "cadquery", specifier = ">=2.5.2" },
+    { name = "cascadio", specifier = ">=0.0.17" },
     { name = "ezdxf", specifier = ">=1.4.2" },
     { name = "ipykernel", specifier = ">=6.30.0" },
     { name = "mapbox-earcut", specifier = ">=1.0.3" },
