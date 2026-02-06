@@ -70,10 +70,30 @@ jobs:
         env:
           KICAD9_3DMODEL_DIR: ${{ github.workspace }}/component_3d_models
           PATH_TO_SWEEPYWAY_COMPONENT_MODELS: ${{ github.workspace }}/component_3d_models
+      - name: Validate STL files exist
+        run: |
+          for board in left_pcb right_pcb; do
+            if [ ! -f "ergogen/output/3d-models/${board}-3d.stl" ]; then
+              echo "Error: ${board}-3d.stl not found"
+              exit 1
+            fi
+            # Check file size (should be > 84 bytes for header + 50 bytes minimum)
+            if [ ! -s "ergogen/output/3d-models/${board}-3d.stl" ]; then
+              echo "Error: ${board}-3d.stl is empty"
+              exit 1
+            fi
+          done
+
       - name: Convert STL to ASCII for GitHub markdown
         run: |
           for board in left_pcb right_pcb; do
-            python3 kibot/stl2ascii.py ergogen/output/3d-models/${board}-3d.stl ergogen/output/3d-models/${board}-3d-ascii.stl
+            if python3 kibot/stl2ascii.py ergogen/output/3d-models/${board}-3d.stl ergogen/output/3d-models/${board}-3d-ascii.stl; then
+              echo "✓ Converted ${board}-3d.stl to ASCII"
+            else
+              echo "✗ Failed to convert ${board}-3d.stl to ASCII"
+              echo "This may indicate the STL file is empty or corrupted"
+              exit 1
+            fi
           done
       - name: Run KiBot to generate the pdf from the auto routed board
         uses: ./.github/actions/kibot

@@ -26,21 +26,39 @@ def read_binary_stl(filename):
         # Read header (80 bytes)
         header = f.read(80)
 
+        # Check if header is empty
+        if len(header) < 80:
+            raise ValueError(f"Invalid STL file: {filename} - header is too short")
+
         # Read number of facets (4 bytes, little endian)
-        num_facets = struct.unpack('<I', f.read(4))[0]
+        num_facets_data = f.read(4)
+        if len(num_facets_data) < 4:
+            raise ValueError(f"Invalid STL file: {filename} - facet count is too short")
+        num_facets = struct.unpack('<I', num_facets_data)[0]
 
         facets = []
-        for _ in range(num_facets):
+        for i in range(num_facets):
             # Read normal (3 floats * 4 bytes = 12 bytes, little endian)
-            normal = struct.unpack('<fff', f.read(12))
+            normal_data = f.read(12)
+            if len(normal_data) < 12:
+                raise ValueError(f"Invalid STL file: {filename} - normal data is too short at facet {i}")
+            normal = struct.unpack('<fff', normal_data)
 
             # Read vertices (3 vertices * 3 floats * 4 bytes = 36 bytes, little endian)
-            v1 = struct.unpack('<fff', f.read(12))
-            v2 = struct.unpack('<fff', f.read(12))
-            v3 = struct.unpack('<fff', f.read(12))
+            v1_data = f.read(12)
+            v2_data = f.read(12)
+            v3_data = f.read(12)
+            if len(v1_data) < 12 or len(v2_data) < 12 or len(v3_data) < 12:
+                raise ValueError(f"Invalid STL file: {filename} - vertex data is too short at facet {i}")
+            v1 = struct.unpack('<fff', v1_data)
+            v2 = struct.unpack('<fff', v2_data)
+            v3 = struct.unpack('<fff', v3_data)
 
             # Read attribute byte count (2 bytes, little endian)
-            attribute = struct.unpack('<H', f.read(2))[0]
+            attribute_data = f.read(2)
+            if len(attribute_data) < 2:
+                raise ValueError(f"Invalid STL file: {filename} - attribute data is too short at facet {i}")
+            attribute = struct.unpack('<H', attribute_data)[0]
 
             facets.append((normal, v1, v2, v3))
 
