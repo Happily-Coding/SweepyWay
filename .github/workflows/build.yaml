@@ -109,6 +109,9 @@ jobs:
           
           # Copy pdfs
           sudo rsync -a ergogen/output/pdfs/ filtered-output/pcbs/pdfs/ 2>/dev/null || true
+          
+          # Copy JSCAD files for OpenJSCAD CLI
+          sudo rsync -a ergogen/output/cases/ filtered-output/cases/ 2>/dev/null || true
       - name: Run KiBot to generate jlpcb pos
         uses: ./.github/actions/kibot
         with:
