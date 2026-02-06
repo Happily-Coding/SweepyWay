@@ -54,6 +54,18 @@ outputs:
       grid_size: 0.1
       min_angle: 20
 
+  # 3D Model File Export (GLB format with materials)
+  - name: 3d_model_glb
+    comment: "3D model in GLB format with materials"
+    type: export_3d
+    dir: filtered-output/pcbs/3d
+    options:
+      format: glb
+      output: '%f-3d.%x'
+      origin: grid
+      no_virtual: false
+      download: true
+
   # 3D Rendered Images (top view)
   - name: 3d_render_top
     comment: "3D rendered top view"
