@@ -14,10 +14,43 @@ left side | right side
 
 The 3D preview shows how the keyboard looks with all components in place (switches, diodes, MCU, and keycaps).
 
+### 3D Model Files
+
+#### STL Files (GitHub 3D Rendering)
+- [Left PCB STL](https://happily-coding.github.io/SweepyWay/3d-models/left_pcb-3d.stl) 🎮
+- [Right PCB STL](https://happily-coding.github.io/SweepyWay/3d-models/right_pcb-3d.stl) 🎮
+
+> ✅ **GitHub renders STL files natively** - click the links above to see interactive 3D models!
+
+#### STEP Files (CAD Exchange)
+- [Left PCB STEP file](https://happily-coding.github.io/SweepyWay/3d-models/left_pcb-3d.step) 🔧
+- [Right PCB STEP file](https://happily-coding.github.io/SweepyWay/3d-models/right_pcb-3d.step) 🔧
+
+> ⚠️ **Note**: GitHub doesn't natively render STEP files, but you can:
+> - Download and open in KiCad 3D viewer
+> - Use online STEP viewers like [3DViewer.net](https://3dviewer.net/)
+> - View the STL versions above for quick GitHub rendering
+
+### 3D Rendered Images
+
 left side | right side
 -|-
 ![left 3D top](https://happily-coding.github.io/SweepyWay/images/3d/left_pcb-3d-top.png?v=1) | ![right 3D top](https://happily-coding.github.io/SweepyWay/images/3d/right_pcb-3d-top.png?v=1)
 ![left 3D bottom](https://happily-coding.github.io/SweepyWay/images/3d/left_pcb-3d-bottom.png?v=1) | ![right 3D bottom](https://happily-coding.github.io/SweepyWay/images/3d/right_pcb-3d-bottom.png?v=1)
+
+### Troubleshooting Missing Components
+
+If the 3D renders show only the PCB without components, the environment variable `KICAD9_3DMODEL_DIR` may not be properly set. Ensure:
+1. The variable points to the `component_3d_models/` directory
+2. All footprint 3D model paths use the `${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}` variable
+3. The KiCad 9 Docker image has access to the models directory
+
+**Quick Fix**: Add this to your KiBot command:
+```bash
+KICAD9_3DMODEL_DIR="/path/to/component_3d_models" kibot -c kibot/3d_preview.kibot.yaml
+```
+
+**GitHub Actions**: The workflow already sets this variable to `${{ github.workspace }}/component_3d_models`
 
 </details>
 
