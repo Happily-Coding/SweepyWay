@@ -75,3 +75,4 @@ wheels/
 .venv
 
 filtered-output/*.stl
+.kilocode/mcp.json
