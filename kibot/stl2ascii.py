@@ -36,6 +36,15 @@ def read_binary_stl(filename):
             raise ValueError(f"Invalid STL file: {filename} - facet count is too short")
         num_facets = struct.unpack('<I', num_facets_data)[0]
 
+        # Validate facet count - reasonable PCB models should have far fewer facets
+        # A typical PCB with 1000-5000 facets is normal. 3M+ facets indicates corruption.
+        MAX_REASONABLE_FACETS = 1000000
+        if num_facets > MAX_REASONABLE_FACETS:
+            raise ValueError(
+                f"Invalid STL file: {filename} - facet count {num_facets:,} is too high. "
+                f"Expected < {MAX_REASONABLE_FACETS:,}. File may be corrupted."
+            )
+
         facets = []
         for i in range(num_facets):
             # Read normal (3 floats * 4 bytes = 12 bytes, little endian)
