@@ -26,6 +26,17 @@ right_pcb_mesh = trimesh.load(RIGHT_PCB_STEP, force="mesh")
 # -----------------------------
 # Assign colors (RGBA)
 # -----------------------------
+# PCB green color
+PCB_COLOR = [34, 139, 34, 255]  # Forest green
+
+left_pcb_mesh.visual.vertex_colors = np.tile(
+    PCB_COLOR, (len(left_pcb_mesh.vertices), 1)
+)
+
+right_pcb_mesh.visual.vertex_colors = np.tile(
+    PCB_COLOR, (len(right_pcb_mesh.vertices), 1)
+)
+
 tenting_mesh.visual.vertex_colors = np.tile(
     [200, 60, 60, 255], (len(tenting_mesh.vertices), 1)
 )
@@ -33,8 +44,6 @@ tenting_mesh.visual.vertex_colors = np.tile(
 palm_mesh.visual.vertex_colors = np.tile(
     [60, 60, 200, 255], (len(palm_mesh.vertices), 1)
 )
-
-# Keep original colors for PCB models (they should have colors from KiCad)
 
 # -----------------------------
 # Create scene with named objects

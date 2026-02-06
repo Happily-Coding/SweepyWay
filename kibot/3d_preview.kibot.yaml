@@ -50,6 +50,9 @@ outputs:
       origin: grid
       no_virtual: false
       download: true
+      # Quality parameters to reduce file size
+      grid_size: 0.1
+      min_angle: 20
 
   # 3D Rendered Images (top view)
   - name: 3d_render_top
