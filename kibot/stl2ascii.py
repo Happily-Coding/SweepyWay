@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Convert binary STL files to ASCII STL format for GitHub markdown rendering.
-
+ 
 GitHub renders STL files in markdown using the ASCII STL format:
 ```stl
 solid Mesh
@@ -13,11 +13,11 @@ solid Mesh
     endloop
   endfacet
 endsolid Mesh
-```
 """
 
 import sys
 import os
+import struct
 
 
 def read_binary_stl(filename):
@@ -27,29 +27,20 @@ def read_binary_stl(filename):
         header = f.read(80)
 
         # Read number of facets (4 bytes, little endian)
-        num_facets = int.from_bytes(f.read(4), 'little')
+        num_facets = struct.unpack('<I', f.read(4))[0]
 
         facets = []
         for _ in range(num_facets):
-            # Read normal (3 floats * 4 bytes = 12 bytes)
-            normal = f.read(12)
+            # Read normal (3 floats * 4 bytes = 12 bytes, little endian)
+            normal = struct.unpack('<fff', f.read(12))
 
-            # Read vertices (3 vertices * 3 floats * 4 bytes = 36 bytes)
-            vertices = f.read(36)
+            # Read vertices (3 vertices * 3 floats * 4 bytes = 36 bytes, little endian)
+            v1 = struct.unpack('<fff', f.read(12))
+            v2 = struct.unpack('<fff', f.read(12))
+            v3 = struct.unpack('<fff', f.read(12))
 
-            # Read attribute byte count (2 bytes)
-            attribute = f.read(2)
-
-            # Parse vertices
-            v1 = [float.from_bytes(vertices[0:4], 'little'),
-                  float.from_bytes(vertices[4:8], 'little'),
-                  float.from_bytes(vertices[8:12], 'little')]
-            v2 = [float.from_bytes(vertices[12:16], 'little'),
-                  float.from_bytes(vertices[16:20], 'little'),
-                  float.from_bytes(vertices[20:24], 'little')]
-            v3 = [float.from_bytes(vertices[24:28], 'little'),
-                  float.from_bytes(vertices[28:32], 'little'),
-                  float.from_bytes(vertices[32:36], 'little')]
+            # Read attribute byte count (2 bytes, little endian)
+            attribute = struct.unpack('<H', f.read(2))[0]
 
             facets.append((normal, v1, v2, v3))
 
