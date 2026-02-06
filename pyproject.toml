@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "cadquery>=2.5.2",
+    "cascadio>=0.0.17",
     "ezdxf>=1.4.2",
     "ipykernel>=6.30.0",
     "mapbox-earcut>=1.0.3",
