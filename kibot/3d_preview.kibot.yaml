@@ -51,7 +51,7 @@ outputs:
       no_virtual: false
       download: true
       # Quality parameters to reduce file size (lower resolution for visualization)
-      grid_size: 1.0
+      grid_size: 100.0
       min_angle: 45
 
   # 3D Model File Export (GLB format with materials - misscaled, will be fixed later)
@@ -67,6 +67,9 @@ outputs:
       no_virtual: false
       export_vrml: true
       download: true
+      include_tracks: true
+      include_pads: true
+      include_silkscreen: true
 
   # 3D Rendered Images (top view)
   - name: 3d_render_top
