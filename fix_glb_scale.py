@@ -44,8 +44,8 @@ def fix_glb_scale_pygltflib(board_name: str, verbose: bool = False) -> bool:
     This approach reads the GLB file, scales the position data in the buffers,
     and updates the node transforms to preserve positions.
     """
-    misscaled_path = f'./filtered-output/pcbs/3d/{board_name}_pcb-3d-misscaled.glb'
-    glb_path = f'./filtered-output/pcbs/3d/{board_name}_pcb-3d.glb'
+    misscaled_path = f'./filtered-output/pcbs/3d/{board_name}-3d-misscaled.glb'
+    glb_path = f'./filtered-output/pcbs/3d/{board_name}-3d.glb'
     
     if not os.path.exists(misscaled_path):
         if verbose:
