@@ -193,12 +193,12 @@ jobs:
       - name: Create tenting system 3d model
         run: |
           uv run ./palmrest_and_tenting_creation/create_tenting_system.py
-      - name: Create full 3D visual with PCBs, cases, and palm rest
-        run: |
-          uv run ./create_full_3d_visual.py
       - name: Fix GLB unit scale (convert meters → millimeters)
         run: |
           uv run python3 fix_glb_scale.py --verbose
+      - name: Create full 3D visual with PCBs, cases, and palm rest
+        run: |
+          uv run ./create_full_3d_visual.py
       - name: Generate Directory Listings # Create the list of all the github pages to be deployed based on the files on folder.
         uses: jayanta525/github-pages-directory-listing@v4.0.0
         with:
