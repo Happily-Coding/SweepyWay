@@ -4,7 +4,7 @@ https://github.com/infused-kim/kb_ergogen_fp/tree/main/3d_models is the source f
 Choc_V1_Keycap_MBK_White_1u
 Choc_V1_Hotswap
 Choc_V1_Switch
-Nice_Nano_V2
+Nice_Nano_V2 (wrl created with https://imagetostl.com/convert/file/step/to/wrl#convert)
 And has others that may be useful (power buttons, pin headers, etc)
 
 It also contaisn instructions with how to use them https://github.com/infused-kim/kb_ergogen_fp but i think nowadays its better to use celoides footprint parameters https://github.com/ceoloide/ergogen-footprints/blob/main/switch_choc_v1_v2.js
@@ -32,8 +32,9 @@ D_SOD-123.step
 
 [from snap magic](https://www.snapeda.com/parts/SSSS811101/ALPS/view-part/?company=-&amp;welcome=home) ALPS power switch SSSS811101--3DModel-STEP-269445
 
-from [componentsearchengnine](https://componentsearchengine.com/part-view/EVQ-PUC02K/Panasonic) EVQ-PUC02K
+from [componentsearchengnine](https://componentsearchengine.com/part-view/EVQ-PUC02K/Panasonic) EVQ-PUC02K, WRL created with [imagetostl](https://imagetostl.com/convert/file/step/to/wrl#convert)
 
+from [snapmagic](https://www.snapeda.com/parts/S2B-PH-K-S(LF)(SN)/JST/view-part/) the JSTPH2 S2B-PH-K-S(LF)(SN) 3d model, and its wrl created with [imagetostl](https://imagetostl.com/convert/file/step/to/wrl#convert)
 
 IMPORTANT, THE NICE NANO + the headers is still less tall than the switches, but not by much
 https://typeractive.xyz/pages/build#corne_choc
