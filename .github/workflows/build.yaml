@@ -78,9 +78,9 @@ jobs:
           sudo chown -R $USER:$USER filtered-output
       - name: Copy OpenJSCAD files to filtered-output/cases
         run: |
-          # Copy case and handrest JSCAD files to filtered-output/cases for conversion
-          cp case_opnjscad/case.js filtered-output/cases/
-          cp case_opnjscad/handrest.js filtered-output/cases/
+          # Copy all JSCAD files to filtered-output/cases for conversion
+          cp case_opnjscad/*.js filtered-output/cases/
+          cp case_opnjscad/*.jscad filtered-output/cases/
       - name: Run KiBot to generate 3D previews
         uses: ./.github/actions/kibot
         with:
