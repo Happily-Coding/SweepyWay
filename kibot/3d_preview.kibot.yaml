@@ -54,17 +54,17 @@ outputs:
       grid_size: 1.0
       min_angle: 45
 
-   # 3D Model File Export (GLB format with materials - misscaled, will be fixed later)
-   - name: 3d_model_glb
-     comment: "3D model in GLB format with materials (misscaled)"
-     type: export_3d
-     dir: filtered-output/pcbs/3d
-     options:
-       format: glb
-       output: '%f-3d-misscaled.%x'
-       origin: grid
-       no_virtual: false
-       download: true
+  # 3D Model File Export (GLB format with materials - misscaled, will be fixed later)
+  - name: 3d_model_glb
+    comment: "3D model in GLB format with materials (misscaled)"
+    type: export_3d
+    dir: filtered-output/pcbs/3d
+    options:
+      format: glb
+      output: '%f-3d-misscaled.%x'
+      origin: grid
+      no_virtual: false
+      download: true
 
   # 3D Rendered Images (top view)
   - name: 3d_render_top
