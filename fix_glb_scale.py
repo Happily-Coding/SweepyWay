@@ -17,17 +17,18 @@ import argparse
 
 def fix_glb_scale(board_name: str, verbose: bool = False) -> bool:
     """Fix scale for a single PCB GLB file."""
+    misscaled_path = f'./filtered-output/pcbs/3d/{board_name}_pcb-3d-misscaled.glb'
     glb_path = f'./filtered-output/pcbs/3d/{board_name}_pcb-3d.glb'
     
-    if not os.path.exists(glb_path):
+    if not os.path.exists(misscaled_path):
         if verbose:
-            print(f'Skipping {glb_path} - not found')
+            print(f'Skipping {misscaled_path} - not found')
         return False
     
     if verbose:
-        print(f'Processing: {glb_path}')
+        print(f'Processing: {misscaled_path}')
     
-    mesh = trimesh.load(glb_path)
+    mesh = trimesh.load(misscaled_path)
     
     if isinstance(mesh, trimesh.Scene):
         mesh = trimesh.util.concatenate(list(mesh.geometry.values()))
@@ -35,6 +36,7 @@ def fix_glb_scale(board_name: str, verbose: bool = False) -> bool:
     # Apply 1000x scale (meters → millimeters)
     mesh.apply_scale(1000)
     
+    # Export to the correct path (avoiding permission issues)
     mesh.export(glb_path)
     
     if verbose:
