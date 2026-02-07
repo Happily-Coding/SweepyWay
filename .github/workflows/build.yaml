@@ -89,9 +89,6 @@ jobs:
         env:
           KICAD9_3DMODEL_DIR: ${{ github.workspace }}/component_3d_models
           PATH_TO_SWEEPYWAY_COMPONENT_MODELS: ${{ github.workspace }}/component_3d_models
-      - name: Fix GLB unit scale (convert meters → millimeters)
-        run: |
-          python3 fix_glb_scale.py --verbose
       - name: Run KiBot to generate the pdf from the auto routed board
         uses: ./.github/actions/kibot
         with:
@@ -187,6 +184,9 @@ jobs:
       - name: Create full 3D visual with PCBs, cases, and palm rest
         run: |
           uv run ./create_full_3d_visual.py
+      - name: Fix GLB unit scale (convert meters → millimeters)
+        run: |
+          uv run python3 fix_glb_scale.py --verbose
       - name: Generate Directory Listings # Create the list of all the github pages to be deployed based on the files on folder.
         uses: jayanta525/github-pages-directory-listing@v4.0.0
         with:
