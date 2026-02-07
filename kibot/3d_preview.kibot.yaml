@@ -55,7 +55,7 @@ outputs:
       min_angle: 45
 
   # 3D Model File Export (GLB format with materials - misscaled, will be fixed later)
-  # Using board_origin and export_vrml to preserve component hierarchy
+  # Using grid origin and export_vrml to preserve component hierarchy
   - name: 3d_model_glb
     comment: "3D model in GLB format with materials (misscaled)"
     type: export_3d
@@ -63,9 +63,8 @@ outputs:
     options:
       format: glb
       output: '%f-3d-misscaled.%x'
-      origin: board_origin
+      origin: grid
       no_virtual: false
-      export_vrml: true
       download: true
       include_tracks: true
       include_pads: true
