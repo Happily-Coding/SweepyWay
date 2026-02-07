@@ -855,6 +855,9 @@ pcbs:
       pads_bat:
         what: ceoloide/battery_connector_jst_ph_2
         params:
+          connector_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/JSTPH2-S2B-PH-K-S-LF-SN.step"
+          connector_3dmodel_xyz_rotation: [-90,0,0]
+          connector_3dmodel_xyz_offset: [0,1.5,0]
         where:
           ref: mcu
           shift: [mcu_x/2 +22, -10]
@@ -1039,6 +1042,7 @@ pcbs:
       pads_bat:
         what: ceoloide/battery_connector_jst_ph_2
         params:
+          connector_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/JSTPH2-S2B-PH-K-S-LF-SN.step"
         where:
           ref: mirror_mcu
           shift: [mcu_x/2 +22, -10]
