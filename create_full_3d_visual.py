@@ -12,7 +12,7 @@ L_COVER_STL = "./filtered-output/cases/l_cover.stl"
 TENTING_STL = "./filtered-output/cases/tenting_system.stl"
 PALM_REST_STL = "./filtered-output/palmrest/palm_rest.stl"
 LEFT_PCB_GLB = "./filtered-output/pcbs/3d/left_pcb-3d.glb"
-RIGHT_PCB_GLB = "./filtered-output/pcbs/3d/right_pcb-3d.glb"
+#RIGHT_PCB_GLB = "./filtered-output/pcbs/3d/right_pcb-3d.glb" # Commented sicne it makes no sens to create only the right pcb and not the right everythig else too
 OUTPUT_GLB = "./filtered-output/combined_scene.glb"
 
 # -----------------------------
@@ -33,11 +33,11 @@ if isinstance(left_pcb_scene, trimesh.Scene):
 else:
     left_pcb_mesh = left_pcb_scene
 
-right_pcb_scene = trimesh.load(RIGHT_PCB_GLB)
-if isinstance(right_pcb_scene, trimesh.Scene):
-    right_pcb_mesh = trimesh.util.concatenate(list(right_pcb_scene.geometry.values()))
-else:
-    right_pcb_mesh = right_pcb_scene
+#right_pcb_scene = trimesh.load(RIGHT_PCB_GLB)
+#if isinstance(right_pcb_scene, trimesh.Scene):
+#    right_pcb_mesh = trimesh.util.concatenate(list(right_pcb_scene.geometry.values()))
+#else:
+#    right_pcb_mesh = right_pcb_scene
 
 # -----------------------------
 # Create scene with named objects
@@ -51,11 +51,11 @@ scene.add_geometry(
     geom_name="Left_PCB"
 )
 
-scene.add_geometry(
-    right_pcb_mesh,
-    node_name="Right_PCB",
-    geom_name="Right_PCB"
-)
+#scene.add_geometry(
+#    right_pcb_mesh,
+#    node_name="Right_PCB",
+#    geom_name="Right_PCB"
+#)
 
 # Add case and cover models
 scene.add_geometry(
@@ -90,7 +90,7 @@ scene.export(OUTPUT_GLB)
 
 print(f"GLB scene saved to: {OUTPUT_GLB}")
 print(f"  Left PCB: {LEFT_PCB_GLB}")
-print(f"  Right PCB: {RIGHT_PCB_GLB}")
+#print(f"  Right PCB: {RIGHT_PCB_GLB}")
 print(f"  Case: {CASE_STL}")
 print(f"  L Cover: {L_COVER_STL}")
 print(f"  Tenting: {TENTING_STL}")
