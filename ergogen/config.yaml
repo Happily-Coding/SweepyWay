@@ -759,12 +759,49 @@ pcbs:
           include_in_pos_files: true
           from: "{{colrow}}"
           to: "{{column_net}}"
-          hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
-          hotswap_3dmodel_xyz_rotation: [180, 0, 0]
-          switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Switch.step"
-          switch_3dmodel_xyz_rotation: [180, 0, 0]
-          keycap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Keycap_MBK_White_1u.step"
-          keycap_3dmodel_xyz_rotation: [180, 0, 0]
+          supplier_link: 'https://kailhswitch.com/products/choc-v1'
+          manufacturer_part_number: 'Kailh-Choc-PG1350'
+          do_not_populate: ''
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Switch.step"
+          model_xyz_rotation: [180, 0, 0]
+      choc_hotswap:
+        what: ceoloide/hs-socket-fab-preview_choc_v1_v2
+        where:
+          - [ leftkey]
+        adjust:
+          rotate: 180
+        params:
+          side: 'B'
+          from: "{{colrow}}"
+          to: "{{column_net}}"
+          # 3D Model
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
+          model_xyz_rotation: [180, 0, 0]
+          # Supplier Link (optional)
+          supplier_link: 'https://kailhswitch.com/products/hotswap-socket'
+          # Manufacturer Part Number (optional)
+          manufacturer_part_number: 'Kailh-Hotswap-PG1350'
+          # DNP Flag (optional - set to 'DNP' to indicate the manufacturer should not try to place the part automatically)
+          do_not_populate: ''
+      choc_keycap:
+        what: ceoloide/keycap-fab-preview_choc_v1_v2
+        where:
+          - [ leftkey]
+        adjust:
+          rotate: 180
+        params:
+          side: 'B'
+          from: "{{colrow}}"
+          to: "{{column_net}}"
+          # 3D Model
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Keycap_MBK_White_1u.step"
+          model_xyz_rotation: [180, 0, 0]
+          # Supplier Link (optional)
+          supplier_link: 'https://mechanicalkeyboards.com/product/mbk-choc'
+          # Manufacturer Part Number (optional)
+          manufacturer_part_number: 'MBK-Choc-1u-White'
+          # DNP Flag (optional - set to 'DNP' to indicate the manufacturer should not try to place the part automatically)
+          do_not_populate: 'DNP'
       choc_space:
         what: ceoloide/switch_choc_v1_v2
         where:
@@ -779,17 +816,19 @@ pcbs:
           hotswap: true
           side: 'B'
           keycap_width: keycap_x_space
-
           keycap_height: 16.5
           include_in_pos_files: true
           from: "{{colrow}}"
           to: "{{column_net}}"
-          hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
-          hotswap_3dmodel_xyz_rotation: [180, 0, 0]
-          switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Switch.step"
-          switch_3dmodel_xyz_rotation: [180, 0, 0]
-          keycap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Keycap_MBK_White_1u.step"
-          keycap_3dmodel_xyz_rotation: [180, 0, 0]
+          # Supplier Links (optional)
+          supplier_link: 'https://kailhswitch.com/products/choc-v1'
+          # Manufacturer Part Numbers (optional)
+          manufacturer_part_number: 'Kailh-Choc-PG1350'
+          # DNP Flag (optional - set to 'DNP' to indicate the manufacturer should not try to place the part automatically)
+          do_not_populate: ''
+          # 3D Models
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Switch.step"
+          model_xyz_rotation: [180, 0, 0]
       diode:
         what: ceoloide/diode_tht_sod123
         where:
@@ -868,9 +907,9 @@ pcbs:
           side: F #The same side that most switches height are, to avoid adding unnecessary height
           from: GND
           to: RST
-          switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/EVQ-PUC02K.stp"
-          switch_3dmodel_xyz_offset: [0, 0, 0]
-          switch_3dmodel_xyz_rotation: [180, 180, 0]
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/EVQ-PUC02K.stp"
+          model_xyz_offset: [0, 0, 0]
+          model_xyz_rotation: [180, 180, 0]
         adjust:
           rotate: 270
         where:
@@ -882,9 +921,9 @@ pcbs:
           side: F #The same side that most switches height are, to avoid adding unnecessary height
           #          from: GND
           #          to: RST
-          switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/SSSS811101--3DModel-STEP-269445.STEP"
-          switch_3dmodel_xyz_offset: [0, 0, 0]
-          switch_3dmodel_xyz_rotation: [90, 180, 90]
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/SSSS811101--3DModel-STEP-269445.STEP"
+          model_xyz_offset: [0, 0, 0]
+          model_xyz_rotation: [90, 180, 90]
         adjust:
           rotate: 90
         where:
@@ -949,12 +988,47 @@ pcbs:
           include_in_pos_files: true
           from: "{{colrow}}"
           to: "{{column_net}}"
-          hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
-          hotswap_3dmodel_xyz_rotation: [180, 0, 0]
-          switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Switch.step"
-          switch_3dmodel_xyz_rotation: [180, 0, 0]
-          keycap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Keycap_MBK_White_1u.step"
-          keycap_3dmodel_xyz_rotation: [180, 0, 0]
+          supplier_link: 'https://kailhswitch.com/products/choc-v1'
+          manufacturer_part_number: 'Kailh-Choc-PG1350'
+          do_not_populate: ''
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Switch.step"
+          model_xyz_rotation: [180, 0, 0]
+      choc_hotswap:
+        what: ceoloide/hs-socket-fab-preview_choc_v1_v2
+        where:
+          - [/^mirror.*/, key, -1_5u, -space]
+          - /rightcluster_.*/
+        adjust:
+          rotate: 180
+        params:
+          side: 'B'
+          from: "{{colrow}}"
+          to: "{{column_net}}"
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
+          model_xyz_rotation: [180, 0, 0]
+          supplier_link: 'https://kailhswitch.com/products/hotswap-socket'
+          manufacturer_part_number: 'Kailh-Hotswap-PG1350'
+          do_not_populate: ''
+      choc_keycap:
+        what: ceoloide/keycap-fab-preview_choc_v1_v2
+        where:
+          - [/^mirror.*/, key, -1_5u, -space]
+          - /rightcluster_.*/
+        adjust:
+          rotate: 180
+        params:
+          side: 'B'
+          from: "{{colrow}}"
+          to: "{{column_net}}"
+          # 3D Model
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Keycap_MBK_White_1u.step"
+          model_xyz_rotation: [180, 0, 0]
+          # Supplier Link (optional)
+          supplier_link: 'https://mechanicalkeyboards.com/product/mbk-choc'
+          # Manufacturer Part Number (optional)
+          manufacturer_part_number: 'MBK-Choc-1u-White'
+          # DNP Flag (optional - set to 'DNP' to indicate the manufacturer should not try to place the part automatically)
+          do_not_populate: 'DNP'
       choc_space:
         what: ceoloide/switch_choc_v1_v2
         where:
@@ -973,12 +1047,15 @@ pcbs:
           include_in_pos_files: true
           from: "{{colrow}}"
           to: "{{column_net}}"
-          hotswap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
-          hotswap_3dmodel_xyz_rotation: [180, 0, 0]
-          switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Switch.step"
-          switch_3dmodel_xyz_rotation: [180, 0, 0]
-          keycap_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Keycap_MBK_White_1u.step"
-          keycap_3dmodel_xyz_rotation: [180, 0, 0]
+          # Supplier Links (optional)
+          supplier_link: 'https://kailhswitch.com/products/choc-v1'
+          # Manufacturer Part Numbers (optional)
+          manufacturer_part_number: 'Kailh-Choc-PG1350'
+          # DNP Flag (optional - set to 'DNP' to indicate the manufacturer should not try to place the part automatically)
+          do_not_populate: ''
+          # 3D Models
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Switch.step"
+          model_xyz_rotation: [180, 0, 0]
       diode:
         what: ceoloide/diode_tht_sod123
         where:
@@ -1053,10 +1130,10 @@ pcbs:
           side: F #The same side that most switches height are, to avoid adding unnecessary height
           from: GND
           to: RST
-          switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/EVQ-PUC02K.stp"
-          switch_3dmodel_xyz_offset: [0, 0, 0]
-          switch_3dmodel_xyz_scale: [1, 1, 1]
-          switch_3dmodel_xyz_rotation: [180, 180, 0]
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/EVQ-PUC02K.stp"
+          model_xyz_offset: [0, 0, 0]
+          model_xyz_scale: [1, 1, 1]
+          model_xyz_rotation: [180, 180, 0]
         adjust:
           rotate: 270
         where:
@@ -1068,10 +1145,10 @@ pcbs:
           side: F
           #          from: GND
           #          to: RST
-          switch_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/SSSS811101--3DModel-STEP-269445.STEP"
-          switch_3dmodel_xyz_offset: [0, 0, 0]
-          switch_3dmodel_xyz_scale: [1, 1, 1]
-          switch_3dmodel_xyz_rotation: [90, 180, 90]
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/SSSS811101--3DModel-STEP-269445.STEP"
+          model_xyz_offset: [0, 0, 0]
+          model_xyz_scale: [1, 1, 1]
+          model_xyz_rotation: [90, 180, 90]
         adjust:
           rotate: 270
         where:
