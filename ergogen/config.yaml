@@ -749,7 +749,7 @@ pcbs:
           rotate: 180
         params:
           include_keycap: true
-          choc_v2_support: false
+          choc_v2_support: true
           #          solder: true
           reversible: false
           hotswap: true
@@ -810,7 +810,7 @@ pcbs:
           rotate: 180
         params:
           include_keycap: true
-          choc_v2_support: false
+          choc_v2_support: true
           #solder: true
           reversible: false
           hotswap: true
@@ -978,7 +978,7 @@ pcbs:
           rotate: 180
         params:
           include_keycap: true
-          choc_v2_support: false
+          choc_v2_support: true
           #solder: true
           reversible: false
           hotswap: true
@@ -1037,7 +1037,7 @@ pcbs:
           rotate: 180
         params:
           include_keycap: true
-          choc_v2_support: false
+          choc_v2_support: true
           #solder: true
           reversible: false
           hotswap: true
