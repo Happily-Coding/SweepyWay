@@ -796,6 +796,7 @@ pcbs:
           # 3D Model
           model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Keycap_MBK_White_1u.step"
           model_xyz_rotation: [180, 0, 0]
+          model_xyz_offset: [0, 0, -7] #third axis is vertical
           # Supplier Link (optional)
           supplier_link: 'https://mechanicalkeyboards.com/product/mbk-choc'
           # Manufacturer Part Number (optional)
@@ -1023,6 +1024,7 @@ pcbs:
           # 3D Model
           model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Keycap_MBK_White_1u.step"
           model_xyz_rotation: [180, 0, 0]
+          model_xyz_offset: [0, 0, -7] #third axis is vertical
           # Supplier Link (optional)
           supplier_link: 'https://mechanicalkeyboards.com/product/mbk-choc'
           # Manufacturer Part Number (optional)
