@@ -5,7 +5,18 @@ Choc_V1_Keycap_MBK_White_1u
 Choc_V1_Hotswap
 Choc_V1_Switch
 Nice_Nano_V2 (wrl created with https://imagetostl.com/convert/file/step/to/wrl#convert)
-And has others that may be useful (power buttons, pin headers, etc)
+PinHeader_2.54mm_2x-12 (needed to make the nice nano hotswapable, covers the sides) PinHeader_2.54mm_2x-12 . The 3 pin header used by nice nano is likely [this one](https://www.digikey.hk/en/models/859444?srsltid=AfmBOopTJoP3wpPMP_HNW_utcFo4uNoQ4fqr97y4B13W0Xm0_5EgGbh_&tab=mfr), or [this one](https://www.digikey.com/en/models/298245?tab=snapmagic) but they are generally unnecessary and [for compatibility with promicro or elite-c its generally better to just go with the side pins ](https://github.com/bstiq/nice-nano-kicad) 
+And has others that may be useful (power buttons, pin headers, etc). Could not find the 3d model for the spring headers, but they are slightly less tall, and require 0.8-0.9mm holes (which at some point i verified my pcb already uses by default)
+
+The rest of the pin headers were obtained from: https://kicad.github.io/packages3d/Connector_PinHeader_2.54mm
+12 are for promicro compatible, 7 are for xiao ble, 4 are exclusively for RP2040Zero (from waveshare), along with the 10s.
+
+For general purposes. Take look at this: https://kicad.github.io/packages3d/
+
+
+The step file for the rp zero is from here: https://files.waveshare.com/upload/f/f7/RP2040_Zero_stp.zip
+
+Here you can find the files for xiao ble https://wiki.seeedstudio.com/XIAO_BLE/
 
 It also contaisn instructions with how to use them https://github.com/infused-kim/kb_ergogen_fp but i think nowadays its better to use celoides footprint parameters https://github.com/ceoloide/ergogen-footprints/blob/main/switch_choc_v1_v2.js
 
