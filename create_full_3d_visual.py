@@ -40,16 +40,17 @@ left_pcb_scene = trimesh.load(LEFT_PCB_GLB)
 scene = trimesh.Scene()
 
 # Add PCB models (GLB files already have correct materials/colors)
-# Preserve scene structure to maintain all transforms and prevent switch merging
+# Use scene.to_mesh() to bake all transforms from the scene graph into the geometry
+# This preserves all component positions and orientations correctly
 if isinstance(left_pcb_scene, trimesh.Scene):
-    # Add each geometry from the PCB scene to the combined scene
-    # This preserves all transforms from the original GLB file
-    for node_name, geometry in left_pcb_scene.geometry.items():
-        scene.add_geometry(
-            geometry,
-            node_name=f"Left_PCB_{node_name}",
-            geom_name=f"Left_PCB_{node_name}"
-        )
+    # Convert the PCB scene to a single mesh with all transforms baked in
+    # This is the cleanest approach - trimesh handles all the transform complexity internally
+    pcb_mesh = left_pcb_scene.to_mesh()
+    scene.add_geometry(
+        pcb_mesh,
+        node_name="Left_PCB",
+        geom_name="Left_PCB"
+    )
 else:
     # Fallback for non-scene files
     scene.add_geometry(
