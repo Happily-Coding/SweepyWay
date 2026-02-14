@@ -199,31 +199,18 @@ jobs:
           uv run python3 fix_glb_scale.py --verbose
       - name: Create full 3D visual with PCBs, cases, and palm rest
         run: |
-          echo "=== Running 3D merge variant ==="
+          echo "=== Running 3D merge variants (v9 and v10) ==="
+
+          echo "--- Variant 8: Copy graphr ---"
+          uv run python3 create_full_3d_visual_v8_copy_graph.py || echo "v9_scene_add failed"
+
+          echo "--- Variant 9: Scene addition operator ---"
+          uv run python3 create_full_3d_visual_v9_scene_add.py || echo "v9_scene_add failed"
           
-          # Commented out - previous variants for testing
-          # echo "--- Variant 1: Baseline (current implementation) ---"
-          # uv run python3 create_full_3d_visual_v1_baseline.py || echo "v1_baseline failed"
+          echo "--- Variant 10: pygltflib direct GLB manipulation ---"
+          uv run python3 create_full_3d_visual_v10_pygltflib.py || echo "v10_pygltflib failed"
           
-          # echo "--- Variant 2: Graph transforms ---"
-          # uv run python3 create_full_3d_visual_v2_graph_transforms.py || echo "v2_graph_transforms failed"
-          
-          # echo "--- Variant 3: Scene merge ---"
-          # uv run python3 create_full_3d_visual_v3_scene_merge.py || echo "v3_scene_merge failed"
-          
-          # echo "--- Variant 4: Graph edges ---"
-          # uv run python3 create_full_3d_visual_v4_graph_edges.py || echo "v4_graph_edges failed"
-          
-          # echo "--- Variant 5: Re-export ---"
-          # uv run python3 create_full_3d_visual_v5_reexport.py || echo "v5_reexport failed"
-          
-          # echo "--- Variant 6: Scene transform ---"
-          # uv run python3 create_full_3d_visual_v6_scene_transform.py || echo "v6_scene_transform failed"
-          
-          echo "--- Variant 7: Preserve structure with transform parameter ---"
-          uv run python3 create_full_3d_visual_v7_preserve_structure.py || echo "v7_preserve_structure failed"
-          
-          echo "=== Variant completed ==="
+          echo "=== Variants completed ==="
           echo "=== Generated files ==="
           ls -la filtered-output/combined_scene_v*.glb 2>/dev/null || echo "No variant files generated"
       - name: Generate Directory Listings # Create the list of all the github pages to be deployed based on the files on folder.
