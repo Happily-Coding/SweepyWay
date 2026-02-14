@@ -13,7 +13,7 @@ L_COVER_STL = "./filtered-output/cases/l_cover.stl"
 TENTING_STL = "./filtered-output/cases/tenting_system.stl"
 PALM_REST_STL = "./filtered-output/palmrest/palm_rest.stl"
 LEFT_PCB_GLB = "./filtered-output/pcbs/3d/left_pcb-3d.glb"
-OUTPUT_GLB = "./filtered-output/combined_scene_v11_hybrid.glb"
+OUTPUT_GLB = "./filtered-output/combined_scene.glb"
 
 def create_glb_from_stls(stl_files: dict, output_path: str) -> str:
     """
