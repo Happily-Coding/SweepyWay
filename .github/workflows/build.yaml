@@ -199,14 +199,14 @@ jobs:
           uv run python3 fix_glb_scale.py --verbose
       - name: Create full 3D visual with PCBs, cases, and palm rest
         run: |
-          echo "=== Running 3D merge variant v11 ==="
+          echo "=== Running 3D merge ==="
           
-          echo "--- Variant 11: Hybrid pygltflib + trimesh ---"
-          uv run python3 create_full_3d_visual_v11_hybrid.py || echo "v11_hybrid failed"
+          echo "--- Creating full 3D visualization ---"
+          uv run python3 create_full_3d_visual.py || echo "create_full_3d_visual failed"
           
-          echo "=== Variant completed ==="
+          echo "=== 3D merge completed ==="
           echo "=== Generated files ==="
-          ls -la filtered-output/combined_scene_v*.glb 2>/dev/null || echo "No variant files generated"
+          ls -la filtered-output/combined_scene*.glb 2>/dev/null || echo "No 3D scene files generated"
       - name: Generate Directory Listings # Create the list of all the github pages to be deployed based on the files on folder.
         uses: jayanta525/github-pages-directory-listing@v4.0.0
         with:
