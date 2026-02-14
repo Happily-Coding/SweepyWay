@@ -199,18 +199,12 @@ jobs:
           uv run python3 fix_glb_scale.py --verbose
       - name: Create full 3D visual with PCBs, cases, and palm rest
         run: |
-          echo "=== Running 3D merge variants (v9 and v10) ==="
-
-          echo "--- Variant 8: Copy graphr ---"
-          uv run python3 create_full_3d_visual_v8_copy_graph.py || echo "v9_scene_add failed"
-
-          echo "--- Variant 9: Scene addition operator ---"
-          uv run python3 create_full_3d_visual_v9_scene_add.py || echo "v9_scene_add failed"
+          echo "=== Running 3D merge variant v11 ==="
           
-          echo "--- Variant 10: pygltflib direct GLB manipulation ---"
-          uv run python3 create_full_3d_visual_v10_pygltflib.py || echo "v10_pygltflib failed"
+          echo "--- Variant 11: Hybrid pygltflib + trimesh ---"
+          uv run python3 create_full_3d_visual_v11_hybrid.py || echo "v11_hybrid failed"
           
-          echo "=== Variants completed ==="
+          echo "=== Variant completed ==="
           echo "=== Generated files ==="
           ls -la filtered-output/combined_scene_v*.glb 2>/dev/null || echo "No variant files generated"
       - name: Generate Directory Listings # Create the list of all the github pages to be deployed based on the files on folder.
