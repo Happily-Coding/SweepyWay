@@ -26,12 +26,7 @@ tenting_mesh = trimesh.load(TENTING_STL, force="mesh")
 palm_mesh = trimesh.load(PALM_REST_STL, force="mesh")
 
 # Load PCB 3D models (GLB format - already contains all components with materials)
-# Use scene mode to preserve the structure, then extract geometry
 left_pcb_scene = trimesh.load(LEFT_PCB_GLB)
-if isinstance(left_pcb_scene, trimesh.Scene):
-    left_pcb_mesh = trimesh.util.concatenate(list(left_pcb_scene.geometry.values()))
-else:
-    left_pcb_mesh = left_pcb_scene
 
 #right_pcb_scene = trimesh.load(RIGHT_PCB_GLB)
 #if isinstance(right_pcb_scene, trimesh.Scene):
@@ -45,11 +40,23 @@ else:
 scene = trimesh.Scene()
 
 # Add PCB models (GLB files already have correct materials/colors)
-scene.add_geometry(
-    left_pcb_mesh,
-    node_name="Left_PCB",
-    geom_name="Left_PCB"
-)
+# Preserve scene structure to maintain all transforms and prevent switch merging
+if isinstance(left_pcb_scene, trimesh.Scene):
+    # Add each geometry from the PCB scene to the combined scene
+    # This preserves all transforms from the original GLB file
+    for node_name, geometry in left_pcb_scene.geometry.items():
+        scene.add_geometry(
+            geometry,
+            node_name=f"Left_PCB_{node_name}",
+            geom_name=f"Left_PCB_{node_name}"
+        )
+else:
+    # Fallback for non-scene files
+    scene.add_geometry(
+        left_pcb_scene,
+        node_name="Left_PCB",
+        geom_name="Left_PCB"
+    )
 
 #scene.add_geometry(
 #    right_pcb_mesh,
