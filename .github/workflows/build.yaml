@@ -11,6 +11,7 @@ on:
       - 'package.json'
       - '*.nix'
       - 'palmrest_and_tenting_creation/*.py'
+      - 'create_full_3d_visual*.py'
 
 name: Build
 jobs:
@@ -196,9 +197,31 @@ jobs:
       - name: Fix GLB unit scale (convert meters → millimeters)
         run: |
           uv run python3 fix_glb_scale.py --verbose
-      - name: Create full 3D visual with PCBs, cases, and palm rest
+      - name: Create full 3D visual with PCBs, cases, and palm rest (all variants)
         run: |
-          uv run ./create_full_3d_visual.py
+          echo "=== Running all 6 3D merge variants ==="
+          
+          echo "--- Variant 1: Baseline (current implementation) ---"
+          uv run python3 create_full_3d_visual_v1_baseline.py || echo "v1_baseline failed"
+          
+          echo "--- Variant 2: Graph transforms ---"
+          uv run python3 create_full_3d_visual_v2_graph_transforms.py || echo "v2_graph_transforms failed"
+          
+          echo "--- Variant 3: Scene merge ---"
+          uv run python3 create_full_3d_visual_v3_scene_merge.py || echo "v3_scene_merge failed"
+          
+          echo "--- Variant 4: Graph edges ---"
+          uv run python3 create_full_3d_visual_v4_graph_edges.py || echo "v4_graph_edges failed"
+          
+          echo "--- Variant 5: Re-export ---"
+          uv run python3 create_full_3d_visual_v5_reexport.py || echo "v5_reexport failed"
+          
+          echo "--- Variant 6: Scene transform ---"
+          uv run python3 create_full_3d_visual_v6_scene_transform.py || echo "v6_scene_transform failed"
+          
+          echo "=== All variants completed ==="
+          echo "=== Generated files ==="
+          ls -la filtered-output/combined_scene_v*.glb 2>/dev/null || echo "No variant files generated"
       - name: Generate Directory Listings # Create the list of all the github pages to be deployed based on the files on folder.
         uses: jayanta525/github-pages-directory-listing@v4.0.0
         with:
