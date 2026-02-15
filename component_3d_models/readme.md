@@ -1,5 +1,7 @@
 Contains 3d models used to display the 3d file for the keyboard
 
+https://www.printables.com/model/246551-m2-standoff-multiple-sizes is the source for m2 standoffs of size 6 - 10 mm tall, i created the models 1 to 5 mm by scaling the height of the 10mm standoff.
+
 https://github.com/infused-kim/kb_ergogen_fp/tree/main/3d_models is the source for:
 Choc_V1_Keycap_MBK_White_1u
 Choc_V1_Hotswap
