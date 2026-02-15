@@ -89,6 +89,79 @@ def merge_glb_files(pcb_glb_path: str, stl_glb_path: str, output_path: str) -> N
     print(f"  Nodes: {stl_node_count}, Meshes: {stl_mesh_count}")
     print(f"  Accessors: {stl_accessor_count}, BufferViews: {stl_bufferView_count}")
     
+    # Handle materials for STL GLB - create default material if none exist
+    if hasattr(stl_gltf, 'meshes') and stl_gltf.meshes:
+        # Check if any meshes have materials assigned
+        meshes_without_materials = []
+        for i, mesh in enumerate(stl_gltf.meshes):
+            if mesh.primitives:
+                for primitive in mesh.primitives:
+                    if primitive.material is None:
+                        meshes_without_materials.append(i)
+                        break
+        
+        # If any meshes don't have materials, create a default transparent material
+        if len(meshes_without_materials) > 0:
+            # Create a default material with 40% transparency
+            default_material = pygltflib.Material(
+                pbrMetallicRoughness=pygltflib.PbrMetallicRoughness(
+                    baseColorFactor=[1.0, 1.0, 1.0, 0.4]  # White with 40% transparency
+                ),
+                alphaMode="BLEND"
+            )
+            
+            # Add the default material to the materials list
+            stl_gltf.materials.append(default_material)
+            default_material_index = len(stl_gltf.materials) - 1
+            
+            # Assign this material to all meshes that didn't have one
+            for mesh_index in meshes_without_materials:
+                mesh = stl_gltf.meshes[mesh_index]
+                if mesh.primitives:
+                    for primitive in mesh.primitives:
+                        if primitive.material is None:
+                            primitive.material = default_material_index
+    
+    # Set transparency (40% alpha) for all materials in PCB GLB
+    if hasattr(pcb_gltf, 'materials') and pcb_gltf.materials:
+        for material in pcb_gltf.materials:
+            if hasattr(material, 'pbrMetallicRoughness') and material.pbrMetallicRoughness:
+                base_color_factor = material.pbrMetallicRoughness.baseColorFactor
+                if base_color_factor is not None and isinstance(base_color_factor, list) and len(base_color_factor) >= 3:
+                    # Keep original RGB values, set alpha to 0.4 (40% transparency)
+                    material.pbrMetallicRoughness.baseColorFactor = [
+                        base_color_factor[0],
+                        base_color_factor[1],
+                        base_color_factor[2],
+                        0.4
+                    ]
+                else:
+                    # Default to white with 40% transparency if no baseColorFactor exists
+                    material.pbrMetallicRoughness.baseColorFactor = [1.0, 1.0, 1.0, 0.4]
+            
+            # Ensure alpha mode is set to BLEND for transparency
+            material.alphaMode = "BLEND"
+    
+    # Set transparency (40% alpha) for all materials in STL GLB
+    if hasattr(stl_gltf, 'materials') and stl_gltf.materials:
+        for material in stl_gltf.materials:
+            if hasattr(material, 'pbrMetallicRoughness') and material.pbrMetallicRoughness:
+                base_color_factor = material.pbrMetallicRoughness.baseColorFactor
+                if base_color_factor is not None and isinstance(base_color_factor, list) and len(base_color_factor) >= 3:
+                    # Keep original RGB values, set alpha to 0.4 (40% transparency)
+                    material.pbrMetallicRoughness.baseColorFactor = [
+                        base_color_factor[0],
+                        base_color_factor[1],
+                        base_color_factor[2],
+                        0.4
+                    ]
+                else:
+                    # Default to white with 40% transparency if no baseColorFactor exists
+                    material.pbrMetallicRoughness.baseColorFactor = [1.0, 1.0, 1.0, 0.4]
+            
+            # Ensure alpha mode is set to BLEND for transparency
+            material.alphaMode = "BLEND"
+    
     # Get binary data from both files
     try:
         pcb_binary = pcb_gltf.binary_blob()
@@ -223,10 +296,13 @@ def merge_glb_files(pcb_glb_path: str, stl_glb_path: str, output_path: str) -> N
     # Additionally, explicitly add the STL model nodes to the scene's root nodes
     # This ensures they are visible even if the STL scene structure is different
     stl_model_indices = []
+    l_cover_node_idx = None
     if hasattr(stl_gltf, 'nodes'):
         for i, node in enumerate(stl_gltf.nodes):
             if hasattr(node, 'name') and node.name in ["Case", "L_Cover", "Tenting_System", "Palm_Rest"]:
                 stl_model_indices.append(i)
+                if node.name == "L_Cover":
+                    l_cover_node_idx = i
     
     # Add these STL model nodes to the PCB scene's root nodes
     if hasattr(pcb_gltf, 'scenes') and pcb_gltf.scenes and pcb_gltf.scenes[0].nodes is not None:
@@ -234,6 +310,24 @@ def merge_glb_files(pcb_glb_path: str, stl_glb_path: str, output_path: str) -> N
             adjusted_idx = stl_model_idx + pcb_node_count
             if adjusted_idx not in pcb_gltf.scenes[0].nodes:
                 pcb_gltf.scenes[0].nodes.append(adjusted_idx)
+    
+    # Move L_Cover down by 12 units along Y-axis
+    if l_cover_node_idx is not None:
+        # Get the adjusted node index in the merged GLB
+        adjusted_l_cover_idx = l_cover_node_idx + pcb_node_count
+        # Find the node in the PCB GLB
+        if adjusted_l_cover_idx < len(pcb_gltf.nodes):
+            node = pcb_gltf.nodes[adjusted_l_cover_idx]
+            # Apply downward translation (negative Y)
+            if hasattr(node, 'translation') and node.translation is not None:
+                translation = node.translation
+                if isinstance(translation, list) and len(translation) >= 2:
+                    translation[1] -= 12  # Subtract 12 from Y component
+                    node.translation = translation
+                else:
+                    node.translation = [0, -12, 0]
+            else:
+                node.translation = [0, -12, 0]
     
     # Set the combined binary data
     try:
