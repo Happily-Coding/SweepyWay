@@ -53,8 +53,8 @@ units:
   internal_distance_between_plates: 4
   case_border_height: 16 # added by me, in a quick search soffle choic was arround 17 theoretically
   case_bottom_thickness: 3
-  screw_offset_x: -0.35 kx #How much to move the screw from the reference point.
-  screw_offset_y: -0.35 ky #how much to move the screw from the referene point
+  screw_offset_x: 0.4 kx #How much to move the screw from the reference point. To avoid landing inside the switches
+  screw_offset_y: -0.2 ky #how much to move the screw from the referene point
   controller_area_height: 5 #How tall relative to the switch plate the controller area cover should be at
   controller_area_wall_thickness: 2 #How thick (wide) the wall of the controller area should be
   controller_area_cover_thickness: 1.6 #How thick (tall) the cover should be 
