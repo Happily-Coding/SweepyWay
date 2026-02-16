@@ -4,12 +4,13 @@ import numpy as np
 import os
 import struct
 from copy import deepcopy
+import math
 
 # -----------------------------
 # Paths
 # -----------------------------
 CASE_STL = "./filtered-output/cases/case.stl"
-L_COVER_STL = "./filtered-output/cases/l_cover.stl"
+COVER_STL = "./filtered-output/cases/cover.stl"
 TENTING_STL = "./filtered-output/cases/tenting_system.stl"
 PALM_REST_STL = "./filtered-output/palmrest/palm_rest.stl"
 LEFT_PCB_GLB = "./filtered-output/pcbs/3d/left_pcb-3d.glb"
@@ -297,12 +298,15 @@ def merge_glb_files(pcb_glb_path: str, stl_glb_path: str, output_path: str) -> N
     # This ensures they are visible even if the STL scene structure is different
     stl_model_indices = []
     l_cover_node_idx = None
+    cover_node_idx = None
     if hasattr(stl_gltf, 'nodes'):
         for i, node in enumerate(stl_gltf.nodes):
-            if hasattr(node, 'name') and node.name in ["Case", "L_Cover", "Tenting_System", "Palm_Rest"]:
+            if hasattr(node, 'name') and node.name in ["Case", "L_Cover", "Cover", "Tenting_System", "Palm_Rest"]:
                 stl_model_indices.append(i)
                 if node.name == "L_Cover":
                     l_cover_node_idx = i
+                if node.name == "Cover":
+                    cover_node_idx = i
     
     # Add these STL model nodes to the PCB scene's root nodes
     if hasattr(pcb_gltf, 'scenes') and pcb_gltf.scenes and pcb_gltf.scenes[0].nodes is not None:
@@ -346,32 +350,182 @@ def merge_glb_files(pcb_glb_path: str, stl_glb_path: str, output_path: str) -> N
         print(f"ERROR: Failed to save merged GLB file: {e}")
         return
 
+def rotate_glb_around_z_axis(glb_path: str, angle_degrees: float, output_path: str) -> None:
+    """
+    Rotate a GLB file around the Z-axis by the specified angle.
+    Uses pygltflib to apply the rotation transform to all nodes.
+    
+    This rotates the entire model around the Z-axis (vertical axis).
+    A positive rotation (6.5 degrees) will tilt the left side up,
+    allowing the components to sit on top of the tenting system.
+    
+    Args:
+        glb_path: Path to the input GLB file
+        angle_degrees: Rotation angle in degrees (positive = counterclockwise when looking along Z axis)
+        output_path: Path to save the rotated GLB file
+    """
+    print(f"\nLoading GLB for rotation: {glb_path}")
+    try:
+        gltf = pygltflib.GLTF2().load(glb_path)
+        if gltf is None:
+            raise ValueError("Failed to load GLB file")
+        print(f"  GLB loaded successfully")
+    except Exception as e:
+        print(f"ERROR: Failed to load GLB file: {e}")
+        return
+    
+    # Convert angle to radians
+    angle_rad = math.radians(angle_degrees)
+    cos_a = math.cos(angle_rad)
+    sin_a = math.sin(angle_rad)
+    
+    print(f"  Applying {angle_degrees}° rotation around Z-axis")
+    
+    # Pre-calculate half angle for rotation quaternions
+    half_angle = angle_rad / 2
+    q_rot_z = [0, 0, math.sin(half_angle), math.cos(half_angle)]
+    
+    # Apply rotation to all nodes
+    if hasattr(gltf, 'nodes') and gltf.nodes:
+        for node in gltf.nodes:
+            # Handle matrix transformation (4x4 transformation matrix)
+            # The matrix is in column-major order:
+            # [m0, m4, m8, m12]   [Xx, Yx, Zx, Tx]
+            # [m1, m5, m9, m13] = [Xy, Yy, Zy, Ty]
+            # [m2, m6, m10, m14]  [Xz, Yz, Zz, Tz]
+            # [m3, m7, m11, m15]  [0,  0,  0,  1]
+            if hasattr(node, 'matrix') and node.matrix is not None:
+                matrix = node.matrix
+                if isinstance(matrix, list) and len(matrix) == 16:
+                    # Extract translation (columns 3, rows 0-2)
+                    tx, ty, tz = matrix[12], matrix[13], matrix[14]
+                    
+                    # Apply Z-axis rotation to translation
+                    new_tx = tx * cos_a - ty * sin_a
+                    new_ty = tx * sin_a + ty * cos_a
+                    
+                    # For the rotation part, we need to multiply the rotation matrix
+                    # Z-axis rotation matrix:
+                    # [cos(a)  -sin(a)  0]
+                    # [sin(a)   cos(a)  0]
+                    # [0        0       1]
+                    
+                    # Extract rotation columns (X, Y, Z axes)
+                    # X axis: matrix[0], matrix[1], matrix[2]
+                    # Y axis: matrix[4], matrix[5], matrix[6]
+                    # Z axis: matrix[8], matrix[9], matrix[10]
+                    
+                    # Apply Z rotation to X and Y axes
+                    new_Xx = matrix[0] * cos_a - matrix[4] * sin_a
+                    new_Xy = matrix[1] * cos_a - matrix[5] * sin_a
+                    new_Xz = matrix[2] * cos_a - matrix[6] * sin_a
+                    
+                    new_Yx = matrix[0] * sin_a + matrix[4] * cos_a
+                    new_Yy = matrix[1] * sin_a + matrix[5] * cos_a
+                    new_Yz = matrix[2] * sin_a + matrix[6] * cos_a
+                    
+                    # Z axis remains unchanged
+                    new_Zx = matrix[8]
+                    new_Zy = matrix[9]
+                    new_Zz = matrix[10]
+                    
+                    # Update the matrix with rotated values
+                    node.matrix = [
+                        new_Xx, new_Xy, new_Xz, 0,
+                        new_Yx, new_Yy, new_Yz, 0,
+                        new_Zx, new_Zy, new_Zz, 0,
+                        new_tx, new_ty, tz, 1
+                    ]
+            
+            # Apply rotation to translation (rotate the position around Z-axis)
+            elif hasattr(node, 'translation') and node.translation is not None:
+                translation = node.translation
+                if isinstance(translation, list) and len(translation) >= 3:
+                    x, y, z = translation[0], translation[1], translation[2]
+                    new_x = x * cos_a - y * sin_a
+                    new_y = x * sin_a + y * cos_a
+                    node.translation = [new_x, new_y, z]
+            
+            # Apply rotation to rotation (quaternion)
+            elif hasattr(node, 'rotation') and node.rotation is not None:
+                rotation = node.rotation
+                if isinstance(rotation, list) and len(rotation) >= 4:
+                    qx, gy, gz, gw = rotation[0], rotation[1], rotation[2], rotation[3]
+                    new_qx = q_rot_z[3] * qx + q_rot_z[0] * gy - q_rot_z[1] * gz + q_rot_z[2] * gw
+                    new_qy = q_rot_z[3] * gy - q_rot_z[0] * gz - q_rot_z[1] * gw + q_rot_z[2] * qx
+                    new_qz = q_rot_z[3] * gz + q_rot_z[0] * gw + q_rot_z[1] * qx - q_rot_z[2] * gy
+                    new_qw = q_rot_z[3] * gw - q_rot_z[0] * qx - q_rot_z[1] * gy - q_rot_z[2] * gz
+                    node.rotation = [new_qx, new_qy, new_qz, new_qw]
+            
+            # If node has no transformation at all, add a rotation property
+            # This handles nodes that are just containers
+            else:
+                node.rotation = [0, 0, q_rot_z[2], q_rot_z[3]]
+            
+            # If node has a mesh but no transformation, we need to add a transformation
+            # This handles cases where the mesh is directly attached to a node without transformation
+            if hasattr(node, 'mesh') and node.mesh is not None:
+                # Check if node has any transformation
+                has_transform = (hasattr(node, 'matrix') and node.matrix is not None) or \
+                               (hasattr(node, 'translation') and node.translation is not None) or \
+                               (hasattr(node, 'rotation') and node.rotation is not None) or \
+                               (hasattr(node, 'scale') and node.scale is not None)
+                if not has_transform:
+                    # Add default transformation with rotation
+                    node.translation = [0, 0, 0]
+                    node.rotation = [0, 0, q_rot_z[2], q_rot_z[3]]
+    
+    # Save the rotated GLB
+    try:
+        gltf.save(output_path)
+        print(f"  Rotated GLB saved to: {output_path}")
+    except Exception as e:
+        print(f"ERROR: Failed to save rotated GLB file: {e}")
+        return
+
 # -----------------------------
 # Main execution
 # -----------------------------
-print("=== Variant 11: Hybrid pygltflib + trimesh approach ===\n")
+print("=== Variant 11: Hybrid pygltflib + trimesh approach (Two-step merge) ===\n")
 
-# Define STL files to add
-stl_files = {
+# Step 1: Create GLB from STL files EXCEPT tenting system
+stl_files_no_tenting = {
     "Case": CASE_STL,
-    "L_Cover": L_COVER_STL,
-    "Tenting_System": TENTING_STL,
+    "Cover": COVER_STL,
     "Palm_Rest": PALM_REST_STL
 }
 
-# Create temporary GLB from STL files
-temp_stl_glb = "./filtered-output/temp_stl_models.glb"
-print("Step 1: Creating GLB from STL files...")
-create_glb_from_stls(stl_files, temp_stl_glb)
+temp_stl_glb_no_tenting = "./filtered-output/temp_stl_models_no_tenting.glb"
+print("Step 1a: Creating GLB from STL files (without tenting system)...")
+create_glb_from_stls(stl_files_no_tenting, temp_stl_glb_no_tenting)
 
-# Merge GLB files
-print("\nStep 2: Merging GLB files...")
-merge_glb_files(LEFT_PCB_GLB, temp_stl_glb, OUTPUT_GLB)
+# Merge GLB files (PCB + STL without tenting) → intermediate output
+intermediate_output = "./filtered-output/pcb_plus_stl_no_tenting.glb"
+print("\nStep 1b: Merging GLB files (PCB + STL without tenting)...")
+merge_glb_files(LEFT_PCB_GLB, temp_stl_glb_no_tenting, intermediate_output)
 
-# Clean up temp file
-if os.path.exists(temp_stl_glb):
-    os.remove(temp_stl_glb)
-    print(f"\nCleaned up temp file: {temp_stl_glb}")
+# Step 2: Create GLB from tenting system only
+temp_stl_glb_tenting = "./filtered-output/temp_stl_models_tenting.glb"
+print("\nStep 2a: Creating GLB from tenting system STL...")
+stl_files_tenting = {
+    "Tenting_System": TENTING_STL
+}
+create_glb_from_stls(stl_files_tenting, temp_stl_glb_tenting)
+
+# Rotate the intermediate output by 6.5 degrees around Z-axis (vertical axis)
+rotated_output = "./filtered-output/pcb_plus_stl_no_tenting_tented.glb"
+print("\nStep 2a-b: Rotating intermediate output by 6.5° around Z-axis...")
+rotate_glb_around_z_axis(intermediate_output, 6.5, rotated_output)
+
+# Merge the rotated result with tenting system
+print("\nStep 2c: Merging with tenting system...")
+merge_glb_files(rotated_output, temp_stl_glb_tenting, OUTPUT_GLB)
 
 print(f"\n=== Complete ===")
 print(f"Output: {OUTPUT_GLB}")
+print(f"\nIntermediate outputs:")
+print(f"  - PCB + STL without tenting: {intermediate_output}")
+print(f"  - Rotated (6.5° Y-axis): {rotated_output}")
+print(f"\nTemp files kept for debugging:")
+print(f"  - {temp_stl_glb_no_tenting}")
+print(f"  - {temp_stl_glb_tenting}")
