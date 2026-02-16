@@ -16,6 +16,9 @@ PALM_REST_STL = "./filtered-output/palmrest/palm_rest.stl"
 LEFT_PCB_GLB = "./filtered-output/pcbs/3d/left_pcb-3d.glb"
 OUTPUT_GLB = "./filtered-output/combined_scene.glb"
 
+# Tenting angle in degrees (from create_tenting_system.py)
+TENTING_ANGLE = 6.5
+
 def create_glb_from_stls(stl_files: dict, output_path: str) -> str:
     """
     Create a GLB file from multiple STL files using trimesh.
@@ -353,11 +356,12 @@ def merge_glb_files(pcb_glb_path: str, stl_glb_path: str, output_path: str) -> N
 def rotate_glb_around_z_axis(glb_path: str, angle_degrees: float, output_path: str) -> None:
     """
     Rotate a GLB file around the Z-axis by the specified angle.
-    Uses pygltflib to apply the rotation transform to all nodes.
+    Uses pygltflib to apply rotation to each node's transformation.
     
-    This rotates the entire model around the Z-axis (vertical axis).
-    A positive rotation (6.5 degrees) will tilt the left side up,
-    allowing the components to sit on top of the tenting system.
+    This applies the rotation by modifying each node's transformation:
+    - For nodes with a matrix: applies Z-axis rotation to the matrix
+    - For nodes with translation: rotates the translation around Z-axis
+    - For nodes with rotation (quaternion): multiplies with Z-axis rotation quaternion
     
     Args:
         glb_path: Path to the input GLB file
@@ -379,101 +383,101 @@ def rotate_glb_around_z_axis(glb_path: str, angle_degrees: float, output_path: s
     cos_a = math.cos(angle_rad)
     sin_a = math.sin(angle_rad)
     
-    print(f"  Applying {angle_degrees}° rotation around Z-axis")
-    
-    # Pre-calculate half angle for rotation quaternions
+    # Calculate quaternion for Z-axis rotation
+    # For a rotation around Z-axis by angle a:
+    # q = [sin(a/2) * 0, sin(a/2) * 0, sin(a/2) * 1, cos(a/2)]
+    #   = [0, 0, sin(a/2), cos(a/2)]
     half_angle = angle_rad / 2
     q_rot_z = [0, 0, math.sin(half_angle), math.cos(half_angle)]
     
+    print(f"  Applying {angle_degrees}° rotation around Z-axis using pygltflib")
+    print(f"  Z-axis rotation quaternion: {q_rot_z}")
+    
     # Apply rotation to all nodes
-    if hasattr(gltf, 'nodes') and gltf.nodes:
-        for node in gltf.nodes:
-            # Handle matrix transformation (4x4 transformation matrix)
-            # The matrix is in column-major order:
-            # [m0, m4, m8, m12]   [Xx, Yx, Zx, Tx]
-            # [m1, m5, m9, m13] = [Xy, Yy, Zy, Ty]
-            # [m2, m6, m10, m14]  [Xz, Yz, Zz, Tz]
-            # [m3, m7, m11, m15]  [0,  0,  0,  1]
-            if hasattr(node, 'matrix') and node.matrix is not None:
-                matrix = node.matrix
-                if isinstance(matrix, list) and len(matrix) == 16:
-                    # Extract translation (columns 3, rows 0-2)
-                    tx, ty, tz = matrix[12], matrix[13], matrix[14]
-                    
-                    # Apply Z-axis rotation to translation
-                    new_tx = tx * cos_a - ty * sin_a
-                    new_ty = tx * sin_a + ty * cos_a
-                    
-                    # For the rotation part, we need to multiply the rotation matrix
-                    # Z-axis rotation matrix:
-                    # [cos(a)  -sin(a)  0]
-                    # [sin(a)   cos(a)  0]
-                    # [0        0       1]
-                    
-                    # Extract rotation columns (X, Y, Z axes)
-                    # X axis: matrix[0], matrix[1], matrix[2]
-                    # Y axis: matrix[4], matrix[5], matrix[6]
-                    # Z axis: matrix[8], matrix[9], matrix[10]
-                    
-                    # Apply Z rotation to X and Y axes
-                    new_Xx = matrix[0] * cos_a - matrix[4] * sin_a
-                    new_Xy = matrix[1] * cos_a - matrix[5] * sin_a
-                    new_Xz = matrix[2] * cos_a - matrix[6] * sin_a
-                    
-                    new_Yx = matrix[0] * sin_a + matrix[4] * cos_a
-                    new_Yy = matrix[1] * sin_a + matrix[5] * cos_a
-                    new_Yz = matrix[2] * sin_a + matrix[6] * cos_a
-                    
-                    # Z axis remains unchanged
-                    new_Zx = matrix[8]
-                    new_Zy = matrix[9]
-                    new_Zz = matrix[10]
-                    
-                    # Update the matrix with rotated values
-                    node.matrix = [
-                        new_Xx, new_Xy, new_Xz, 0,
-                        new_Yx, new_Yy, new_Yz, 0,
-                        new_Zx, new_Zy, new_Zz, 0,
-                        new_tx, new_ty, tz, 1
-                    ]
-            
-            # Apply rotation to translation (rotate the position around Z-axis)
-            elif hasattr(node, 'translation') and node.translation is not None:
-                translation = node.translation
-                if isinstance(translation, list) and len(translation) >= 3:
-                    x, y, z = translation[0], translation[1], translation[2]
-                    new_x = x * cos_a - y * sin_a
-                    new_y = x * sin_a + y * cos_a
-                    node.translation = [new_x, new_y, z]
-            
-            # Apply rotation to rotation (quaternion)
-            elif hasattr(node, 'rotation') and node.rotation is not None:
-                rotation = node.rotation
-                if isinstance(rotation, list) and len(rotation) >= 4:
-                    qx, gy, gz, gw = rotation[0], rotation[1], rotation[2], rotation[3]
-                    new_qx = q_rot_z[3] * qx + q_rot_z[0] * gy - q_rot_z[1] * gz + q_rot_z[2] * gw
-                    new_qy = q_rot_z[3] * gy - q_rot_z[0] * gz - q_rot_z[1] * gw + q_rot_z[2] * qx
-                    new_qz = q_rot_z[3] * gz + q_rot_z[0] * gw + q_rot_z[1] * qx - q_rot_z[2] * gy
-                    new_qw = q_rot_z[3] * gw - q_rot_z[0] * qx - q_rot_z[1] * gy - q_rot_z[2] * gz
-                    node.rotation = [new_qx, new_qy, new_qz, new_qw]
-            
-            # If node has no transformation at all, add a rotation property
-            # This handles nodes that are just containers
-            else:
-                node.rotation = [0, 0, q_rot_z[2], q_rot_z[3]]
-            
-            # If node has a mesh but no transformation, we need to add a transformation
-            # This handles cases where the mesh is directly attached to a node without transformation
-            if hasattr(node, 'mesh') and node.mesh is not None:
-                # Check if node has any transformation
-                has_transform = (hasattr(node, 'matrix') and node.matrix is not None) or \
-                               (hasattr(node, 'translation') and node.translation is not None) or \
-                               (hasattr(node, 'rotation') and node.rotation is not None) or \
-                               (hasattr(node, 'scale') and node.scale is not None)
-                if not has_transform:
-                    # Add default transformation with rotation
-                    node.translation = [0, 0, 0]
-                    node.rotation = [0, 0, q_rot_z[2], q_rot_z[3]]
+    node_count = len(gltf.nodes) if hasattr(gltf, 'nodes') else 0
+    print(f"  Processing {node_count} nodes...")
+    
+    for i, node in enumerate(gltf.nodes):
+        node_name = node.name if hasattr(node, 'name') and node.name else 'Unnamed'
+        
+        # Handle matrix transformation (4x4 transformation matrix)
+        # The matrix is in column-major order:
+        # [m0,  m4,  m8,  m12]   [Xx, Yx, Zx, Tx]
+        # [m1,  m5,  m9,  m13] = [Xy, Yy, Zy, Ty]
+        # [m2,  m6,  m10, m14]   [Xz, Yz, Zz, Tz]
+        # [m3,  m7,  m11, m15]   [0,  0,  0,  1]
+        if hasattr(node, 'matrix') and node.matrix is not None:
+            matrix = node.matrix
+            if isinstance(matrix, list) and len(matrix) == 16:
+                # Extract translation (columns 3, rows 0-2)
+                tx, ty, tz = matrix[12], matrix[13], matrix[14]
+                
+                # Apply Z-axis rotation to translation
+                new_tx = tx * cos_a - ty * sin_a
+                new_ty = tx * sin_a + ty * cos_a
+                
+                # Extract rotation columns (X, Y, Z axes)
+                # X axis: matrix[0], matrix[1], matrix[2]
+                # Y axis: matrix[4], matrix[5], matrix[6]
+                # Z axis: matrix[8], matrix[9], matrix[10]
+                
+                # Apply Z rotation to X and Y axes
+                new_Xx = matrix[0] * cos_a - matrix[4] * sin_a
+                new_Xy = matrix[1] * cos_a - matrix[5] * sin_a
+                new_Xz = matrix[2] * cos_a - matrix[6] * sin_a
+                
+                new_Yx = matrix[0] * sin_a + matrix[4] * cos_a
+                new_Yy = matrix[1] * sin_a + matrix[5] * cos_a
+                new_Yz = matrix[2] * sin_a + matrix[6] * cos_a
+                
+                # Z axis remains unchanged
+                new_Zx = matrix[8]
+                new_Zy = matrix[9]
+                new_Zz = matrix[10]
+                
+                # Update the matrix with rotated values
+                node.matrix = [
+                    new_Xx, new_Xy, new_Xz, 0,
+                    new_Yx, new_Yy, new_Yz, 0,
+                    new_Zx, new_Zy, new_Zz, 0,
+                    new_tx, new_ty, tz, 1
+                ]
+        
+        # Apply rotation to rotation (quaternion) - check this BEFORE translation
+        # because nodes can have both translation and rotation, and we want to rotate the orientation
+        elif hasattr(node, 'rotation') and node.rotation is not None:
+            rotation = node.rotation
+            if isinstance(rotation, list) and len(rotation) >= 4:
+                qx, qy, qz, qw = rotation[0], rotation[1], rotation[2], rotation[3]
+                # Quaternion multiplication: q_rot_z * rotation
+                # q_rot_z = [0, 0, sin(a/2), cos(a/2)]
+                # q = [qx, qy, qz, qw]
+                # For Z-axis rotation, this simplifies to:
+                # new_qx = cos(a/2) * qx + sin(a/2) * qy
+                # new_qy = cos(a/2) * qy - sin(a/2) * qx
+                # new_qz = cos(a/2) * qz + sin(a/2) * qw
+                # new_qw = cos(a/2) * qw - sin(a/2) * qz
+                new_qx = q_rot_z[3] * qx + q_rot_z[2] * qy
+                new_qy = q_rot_z[3] * qy - q_rot_z[2] * qx
+                new_qz = q_rot_z[3] * qz + q_rot_z[2] * qw
+                new_qw = q_rot_z[3] * qw - q_rot_z[2] * qz
+                node.rotation = [new_qx, new_qy, new_qz, new_qw]
+        
+        # Apply rotation to translation (rotate the position around Z-axis)
+        elif hasattr(node, 'translation') and node.translation is not None:
+            translation = node.translation
+            if isinstance(translation, list) and len(translation) >= 3:
+                x, y, z = translation[0], translation[1], translation[2]
+                new_x = x * cos_a - y * sin_a
+                new_y = x * sin_a + y * cos_a
+                node.translation = [new_x, new_y, z]
+        
+        # If node has no transformation at all, add a rotation property
+        # This handles nodes that are just containers
+        else:
+            node.rotation = [0, 0, q_rot_z[2], q_rot_z[3]]
+    
+    print(f"  Rotation applied to all nodes")
     
     # Save the rotated GLB
     try:
@@ -512,10 +516,11 @@ stl_files_tenting = {
 }
 create_glb_from_stls(stl_files_tenting, temp_stl_glb_tenting)
 
-# Rotate the intermediate output by 6.5 degrees around Z-axis (vertical axis)
+# Rotate the intermediate output by -6.5 degrees around Z-axis (vertical axis)
+# Negative angle tilts the left side up to match the tenting system
 rotated_output = "./filtered-output/pcb_plus_stl_no_tenting_tented.glb"
-print("\nStep 2a-b: Rotating intermediate output by 6.5° around Z-axis...")
-rotate_glb_around_z_axis(intermediate_output, 6.5, rotated_output)
+print("\nStep 2a-b: Rotating intermediate output by -6.5° around Z-axis...")
+rotate_glb_around_z_axis(intermediate_output, -6.5, rotated_output)
 
 # Merge the rotated result with tenting system
 print("\nStep 2c: Merging with tenting system...")
