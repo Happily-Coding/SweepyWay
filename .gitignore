@@ -76,3 +76,9 @@ wheels/
 
 filtered-output/*.stl
 .kilocode/mcp.json
+filtered-output/*/index.html
+filtered-output/*/*/index.html
+filtered-output/*/*/*/index.html
+*.glb
+*.glb
+*.dxf
