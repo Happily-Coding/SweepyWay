@@ -777,6 +777,7 @@ pcbs:
           # 3D Model
           model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
           model_xyz_rotation: [180, 0, 0]
+          model_xyz_offset: [0,0,-0.5]
           # Supplier Link (optional)
           supplier_link: 'https://kailhswitch.com/products/hotswap-socket'
           # Manufacturer Part Number (optional)
@@ -964,6 +965,47 @@ pcbs:
           hole_size: screw_diameter
           hole_drill: screw_diameter
 
+      # Standoff 3D previews - virtual footprints for 3D visualization
+      # Positioned at standoff height above PCB
+      standoffs:
+        what: ceoloide/standoff-preview
+        where: left_screw
+        params:
+          screw_diameter: m2
+          length: 6  # Standoff height in mm
+          model_xyz_rotation: [90,0,0]
+          # model_filename auto-selected based on screw_diameter and length
+          # model_xyz_offset auto-calculated (centers standoff vertically)
+          do_not_populate: DNP
+
+      # Top screws - hold the plate to the standoff
+      # Sandwich: screw (top) → plate → standoff → case → screw (bottom)
+      screws_top:
+        what: ceoloide/screw-preview-top
+        where: left_screw
+        params:
+          screw_diameter: m2
+          length: 4  # Screw length in mm
+          head_type: low_socket  # Options: pan, low_socket, flat
+          standoff_height: 4  # Must match standoff length
+          plate_thickness: top_plate_thickness  # Switch plate thickness
+          # model_filename auto-selected based on parameters
+          # model_xyz_offset auto-calculated based on standoff_height + plate_thickness
+          do_not_populate: DNP
+
+      # Bottom screws - hold the case to the standoff
+      screws_bottom:
+        what: ceoloide/screw-preview-bottom
+        where: left_screw
+        params:
+          screw_diameter: m2
+          length: 4  # Screw length in mm
+          head_type: low_socket  # Options: pan, low_socket, flat
+          case_bottom_thickness: case_bottom_thickness  # Case bottom thickness
+          # model_filename auto-selected based on parameters
+          # model_xyz_offset auto-calculated (negative, below case)
+          do_not_populate: DNP
+
   right_pcb:
     template: kicad8
     outlines:
@@ -1007,6 +1049,7 @@ pcbs:
           to: "{{column_net}}"
           model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
           model_xyz_rotation: [180, 0, 0]
+          model_xyz_offset: [0,0,-0.5]
           supplier_link: 'https://kailhswitch.com/products/hotswap-socket'
           manufacturer_part_number: 'Kailh-Hotswap-PG1350'
           do_not_populate: ''
@@ -1184,6 +1227,40 @@ pcbs:
       #   where: 
       #     ref: mirror_mcu
       #     shift: [-mcu_y/2 -22,  -2]
+
+      # Standoff 3D previews - virtual footprints for 3D visualization
+      # Positioned at standoff height above PCB
+      r_standoffs:
+        what: ceoloide/standoff-preview
+        where: right_screw
+        params:
+          screw_diameter: m2
+          model_xyz_rotation: [0,90,0]
+          length: 6  # Standoff height in mm
+          do_not_populate: DNP
+
+      # Top screws - hold the plate to the standoff
+      r_screws_top:
+        what: ceoloide/screw-preview-top
+        where: right_screw
+        params:
+          screw_diameter: m2
+          length: 5  # Screw length in mm
+          head_type: low_socket  # Options: pan, low_socket, flat
+          standoff_height: 4  # Must match standoff length
+          plate_thickness: top_plate_thickness
+          do_not_populate: DNP
+
+      # Bottom screws - hold the case to the standoff
+      r_screws_bottom:
+        what: ceoloide/screw-preview-bottom
+        where: right_screw
+        params:
+          screw_diameter: m2
+          length: 4  # Screw length in mm
+          head_type: low_socket  # Options: pan, low_socket, flat
+          case_bottom_thickness: case_bottom_thickness
+          do_not_populate: DNP
 
 cases:
   #We need to do something like this for the bottom plate:
