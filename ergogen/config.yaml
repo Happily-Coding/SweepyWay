@@ -53,6 +53,7 @@ units:
   internal_distance_between_plates: 4
   case_border_height: 16 # added by me, in a quick search soffle choic was arround 17 theoretically
   case_bottom_thickness: 3
+  #TODO: aplicar offset adicional por screw minimo. porque no va a entrar asi , hay que buscar a la esquina posta. si no choca con switch.
   screw_offset_x: 0.4 kx #How much to move the screw from the reference point. To avoid landing inside the switches
   screw_offset_y: -0.2 ky #how much to move the screw from the referene point
   controller_area_height: 5 #How tall relative to the switch plate the controller area cover should be at
@@ -265,6 +266,8 @@ points:
     #distance: 100
     #key.tags: [key,mirrorkey]
     
+    #TODO AGREGAR SILKSCREEN PARA SCREWS PARA QUE NO SE PONGAN CIRCUITOS ABAJO!
+    #TODO ACA TAMBIEN TENDRIAMOS QUE DEFINIR LOS DEL LADO DERECHO
     #Define the points at which we need to make each screw hole
     l_screw_left_top:
       anchor:
@@ -777,7 +780,7 @@ pcbs:
           # 3D Model
           model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
           model_xyz_rotation: [180, 0, 0]
-          model_xyz_offset: [0,0,-0.5]
+          model_xyz_offset: [0, 0, -1.5]
           # Supplier Link (optional)
           supplier_link: 'https://kailhswitch.com/products/hotswap-socket'
           # Manufacturer Part Number (optional)
@@ -855,7 +858,7 @@ pcbs:
           reverse_mount: true
           include_extra_pins: true
           mcu_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Nice_Nano_V2.step"
-          mcu_3dmodel_xyz_offset: [0, 0, 5]
+          mcu_3dmodel_xyz_offset: [0, 0, 2.5]
           mcu_3dmodel_xyz_scale: [1, 1, 1]
           mcu_3dmodel_xyz_rotation: [0, 0, 0]
           # Pin Assignments (Controller on top facing down)
@@ -893,6 +896,48 @@ pcbs:
           rotate: 90
         where:
           ref: mcu
+
+      # Pin Header 3D previews - virtual footprints for 3D visualization
+      # Left header (column side) - positioned at the left pin row border
+      header_left:
+        what: ceoloide/header-preview_nano
+        params:
+          side: 'F'
+          pin_count: 12
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/PinHeader_1x12_P2.54mm_Vertical.step"
+          # Header positioned at left pin row (X=-7.62 in footprint coords)
+          # With 90° rotation, this becomes Y offset
+          # Z offset places header at correct height above PCB
+          #side, of the controller, front of the controller, upward is negative
+          model_xyz_offset: [-7.62, 12.5, 0]
+          model_xyz_rotation: [0, 0, 0]
+          supplier_link: 'https://www.digikey.com/en/products/detail/sullins-connector-solutions/PPTC121LFMS-RC/810154'
+          manufacturer_part_number: 'PPTC121LFMS-RC'
+          do_not_populate: 'DNP'
+        adjust:
+          rotate: 90
+        where:
+          ref: mcu
+
+      # Right header (row side) - positioned at the right pin row border
+      header_right:
+        what: ceoloide/header-preview_nano
+        params:
+          side: 'F'
+          pin_count: 12
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/PinHeader_1x12_P2.54mm_Vertical.step"
+          # Header positioned at right pin row (X=7.62 in footprint coords)
+          # With 90° rotation, this becomes Y offset
+          model_xyz_offset: [7.62, 12.5 , 0] #segundo es para abajo
+          model_xyz_rotation: [0, 0, 0]
+          supplier_link: 'https://www.digikey.com/en/products/detail/sullins-connector-solutions/PPTC121LFMS-RC/810154'
+          manufacturer_part_number: 'PPTC121LFMS-RC'
+          do_not_populate: 'DNP'
+        adjust:
+          rotate: 90
+        where:
+          ref: mcu
+
       pads_bat:
         what: ceoloide/battery_connector_jst_ph_2
         params:
@@ -973,6 +1018,7 @@ pcbs:
         params:
           screw_diameter: m2
           length: 6  # Standoff height in mm
+          model_xyz_offset: [0,0,-10]
           model_xyz_rotation: [90,0,0]
           # model_filename auto-selected based on screw_diameter and length
           # model_xyz_offset auto-calculated (centers standoff vertically)
@@ -992,6 +1038,7 @@ pcbs:
           # model_filename auto-selected based on parameters
           # model_xyz_offset auto-calculated based on standoff_height + plate_thickness
           do_not_populate: DNP
+          model_xyz_offset: [0,0,-1.25]
 
       # Bottom screws - hold the case to the standoff
       screws_bottom:
@@ -1049,7 +1096,7 @@ pcbs:
           to: "{{column_net}}"
           model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/Choc_V1_Hotswap.step"
           model_xyz_rotation: [180, 0, 0]
-          model_xyz_offset: [0,0,-0.5]
+          model_xyz_offset: [0,0,-1.5]
           supplier_link: 'https://kailhswitch.com/products/hotswap-socket'
           manufacturer_part_number: 'Kailh-Hotswap-PG1350'
           do_not_populate: ''
@@ -1161,9 +1208,50 @@ pcbs:
         where:
           ref: mirror_mcu
 
+      # Pin Header 3D previews - virtual footprints for 3D visualization
+      # Left header (column side) - positioned at the left pin row border
+      r_header_left:
+        what: ceoloide/header-preview_nano
+        params:
+          side: 'F'
+          pin_count: 12
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/PinHeader_1x12_P2.54mm_Vertical.step"
+          # Header positioned at left pin row (X=-7.62 in footprint coords)
+          # With 90° rotation, this becomes Y offset
+          model_xyz_offset: [-7.62, 12.5 , 0] #segundo es para abajo]
+          model_xyz_rotation: [0, 0, 0]
+          supplier_link: 'https://www.digikey.com/en/products/detail/sullins-connector-solutions/PPTC121LFMS-RC/810154'
+          manufacturer_part_number: 'PPTC121LFMS-RC'
+          do_not_populate: 'DNP'
+        adjust:
+          rotate: 90
+        where:
+          ref: mirror_mcu
+
+      # Right header (row side) - positioned at the right pin row border
+      r_header_right:
+        what: ceoloide/header-preview_nano
+        params:
+          side: 'F'
+          pin_count: 12
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/PinHeader_1x12_P2.54mm_Vertical.step"
+          # Header positioned at right pin row (X=7.62 in footprint coords)
+          # With 90° rotation, this becomes Y offset
+          model_xyz_offset: [7.62, 12.5 , 0] #segundo es para abajo
+          model_xyz_rotation: [0, 0, 0]
+          supplier_link: 'https://www.digikey.com/en/products/detail/sullins-connector-solutions/PPTC121LFMS-RC/810154'
+          manufacturer_part_number: 'PPTC121LFMS-RC'
+          do_not_populate: 'DNP'
+        adjust:
+          rotate: 90
+        where:
+          ref: mirror_mcu
+
       pads_bat:
         what: ceoloide/battery_connector_jst_ph_2
         params:
+          connector_3dmodel_xyz_rotation: [-90,0,0]
+          connector_3dmodel_xyz_offset: [0,1.5,0]
           connector_3dmodel_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/JSTPH2-S2B-PH-K-S-LF-SN.step"
         where:
           ref: mirror_mcu
@@ -1235,8 +1323,11 @@ pcbs:
         where: right_screw
         params:
           screw_diameter: m2
-          model_xyz_rotation: [0,90,0]
           length: 6  # Standoff height in mm
+          model_xyz_offset: [0,0,-10]
+          model_xyz_rotation: [90,0,0]
+          # model_filename auto-selected based on screw_diameter and length
+          # model_xyz_offset auto-calculated (centers standoff vertically)
           do_not_populate: DNP
 
       # Top screws - hold the plate to the standoff
