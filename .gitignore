@@ -82,3 +82,5 @@ filtered-output/*/*/*/index.html
 *.glb
 *.glb
 *.dxf
+filtered-output/pcbs/pdfs/left_pcb-F_Cu+F_Mask+B_Cu+B_Mask+F_Silkscreen+B_Silkscreen+F_Adhesive+B_Adhesive+F_Paste+B_Paste+User_Drawings+User_Comments+User_Eco1+User_Eco2+Edge_Cuts+Margin+B_Courtyard+F_Courtyard+B_Fab+F_Fab.pdf
+filtered-output/pcbs/pdfs/right_pcb-F_Cu+F_Mask+B_Cu+B_Mask+F_Silkscreen+B_Silkscreen+F_Adhesive+B_Adhesive+F_Paste+B_Paste+User_Drawings+User_Comments+User_Eco1+User_Eco2+Edge_Cuts+Margin+B_Courtyard+F_Courtyard+B_Fab+F_Fab.pdf
