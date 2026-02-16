@@ -517,11 +517,11 @@ stl_files_tenting = {
 }
 create_glb_from_stls(stl_files_tenting, temp_stl_glb_tenting)
 
-# Rotate the intermediate output by -6.5 degrees around Z-axis (vertical axis)
-# Negative angle tilts the left side up to match the tenting system
+# Rotate the intermediate output by 6.5 degrees around Z-axis (vertical axis)
+# Positive angle tilts the left side up to match the tenting system
 rotated_output = "./filtered-output/pcb_plus_stl_no_tenting_tented.glb"
-print("\nStep 2a-b: Rotating intermediate output by -6.5° around Z-axis...")
-rotate_glb_around_z_axis(intermediate_output, -6.5, rotated_output)
+print("\nStep 2a-b: Rotating intermediate output by 6.5° around Z-axis...")
+rotate_glb_around_z_axis(intermediate_output, 6.5, rotated_output)
 
 # Merge the rotated result with tenting system
 print("\nStep 2c: Merging with tenting system...")
