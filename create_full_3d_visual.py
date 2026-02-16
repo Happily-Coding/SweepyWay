@@ -356,12 +356,11 @@ def merge_glb_files(pcb_glb_path: str, stl_glb_path: str, output_path: str) -> N
 def rotate_glb_around_z_axis(glb_path: str, angle_degrees: float, output_path: str) -> None:
     """
     Rotate a GLB file around the Z-axis by the specified angle.
-    Uses pygltflib to apply rotation to each node's transformation.
+    Uses pygltflib to apply rotation ONLY to the root node (node 0).
     
-    This applies the rotation by modifying each node's transformation:
-    - For nodes with a matrix: applies Z-axis rotation to the matrix
-    - For nodes with translation: rotates the translation around Z-axis
-    - For nodes with rotation (quaternion): multiplies with Z-axis rotation quaternion
+    In a hierarchical glTF structure, rotating the root node automatically
+    rotates all children through the transformation hierarchy. This avoids
+    the double rotation problem where both parent and children get rotated.
     
     Args:
         glb_path: Path to the input GLB file
@@ -390,94 +389,96 @@ def rotate_glb_around_z_axis(glb_path: str, angle_degrees: float, output_path: s
     half_angle = angle_rad / 2
     q_rot_z = [0, 0, math.sin(half_angle), math.cos(half_angle)]
     
-    print(f"  Applying {angle_degrees}° rotation around Z-axis using pygltflib")
+    print(f"  Applying {angle_degrees}° rotation around Z-axis to ROOT NODE ONLY")
     print(f"  Z-axis rotation quaternion: {q_rot_z}")
     
-    # Apply rotation to all nodes
+    # Get the root node (node 0)
     node_count = len(gltf.nodes) if hasattr(gltf, 'nodes') else 0
-    print(f"  Processing {node_count} nodes...")
+    print(f"  Total nodes in file: {node_count}")
     
-    for i, node in enumerate(gltf.nodes):
-        node_name = node.name if hasattr(node, 'name') and node.name else 'Unnamed'
-        
-        # Handle matrix transformation (4x4 transformation matrix)
-        # The matrix is in column-major order:
-        # [m0,  m4,  m8,  m12]   [Xx, Yx, Zx, Tx]
-        # [m1,  m5,  m9,  m13] = [Xy, Yy, Zy, Ty]
-        # [m2,  m6,  m10, m14]   [Xz, Yz, Zz, Tz]
-        # [m3,  m7,  m11, m15]   [0,  0,  0,  1]
-        if hasattr(node, 'matrix') and node.matrix is not None:
-            matrix = node.matrix
-            if isinstance(matrix, list) and len(matrix) == 16:
-                # Extract translation (columns 3, rows 0-2)
-                tx, ty, tz = matrix[12], matrix[13], matrix[14]
-                
-                # Apply Z-axis rotation to translation
-                new_tx = tx * cos_a - ty * sin_a
-                new_ty = tx * sin_a + ty * cos_a
-                
-                # Extract rotation columns (X, Y, Z axes)
-                # X axis: matrix[0], matrix[1], matrix[2]
-                # Y axis: matrix[4], matrix[5], matrix[6]
-                # Z axis: matrix[8], matrix[9], matrix[10]
-                
-                # Apply Z rotation to X and Y axes
-                new_Xx = matrix[0] * cos_a - matrix[4] * sin_a
-                new_Xy = matrix[1] * cos_a - matrix[5] * sin_a
-                new_Xz = matrix[2] * cos_a - matrix[6] * sin_a
-                
-                new_Yx = matrix[0] * sin_a + matrix[4] * cos_a
-                new_Yy = matrix[1] * sin_a + matrix[5] * cos_a
-                new_Yz = matrix[2] * sin_a + matrix[6] * cos_a
-                
-                # Z axis remains unchanged
-                new_Zx = matrix[8]
-                new_Zy = matrix[9]
-                new_Zz = matrix[10]
-                
-                # Update the matrix with rotated values
-                node.matrix = [
-                    new_Xx, new_Xy, new_Xz, 0,
-                    new_Yx, new_Yy, new_Yz, 0,
-                    new_Zx, new_Zy, new_Zz, 0,
-                    new_tx, new_ty, tz, 1
-                ]
-        
-        # Apply rotation to rotation (quaternion) - check this BEFORE translation
-        # because nodes can have both translation and rotation, and we want to rotate the orientation
-        elif hasattr(node, 'rotation') and node.rotation is not None:
-            rotation = node.rotation
-            if isinstance(rotation, list) and len(rotation) >= 4:
-                qx, qy, qz, qw = rotation[0], rotation[1], rotation[2], rotation[3]
-                # Quaternion multiplication: q_rot_z * rotation
-                # q_rot_z = [0, 0, sin(a/2), cos(a/2)]
-                # q = [qx, qy, qz, qw]
-                # For Z-axis rotation, this simplifies to:
-                # new_qx = cos(a/2) * qx + sin(a/2) * qy
-                # new_qy = cos(a/2) * qy - sin(a/2) * qx
-                # new_qz = cos(a/2) * qz + sin(a/2) * qw
-                # new_qw = cos(a/2) * qw - sin(a/2) * qz
-                new_qx = q_rot_z[3] * qx + q_rot_z[2] * qy
-                new_qy = q_rot_z[3] * qy - q_rot_z[2] * qx
-                new_qz = q_rot_z[3] * qz + q_rot_z[2] * qw
-                new_qw = q_rot_z[3] * qw - q_rot_z[2] * qz
-                node.rotation = [new_qx, new_qy, new_qz, new_qw]
-        
-        # Apply rotation to translation (rotate the position around Z-axis)
-        elif hasattr(node, 'translation') and node.translation is not None:
-            translation = node.translation
-            if isinstance(translation, list) and len(translation) >= 3:
-                x, y, z = translation[0], translation[1], translation[2]
-                new_x = x * cos_a - y * sin_a
-                new_y = x * sin_a + y * cos_a
-                node.translation = [new_x, new_y, z]
-        
-        # If node has no transformation at all, add a rotation property
-        # This handles nodes that are just containers
-        else:
-            node.rotation = [0, 0, q_rot_z[2], q_rot_z[3]]
+    if node_count == 0:
+        print("ERROR: No nodes found in GLB file")
+        return
     
-    print(f"  Rotation applied to all nodes")
+    # Only rotate the root node (node 0)
+    # All children will inherit the rotation through the hierarchy
+    root_node = gltf.nodes[0]
+    root_node_name = root_node.name if hasattr(root_node, 'name') and root_node.name else 'Unnamed'
+    print(f"  Rotating root node (node 0: '{root_node_name}')...")
+    
+    # Handle matrix transformation (4x4 transformation matrix)
+    # The matrix is in column-major order:
+    # [m0,  m4,  m8,  m12]   [Xx, Yx, Zx, Tx]
+    # [m1,  m5,  m9,  m13] = [Xy, Yy, Zy, Ty]
+    # [m2,  m6,  m10, m14]   [Xz, Yz, Zz, Tz]
+    # [m3,  m7,  m11, m15]   [0,  0,  0,  1]
+    if hasattr(root_node, 'matrix') and root_node.matrix is not None:
+        matrix = root_node.matrix
+        if isinstance(matrix, list) and len(matrix) == 16:
+            # Extract translation (columns 3, rows 0-2)
+            tx, ty, tz = matrix[12], matrix[13], matrix[14]
+            
+            # Apply Z-axis rotation to translation
+            new_tx = tx * cos_a - ty * sin_a
+            new_ty = tx * sin_a + ty * cos_a
+            
+            # Extract rotation columns (X, Y, Z axes)
+            # X axis: matrix[0], matrix[1], matrix[2]
+            # Y axis: matrix[4], matrix[5], matrix[6]
+            # Z axis: matrix[8], matrix[9], matrix[10]
+            
+            # Apply Z rotation to X and Y axes
+            new_Xx = matrix[0] * cos_a - matrix[4] * sin_a
+            new_Xy = matrix[1] * cos_a - matrix[5] * sin_a
+            new_Xz = matrix[2] * cos_a - matrix[6] * sin_a
+            
+            new_Yx = matrix[0] * sin_a + matrix[4] * cos_a
+            new_Yy = matrix[1] * sin_a + matrix[5] * cos_a
+            new_Yz = matrix[2] * sin_a + matrix[6] * cos_a
+            
+            # Z axis remains unchanged
+            new_Zx = matrix[8]
+            new_Zy = matrix[9]
+            new_Zz = matrix[10]
+            
+            # Update the matrix with rotated values
+            root_node.matrix = [
+                new_Xx, new_Xy, new_Xz, 0,
+                new_Yx, new_Yy, new_Yz, 0,
+                new_Zx, new_Zy, new_Zz, 0,
+                new_tx, new_ty, tz, 1
+            ]
+            print(f"    Applied rotation to matrix transformation")
+    
+    # Apply rotation to rotation (quaternion)
+    if hasattr(root_node, 'rotation') and root_node.rotation is not None:
+        rotation = root_node.rotation
+        if isinstance(rotation, list) and len(rotation) >= 4:
+            qx, qy, qz, qw = rotation[0], rotation[1], rotation[2], rotation[3]
+            # Quaternion multiplication: q_rot_z * rotation
+            new_qx = q_rot_z[3] * qx + q_rot_z[2] * qy
+            new_qy = q_rot_z[3] * qy - q_rot_z[2] * qx
+            new_qz = q_rot_z[3] * qz + q_rot_z[2] * qw
+            new_qw = q_rot_z[3] * qw - q_rot_z[2] * qz
+            root_node.rotation = [new_qx, new_qy, new_qz, new_qw]
+            print(f"    Applied rotation to quaternion transformation")
+    else:
+        # If no rotation exists, add the Z-axis rotation quaternion
+        root_node.rotation = [0, 0, q_rot_z[2], q_rot_z[3]]
+        print(f"    Added rotation quaternion to root node")
+    
+    # Apply rotation to translation (rotate the position around Z-axis)
+    # This is done IN ADDITION to the rotation quaternion
+    if hasattr(root_node, 'translation') and root_node.translation is not None:
+        translation = root_node.translation
+        if isinstance(translation, list) and len(translation) >= 3:
+            x, y, z = translation[0], translation[1], translation[2]
+            new_x = x * cos_a - y * sin_a
+            new_y = x * sin_a + y * cos_a
+            root_node.translation = [new_x, new_y, z]
+            print(f"    Applied rotation to translation transformation")
+    
+    print(f"  Rotation applied to root node only (children inherit through hierarchy)")
     
     # Save the rotated GLB
     try:
