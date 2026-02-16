@@ -1,0 +1,60 @@
+alto spacers tiene que ser la cantidad que quiero que entre del screw de cada lado * 2 + un cierto minimo para evitar issues. la cantidad que quiero que entre seguramente 1mm este bien:?
+5mm thread tornillo parce estar bien, para que 4mm entre appox  menos que 3mm adentro de tandoff parece demasiado poco.
+
+m1.7 o 1.6 tal vez se pueden usar tambien y parecen venir mas chicos.
+
+Lo mejor parecen ser pancake screws o ultra-low-profile
+https://grabcad.com/library/pancake-screws-1 https://mx.misumi-ec.com/en/vona2/detail/221000546066/
+parece que se puede bajar el cad en la segunda página que vede screws reales!
+
+pan head parece ser el redondeado hacia afuera, que tampoco sería algo muy grave
+
+ACA HAY MAS MODELOS DISPONIBLES BIEN PLANOS MULTIPLE LENGTH Y INCLUSO SE PUEDE COMPRAR
+https://mx.misumi-ec.com/en/vona2/detail/221000546066/
+
+3mf flat head screws https://www.printables.com/model/1279599-m2-m10-phillips-screws-in-all-sorts-of-lengths-inc/files
+
+
+ACA HAY TUERCAS IMPRIMIBLES https://www.printables.com/model/1279649-m2-m22-hex-shaped-nuts-incl-step/files
+
+m3 screws https://grabcad.com/library/cross-recessed-phillips-countersunk-flat-head-screws-m3-1
+m2.5 https://grabcad.com/library/cross-recessed-phillips-countersunk-flat-head-screws-m2-5-1
+
+
+https://www.mcmaster.com/products/pan-head-machine-screws/length~2-mm/?s=m2+pan+head+machine+screws https://www.mcmaster.com/92005A010/
+https://www.mcmaster.com/products/pan-head-machine-screws/length~3-mm/stainless-steel-pan-head-phillips-screws~~/?s=m2+pan+head+machine+screws black oxide https://www.mcmaster.com/95836A103/
+https://www.mcmaster.com/products/pan-head-machine-screws/stainless-steel-pan-head-phillips-screws~~/length~4-mm/?s=m2+pan+head+machine+screws https://www.mcmaster.com/92000A011/
+https://www.mcmaster.com/products/pan-head-machine-screws/stainless-steel-pan-head-phillips-screws~~/length~5-mm/?s=m2+pan+head+machine+screws  https://www.mcmaster.com/92000A012/
+
+
+https://www.mcmaster.com/products/pan-head-machine-screws/stainless-steel-pan-head-phillips-screws~~/length~6-mm/?s=m2+pan+head+machine+screws  https://www.mcmaster.com/92000A013/
+
+https://www.mcmaster.com/products/pan-head-machine-screws/stainless-steel-pan-head-phillips-screws~~/length~8-mm/?s=m2+pan+head+machine+screws https://www.mcmaster.com/92000A015/
+
+https://www.mcmaster.com/products/pan-head-machine-screws/stainless-steel-pan-head-phillips-screws~~/length~10-mm/?s=m2+pan+head+machine+screws https://www.mcmaster.com/92000A017/
+
+https://www.mcmaster.com/products/pan-head-machine-screws/stainless-steel-pan-head-phillips-screws~~/length~12-mm/?s=m2+pan+head+machine+screws https://www.mcmaster.com/92000A019/
+
+https://www.traceparts.com/en/product/din-cross-recessed-countersunk-flat-head-screws-common-head-style-type-h?CatalogPath=TRACEPARTS:TP01001013004003003&Product=10-24072008-081719
+
+
+https://www.mcmaster.com/products/screws/system-of-measurement~metric/socket-head-profile~ultra-low/socket-head-screws-2~/socket-head-profile~low/thread-size~m2/length~4-mm/ https://www.mcmaster.com/mvD/Library/CAD2/20260108/53AE5A4D/93070A274_Alloy%20Steel%20Low-Profile%20Socket%20Head%20Screw.STEP
+
+https://www.mcmaster.com/products/screws/system-of-measurement~metric/socket-head-profile~ultra-low/socket-head-screws-2~/socket-head-profile~low/thread-size~m2/length~5-mm/
+
+https://www.mcmaster.com/products/screws/system-of-measurement~metric/socket-head-profile~ultra-low/socket-head-screws-2~/socket-head-profile~low/thread-size~m2/length~6-mm/  https://www.mcmaster.com/93070A276
+
+
+https://www.mcmaster.com/products/screws/system-of-measurement~metric/socket-head-profile~ultra-low/socket-head-screws-2~/socket-head-profile~low/thread-size~m2/length~8-mm/ https://www.mcmaster.com/93070A277
+
+https://www.mcmaster.com/products/screws/system-of-measurement~metric/socket-head-profile~ultra-low/socket-head-screws-2~/socket-head-profile~low/thread-size~m2/length~10-mm/ https://www.mcmaster.com/93070A278
+
+https://www.mcmaster.com/products/screws/system-of-measurement~metric/socket-head-profile~ultra-low/socket-head-screws-2~/socket-head-profile~low/thread-size~m2/length~12-mm/ https://www.mcmaster.com/92855A841
+
+
+comprar m2 screws
+barato pero incierto
+https://articulo.mercadolibre.com.ar/MLA-1532424915-m2-14-40-tornillos-de-cabeza-plana-de-acero-inoxidable-_JM#polycard_client=search-desktop&search_layout=grid&position=43&type=item&tracking_id=59586de2-8218-49db-9c3b-41cf9e92d5f6 
+
+Inmediato y adecuado no tan caro (pero solo 4 6 8 10 12 tamaños (no 5)
+https://www.mercadolibre.com.ar/kit-470-tornillos-allen-plano-m2-m3-m4-acero-inoxidable/up/MLAU3666254373#polycard_client=search-desktop&search_layout=grid&position=14&type=product&tracking_id=59586de2-8218-49db-9c3b-41cf9e92d5f6&wid=MLA2658277748&sid=search

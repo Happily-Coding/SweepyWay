@@ -51,3 +51,7 @@ from [snapmagic](https://www.snapeda.com/parts/S2B-PH-K-S(LF)(SN)/JST/view-part/
 
 IMPORTANT, THE NICE NANO + the headers is still less tall than the switches, but not by much
 https://typeractive.xyz/pages/build#corne_choc
+
+We need to get new standoff models they are incorrect ( too big)
+
+It seems maybe they were correct ? are standoffs meassured differently from screws? the new 3d model also has much wider side than the m2 scrws
