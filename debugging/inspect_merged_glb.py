@@ -2,7 +2,7 @@ from pygltflib import GLTF2
 import os
 
 # Paths
-MERGED_GLB = "./filtered-output/combined_scene_v11_hybrid.glb"
+MERGED_GLB = "./filtered-output/combined_scene.glb"
 
 # Verify file exists
 if not os.path.exists(MERGED_GLB):
