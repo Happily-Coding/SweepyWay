@@ -1,3 +1,4 @@
 [submodule "ergogen/footprints/ceoloide"]
 	path = ergogen/footprints/ceoloide
 	url = https://github.com/Happily-Coding/ergogen-footprints.git
+	branch = feature/sweepyway-customizations
