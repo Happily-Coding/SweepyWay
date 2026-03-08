@@ -954,7 +954,7 @@ pcbs:
           side: F #The same side that most switches height are, to avoid adding unnecessary height
           from: GND
           to: RST
-          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/EVQ-PUC02K.stp"
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/EVQ-PUC02K.step"
           model_xyz_offset: [0, 0, 0]
           model_xyz_rotation: [180, 180, 0]
         adjust:
@@ -1263,7 +1263,7 @@ pcbs:
           side: F #The same side that most switches height are, to avoid adding unnecessary height
           from: GND
           to: RST
-          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/EVQ-PUC02K.stp"
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/EVQ-PUC02K.step"
           model_xyz_offset: [0, 0, 0]
           model_xyz_scale: [1, 1, 1]
           model_xyz_rotation: [180, 180, 0]
