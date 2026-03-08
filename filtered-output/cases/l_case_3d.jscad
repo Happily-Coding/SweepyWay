@@ -1,15 +1,15 @@
 function l_case_bottom_extrude_3_outline_fn(){
     return new CSG.Path2D([[27,-148],[37,-148]]).appendPoint([37,-153.75]).appendArc([44,-160.75],{"radius":7,"clockwise":false,"large":false}).appendPoint([60,-160.75]).appendArc([67,-153.75],{"radius":7,"clockwise":false,"large":false}).appendPoint([67,-149.53]).appendPoint([77,-149.53]).appendArc([84,-142.53],{"radius":7,"clockwise":false,"large":false}).appendPoint([84,-136.78]).appendPoint([89.5965289,-136.78]).appendArc([94.5038705,-139.3123961],{"radius":7,"clockwise":false,"large":false}).appendPoint([92.6186982,-150.0037394]).appendArc([98.2968154,-158.1129309],{"radius":7,"clockwise":false,"large":false}).appendArc([98.2968153,-158.1129309],{"radius":4,"clockwise":false,"large":false}).appendPoint([113.7034028,-160.8295279]).appendPoint([127.8811056,-167.4406993]).appendArc([128.0794093,-167.52948],{"radius":7,"clockwise":false,"large":false}).appendArc([128.2651015,-167.6405509],{"radius":7,"clockwise":false,"large":false}).appendPoint([142.1215079,-175.6405509]).appendArc([151.6836857,-173.0783731],{"radius":7,"clockwise":false,"large":false}).appendPoint([159.6836857,-159.2219667]).appendArc([157.1215079,-149.6597889],{"radius":7,"clockwise":false,"large":false}).appendPoint([143.2651015,-141.6597889]).appendArc([141.866452,-141.0448171],{"radius":7,"clockwise":false,"large":false}).appendArc([140.560464,-140.2518437],{"radius":7,"clockwise":false,"large":false}).appendPoint([138.5835638,-139.33]).appendPoint([145,-139.33]).appendArc([152,-132.33],{"radius":7,"clockwise":false,"large":false}).appendPoint([152,-116.33]).appendArc([151.98212,-115.83],{"radius":7,"clockwise":false,"large":false}).appendArc([152,-115.33],{"radius":7,"clockwise":false,"large":false}).appendPoint([152,-99.33]).appendArc([151.98212,-98.83],{"radius":7,"clockwise":false,"large":false}).appendArc([152,-98.33],{"radius":7,"clockwise":false,"large":false}).appendPoint([152,-82.33]).appendArc([145,-75.33],{"radius":7,"clockwise":false,"large":false}).appendPoint([135,-75.33]).appendPoint([135,-68.73]).appendArc([128,-61.73],{"radius":7,"clockwise":false,"large":false}).appendPoint([122,-61.73]).appendPoint([122,-55.77]).appendArc([118.75,-49.8592048],{"radius":7,"clockwise":false,"large":false}).appendPoint([118.75,-40.77]).appendArc([111.75,-33.77],{"radius":7,"clockwise":false,"large":false}).appendPoint([67.75,-33.77]).appendArc([60.75,-40.77],{"radius":7,"clockwise":false,"large":false}).appendPoint([60.75,-51.5344657]).appendArc([54,-58.53],{"radius":7,"clockwise":false,"large":false}).appendPoint([54,-62.75]).appendPoint([44,-62.75]).appendArc([37.5628034,-67],{"radius":7,"clockwise":false,"large":false}).appendPoint([27,-67]).appendArc([20,-74],{"radius":7,"clockwise":false,"large":false}).appendPoint([20,-90]).appendArc([20.01788,-90.5],{"radius":7,"clockwise":false,"large":false}).appendArc([20,-91],{"radius":7,"clockwise":false,"large":false}).appendPoint([20,-107]).appendArc([20.01788,-107.5],{"radius":7,"clockwise":false,"large":false}).appendArc([20,-108],{"radius":7,"clockwise":false,"large":false}).appendPoint([20,-124]).appendArc([20.01788,-124.5],{"radius":7,"clockwise":false,"large":false}).appendArc([20,-125],{"radius":7,"clockwise":false,"large":false}).appendPoint([20,-141]).appendArc([27,-148],{"radius":7,"clockwise":false,"large":false}).close().innerToCAG()
 .subtract(
-    CAG.circle({"center":[119.0636178,-153.3434671],"radius":1.1})
+    CAG.circle({"center":[131.6967187,-156.4207651],"radius":1.1})
 .union(
-    CAG.circle({"center":[114.05,-133.68],"radius":1.1})
+    CAG.circle({"center":[126.8,-131.13],"radius":1.1})
 ).union(
-    CAG.circle({"center":[114.05,-82.68],"radius":1.1})
+    CAG.circle({"center":[126.8,-80.13],"radius":1.1})
 ).union(
-    CAG.circle({"center":[29.05,-138.95],"radius":1.1})
+    CAG.circle({"center":[41.8,-136.4],"radius":1.1})
 ).union(
-    CAG.circle({"center":[29.05,-87.95],"radius":1.1})
+    CAG.circle({"center":[41.8,-85.4],"radius":1.1})
 )).extrude({ offset: [0, 0, 3] });
 }
 

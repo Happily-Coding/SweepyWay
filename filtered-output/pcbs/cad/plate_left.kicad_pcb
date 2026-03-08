@@ -11,7 +11,7 @@
   (paper "A3")
   (title_block
     (title "plate_left")
-    (date "2026-02-15")
+    (date "2026-03-08")
     (rev "v0.2")
     (company "Happily-Coding")
   )
@@ -283,11 +283,11 @@
 (gr_line (start 143.95609230000002 163.36295749999996) (end 147.4060923 157.38738229999996) (layer Edge.Cuts) (stroke (width 0.15) (type default)))
 (gr_line (start 147.4060923 157.38738229999996) (end 141.4305171 153.93738229999997) (layer Edge.Cuts) (stroke (width 0.15) (type default)))
 (gr_line (start 141.4305171 153.93738229999997) (end 137.98051710000001 159.91295749999998) (layer Edge.Cuts) (stroke (width 0.15) (type default)))
-(gr_circle (center 29.05 87.95) (end 30.150000000000002 87.95) (layer Edge.Cuts) (stroke (width 0.15) (type default)) (fill none))
-(gr_circle (center 29.05 138.95) (end 30.150000000000002 138.95) (layer Edge.Cuts) (stroke (width 0.15) (type default)) (fill none))
-(gr_circle (center 114.05 82.67999999999999) (end 115.14999999999999 82.67999999999999) (layer Edge.Cuts) (stroke (width 0.15) (type default)) (fill none))
-(gr_circle (center 114.05 133.67999999999998) (end 115.14999999999999 133.67999999999998) (layer Edge.Cuts) (stroke (width 0.15) (type default)) (fill none))
-(gr_circle (center 119.06361779999999 153.3434671) (end 120.16361779999998 153.3434671) (layer Edge.Cuts) (stroke (width 0.15) (type default)) (fill none))
+(gr_circle (center 41.8 85.4) (end 42.9 85.4) (layer Edge.Cuts) (stroke (width 0.15) (type default)) (fill none))
+(gr_circle (center 41.8 136.4) (end 42.9 136.4) (layer Edge.Cuts) (stroke (width 0.15) (type default)) (fill none))
+(gr_circle (center 126.8 80.13) (end 127.89999999999999 80.13) (layer Edge.Cuts) (stroke (width 0.15) (type default)) (fill none))
+(gr_circle (center 126.8 131.13) (end 127.89999999999999 131.13) (layer Edge.Cuts) (stroke (width 0.15) (type default)) (fill none))
+(gr_circle (center 131.6967187 156.42076509999998) (end 132.79671869999999 156.42076509999998) (layer Edge.Cuts) (stroke (width 0.15) (type default)) (fill none))
 
 )
 
