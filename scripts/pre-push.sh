@@ -16,7 +16,12 @@
 set -uo pipefail
 
 [ "${PREPUSH_SKIP:-0}" = "1" ] && { echo "pre-push: skipped (PREPUSH_SKIP=1)"; exit 0; }
-cd "$(dirname "$0")/.." || exit 1
+# Resolve the repo root robustly. Git invokes this through a symlink at
+# .git/hooks/pre-push, where `dirname "$0"` is `.git/hooks`, not the repo — which made every
+# relative path below fail even though the same script worked when run by hand.
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+[ -n "${ROOT:-}" ] || ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT" || exit 1
 
 PY="./.venv/Scripts/python.exe"
 NODE="node.exe"
