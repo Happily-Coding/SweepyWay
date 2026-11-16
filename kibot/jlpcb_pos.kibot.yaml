@@ -1,3 +1,31 @@
+# CPL / POS for JLCPCB's PCB Assembly service.
+#
+# B3: this file used to export 2 of 98 placements because `only_smd: true` was combined with
+# footprints that never declared `attr smd` (the diode had *no* attr at all, the switch had
+# `allow_soldermask_bridges` only). The filter was not wrong, the *declaration* was -- see
+# docs/JLC-ASSEMBLY.md and ergogen/footprints/ceoloide/*.js.
+#
+# This output is therefore deliberately **unfiltered**: it dumps every footprint on the board and
+# lets the declarations decide what is a part. `only_smd: false` keeps THT parts (the JST battery
+# connector is one) and keeps the virtual 3D previews visible in the raw data, which is what makes
+# `scripts/jlc_assembly.py check` able to prove nothing was dropped.
+#
+# `scripts/jlc_assembly.py cpl` turns this into the two files JLC actually reads:
+#   <board>_cpl_jlc.csv      SMD + THT -- the scope in docs/ORDER-CHECKLIST.md (upload this one)
+#   <board>_cpl_jlc_smd.csv  SMD only    -- if only the cheap SMT service is ordered
+#
+# Columns here are already JLC's five (Designator, Mid X, Mid Y, Layer, Rotation): no `Val`, no
+# `Package`. JLC reads the part from the BoM, not from the CPL, and the old `Package` column is
+# what made `kibot/fix_pos_package_name.py` look necessary (it smuggled a *switch* part number
+# into the socket's package name -- docs/STATUS.md §5.8).
+#
+# Conventions, verified row-by-row against `kicad-cli pcb export pos` on this board
+# (docs/JLC-ASSEMBLY.md §3):
+#   * Y is positive-up, i.e. KiCad's own .pos convention (PosY = -Y_board); no negation, and
+#     `use_aux_axis_as_origin: false` because this board has no aux origin -- the gerbers and this
+#     file share the page origin, so the two agree with nothing to align.
+#   * rotation is KiCad's (the JLC bottom-side mirror is applied downstream, because KiBot's
+#     `_rot_footprint_jlcpcb` transform needs schematic components and this board has none).
 kibot:
   version: 1
 
@@ -7,25 +35,25 @@ preflight:
   run_erc: false
 
 outputs:
-  - name: 'position'
-    comment: "Pick and place file"
+  - name: 'cpl_raw'
+    comment: "Raw Placement data - post-processed into the JLC CPL by scripts/jlc_assembly.py"
     type: position
     dir: filtered-output/pcbs/pos/%f
     options:
-      format: ASCII   # CSV or ASCII format
-      units: millimeters  # millimeters or inches
-      separate_files_for_front_and_back: true
-      only_smd: true
+      output: '%f_cpl_raw.%x'
+      format: CSV
+      units: millimeters
+      separate_files_for_front_and_back: false
+      use_aux_axis_as_origin: false
+      only_smd: false
       columns:
         - id: Ref
           name: Designator
-        - Val
-        - Package
         - id: PosX
           name: "Mid X"
         - id: PosY
           name: "Mid Y"
-        - id: Rot
-          name: Rotation
         - id: Side
           name: Layer
+        - id: Rot
+          name: Rotation

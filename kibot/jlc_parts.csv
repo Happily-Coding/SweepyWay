@@ -1,0 +1,29 @@
+# JLCPCB assembly scope + LCSC part numbers -- one row per PCB footprint.
+#
+# Read by scripts/jlc_assembly.py. Three independent facts live here, and they are deliberately
+# separate because they fail differently:
+#
+#   assemble : does JLCPCB place this part at all? `no` = the builder hand-solders it (the
+#              nice!nano is a module, not a JLC part, and the mounting holes are holes).
+#              This is an ORDER decision, not a property of the design: the footprint keeps its
+#              pads and its `attr`. docs/ORDER-CHECKLIST.md sets the scope:
+#              "JLCPCB assembles the PCB (diodes, hotswap sockets, JST, reset, power switch),
+#               you keep the MCU, switches, keycaps and battery".
+#   lcsc     : the LCSC part number JLC needs. **EMPTY MEANS UNKNOWN -- do not guess one.**
+#              A part without an LCSC code cannot go into the JLC BoM, and a part that is not in
+#              the BoM is not placed, no matter what the CPL says. Scripts print the gap list on
+#              every run; see docs/JLC-ASSEMBLY.md §6 for exactly what has to be looked up.
+#   comment  : what JLC and a human reviewer read in the BoM `Comment` column. Only used when the
+#              footprint's own Value field is empty (it is, for every Ergogen footprint).
+#   jlc_lib  : yes | no | unverified -- is the part in JLCPCB's own parts library?
+#
+# A footprint that is placeable but has no row here is a hard error in `check`: adding a part to
+# the board must not silently skip the assembly paperwork.
+footprint,comment,lcsc,assemble,jlc_lib
+diode_tht_sod123,1N4148W SOD-123 diode,,yes,unverified
+choc_v1_v2,Kailh Choc V1 hotswap socket (PG1350),,yes,unverified
+battery_connector_jst_ph_2,JST PH 2.0mm 2-pin battery connector S2B-PH-K-S,,yes,unverified
+reset_switch_smd_side,Panasonic EVQ-PUC02K SMD side reset switch,,yes,unverified
+power_switch_smd_side,Alps SSSS811101 SMD side power switch,,yes,unverified
+mcu_nice_nano,nice!nano v2 controller module,,no,no
+mounting_hole_npth,M2 mounting hole,,no,no

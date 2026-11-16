@@ -15,8 +15,8 @@ and from `ergogen/config.yaml`.
 | # | Part | Spec / MPN | Per half | Total | Fitment notes |
 |---|---|---|---|---|---|
 | 1 | Switch | Kailh **Choc V1** (author uses Choc Ambient: nocturnal / twilight) | 32 | **64** | hotswap, hand-inserted. ⚠️ UNVERIFIED switch force/MPN per batch |
-| 2 | Hotswap socket | Kailh Choc V1 hotswap socket | 32 | **64** | ⚠️ UNVERIFIED whether LCSC/JLC stock it (❓-6); footprint work required for JLC placement |
-| 3 | Diode | **SOD-123** (e.g. 1N4148W) | 32 | **64** | SMD, F side, COL2ROW. Footprint currently has **no `attr`** → excluded from the CPL (B3) |
+| 2 | Hotswap socket | Kailh Choc V1 hotswap socket (PG1350) | 32 | **64** | placed by JLC at the **switch designator** `S1…S32` — its pads live in `choc_v1_v2` (`JLC-ASSEMBLY.md` §4). ⚠️ UNVERIFIED whether LCSC/JLC stock it (❓-6) |
+| 3 | Diode | **SOD-123** (e.g. 1N4148W) | 32 | **64** | SMD, F side, COL2ROW. Placed by JLC (`D1…D32`); `attr smd` fixed in B3 |
 | 4 | MCU | **nice!nano v2** | 1 | **2** | not stockable at JLC → buy separately |
 | 5 | Battery connector | **JST PH 2-pin** `S2B-PH-K-S(LF)(SN)` | 1 | **2** | SMD, on the 18 × 14 mm tongue |
 | 6 | Reset switch | Panasonic **EVQ-PUC02K** | 1 | **2** | SMD side switch |
@@ -28,6 +28,30 @@ and from `ergogen/config.yaml`.
 
 Reference part numbers already used in the repo: switch `CPG135001S30` (Kailh Choc V1, the number
 JLC uses), header `PPTC121LFMS-RC`.
+
+### 1.1 What JLCPCB assembles, and the missing LCSC codes
+
+The assembly order is driven by two generated files (see [`JLC-ASSEMBLY.md`](JLC-ASSEMBLY.md)):
+
+* CPL — `filtered-output/pcbs/pos/<board>/<board>_cpl_jlc.csv`, **67 placements per half**:
+  diodes (32), hotswap sockets (32, at the `S*` designators), JST (1), reset (1), power (1).
+  The nice!nano is deliberately hand-soldered; the 86 preview/mechanical footprints cannot be
+  placed at all.
+* BoM — `filtered-output/pcbs/bom/<board>/<board>_bom_jlc.csv`, with the LCSC column.
+
+**Five parts still need an LCSC code** (put it in the `lcsc` column of `kibot/jlc_parts.csv`, which is
+the single place the numbers live — nothing is hard-coded and nothing was invented):
+
+| Part | MPN known | LCSC code |
+|---|---|---|
+| 1N4148W SOD-123 diode | yes | **?** |
+| Kailh Choc V1 hotswap socket | yes (PG1350) | **?** (also unverified whether LCSC stocks it — ❓-6) |
+| JST PH 2-pin `S2B-PH-K-S` | yes | **?** |
+| Panasonic `EVQ-PUC02K` reset switch | yes | **?** |
+| Alps `SSSS811101` power switch | yes | **?** |
+
+Until those are filled in, the JLC BoM is header-only, so JLC would place nothing even though the CPL
+is complete. 
 
 ## 2. Mechanical
 

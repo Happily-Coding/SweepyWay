@@ -40,6 +40,8 @@ logs
 *.xml
 !log4j2.xml
 *.csv
+# ...except the JLCPCB parts map, which is source, not an export
+!kibot/jlc_parts.csv
 
 # MacOS
 .DS_Store

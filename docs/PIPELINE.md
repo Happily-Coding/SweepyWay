@@ -30,8 +30,8 @@ for the ergogen/OpenJSCAD/trimesh stages only (no Docker from WSL on this machin
                           (7) kibot boards  ◄── DRC + gerbers + images
                                       │
                     (3) kibot 3d_preview (STEP/STL/GLB + 3D renders)
-                    (8) kibot jlpcb_pos  (→ empty today!)  (8b) fix_pos_package_name.py
-                    (12) kibot jlpcb_bom (→ ergogen/output/bom, never published)
+                    (8) kibot jlpcb_pos (raw CPL)  (8b) scripts/jlc_assembly.py cpl+bom
+                    (8c) scripts/jlc_assembly.py check  (→ filtered-output/pcbs/{pos,bom})
                     (13) kibot pdf
                                       ▼
                     (14) fix_glb_scale.py   (m → mm)
@@ -67,7 +67,7 @@ Trigger: `workflow_dispatch`, or `push` to a **path-filtered** list: `.github/wo
 
 Steps: checkout (with submodules) → npm install → `npm run build` → kibot `default` →
 export DSN → freerouting → import SES → kibot `boards` → kibot `3d_preview` → kibot `pdf` →
-copy to `filtered-output` → kibot `jlpcb_pos` → POS post-process → kibot `jlpcb_bom` →
+copy to `filtered-output` → kibot `jlpcb_pos` → `jlc_assembly.py cpl` + `bom` → `jlc_assembly.py check` →
 copy jscad → OpenJSCAD docker → `uv sync` → palm rest → tenting → `fix_glb_scale` →
 `create_full_3d_visual` → directory listing → upload artifact + Pages.
 
@@ -100,12 +100,13 @@ Local equivalents in `build.sh`, `justfile`, `preview.sh`, `run_kibot.bat` use
    `hole_clearance`, `solder_mask_bridge`, `shorting_items`, `copper_edge_clearance`,
    `lib_footprint_issues`. The February 2026 reports show `0 errors (+244 excluded)`, of which
    **105 were `unconnected_items`**. Do not treat green DRC as manufacturable.
-4. **BOM never reaches the published output.** `jlpcb_bom.kibot.yaml` writes to
-   `ergogen/output/bom/`, and the copy step only syncs gerbers/images/pdfs/pos/outlines/cases.
-   Plus `*.csv` is gitignored.
-5. **POS covers 2 of 196 placements** (see B3 in `STATUS.md`): the CPL contains only
-   `PWR1` and `RST1`. Diodes have no `attr` at all, switches have no `smd` flag, and the hotswap
-   sockets are virtual footprints with no pads.
+4. ~~**BOM never reaches the published output.**~~ **Fixed 2026-11-16:** KiBot has no BoM output
+   that works without a schematic, so `scripts/jlc_assembly.py bom` builds it from the PCB and
+   writes `filtered-output/pcbs/bom/`. **The LCSC part numbers are still missing** — see
+   `JLC-ASSEMBLY.md` §6.
+5. ~~**POS covers 2 of 196 placements** (B3).~~ **Fixed 2026-11-16:** the declarations were the
+   bug (diode had no `attr`, switch lacked `smd`, the 3D previews were not marked as virtual).
+   The CPL now carries 67 of 68 placeable parts per half. `JLC-ASSEMBLY.md`.
 6. **`filtered-output/` is manual-ish**: the older docs (`latest-3d-model-issues.md`) state it was
    downloaded by hand at some point. Treat it as a CI cache, not an authority.
 

@@ -36,8 +36,8 @@ JLC3DP or a local printer. Status as of 2026-11-15:
 | **Plate / cover held by screws** | ❌ | B13: 4 of the 5 M2 holes are 0.2 mm **inside** the 14 mm switch cutouts, so the cover has no screw holes at all and the FR4 plate has a 0.9 mm sliver at those four corners. Move the screw points (B13) before ordering anything. |
 | **2× PCB, right half complete** | ❌ | B4/B5: right half has no screws/standoffs/mounting holes and **no `r_case_3d`/`r_cover` at all**. You cannot print a right case today. |
 | **Trustworthy published artifacts** | ❌ | B14: `filtered-output/` mixes two builds — the plate PCB still has 6.9 mm cutouts and the cover's key openings are 21.8 mm off the switches. Regenerate from the current config and re-verify with `scripts/check_assembly.py` before uploading anything from it. |
-| **Assembly data (CPL/POS)** | ❌ | B3: per half the CPL lists **2 of 98** placements (`PWR1`, `RST1`). Diodes have no `attr`, switches lack `smd`, hotswap sockets are a *virtual* footprint with no pads of their own. JLC cannot assemble from this. |
-| **BOM with LCSC part numbers** | ❌ | B7: the BOM exists in CI output but has no LCSC column and is not published. Diodes/sockets/reset/switch are all buyable parts JLC stocks, so this is data entry, not design work. |
+| **Assembly data (CPL/POS)** | ✅ (data) | B3 **fixed 2026-11-16**: per half the CPL lists **67 placements** (32 diodes, 32 hotswap sockets at the `S*` designators, JST, reset, power). The nice!nano is hand-soldered by design; the 86 preview/hole footprints cannot be placed. `scripts/jlc_assembly.py check` gates it. |
+| **BOM with LCSC part numbers** | ⚠️ | B7: the JLC BoM is now generated with the LCSC column (`scripts/jlc_assembly.py bom`), but **5 parts still have no code** (diode, hotswap socket, JST, reset, power) — data entry in `kibot/jlc_parts.csv`, see `JLC-ASSEMBLY.md` §6. Until then JLC places nothing. |
 | **PCB thickness decided** | ❓ | ❓-2: 0.8 mm requested vs 1.2 mm recommended — and the board file says **1.6 mm with no config parameter** (B15), so this needs a `.kicad_pcb` patch or the order form set to 1.6. |
 | **Palm rest STL** | ✅ | watertight, +26 cm³, 119.6 × 70.7 × 10 mm, sits on z=0. Verified by sectioning (1 loop = solid ramp). |
 | **Tenting base STL** | ✅ | watertight, +60 cm³, 144.6 × 146.8 × 19.5 mm, hollow (2 loops at low z), sits on z=0. **One only** — it is not mirrored, so check it fits the *right* half too (it is a symmetric wedge in X; the halves are mirror images, so verify before printing two). |
@@ -53,8 +53,8 @@ The shortest path to a sendable order:
 1. B2 (routing) — mechanical, one CI fix + one gate.
 2. B1/B4/B5 — easiest by adopting the configurator's generated `config.yaml`, which already has the
    auto-assigned pins and the `r_screw_*` twins, then adding `r_case_3d`/`r_cover`.
-3. B3/B7 (CPL + BOM) — give the diode/switch footprints an `attr smd`, give the socket footprint real
-   pads (or switch to a socketed-switch footprint), regenerate POS with an LCSC column.
+3. ~~B3/B7 (CPL + BOM)~~ — **B3 done 2026-11-16** (declarations fixed; 2 → 67 placements/side).
+   B7 is now purely data entry: the 5 LCSC codes in `kibot/jlc_parts.csv` (`JLC-ASSEMBLY.md` §6).
 4. ❓-2 thickness, then order.
 
 ---
@@ -85,8 +85,8 @@ Needs three files. **None of them is currently valid** — this section is the t
 | File | Where it comes from | Current state |
 |---|---|---|
 | Gerbers | as above | ok once B2 is fixed |
-| BOM (CSV, with LCSC part numbers) | `kibot/jlpcb_bom.kibot.yaml` → `ergogen/output/bom/` | 🔴 no LCSC column, never published |
-| CPL / POS | `kibot/jlpcb_pos.kibot.yaml` → `filtered-output/pcbs/pos/*/<board>-<side>_pos.pos-jlcpcb.pos` | 🔴 **only PWR1 + RST1** (2 of ~98 placements/side); diodes and hotswap sockets missing |
+| BOM (CSV, with LCSC part numbers) | `scripts/jlc_assembly.py bom` → `filtered-output/pcbs/bom/<board>/<board>_bom_jlc.csv` | 🟡 column present and published, **5 LCSC codes missing** |
+| CPL / POS | `kibot/jlpcb_pos.kibot.yaml` (raw) → `scripts/jlc_assembly.py cpl` → `filtered-output/pcbs/pos/<board>/<board>_cpl_jlc.csv` | ✅ **67 placements/side** (66 SMD + 1 THT) |
 
 Notes that cost money if forgotten:
 

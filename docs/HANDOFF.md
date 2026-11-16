@@ -16,7 +16,7 @@ from `docs/README.md` §2 are used: `⚠️ UNVERIFIED`, `🟡 BEST-GUESS`, `❓
 **Session 3 in one line:** the mechanical architecture (F3b) shipped as a configurable knob, **B4 is
 fixed** (right half now has 5 mounting holes, mirror axis x=170), **B1 is fixed** (`check_matrix` went
 15 failures → **0**: no dead rows, no shorted GPIOs), and the router was re-proven end to end.
-Next: **B3** (CPL/BOM completeness — a worker is on it) and a CI run for **B2**.
+Next: **B7** is now only 5 LCSC lookups (`JLC-ASSEMBLY.md` §6); the remaining code work is a CI run for **B2**.
 A new blocker, **B22**, says the configurator generator would revert B13 if anyone ran it
 (`docs/CONFIGURATOR-DRIFT.md`).
 
@@ -38,7 +38,9 @@ and it was written to be read cold after a pause of weeks.
   The case boss, the BOM and the screw lengths all derive from it (`FASTENERS.md` §4.6).
 - **The JLC service question is closed.** Their **PCB Assembly** covers SMT + THT + mixed, single-
   and double-sided, so the standoff joins the same assembly BOM as the sockets and diodes
-  (`FASTENERS.md` §5.0). `B3` is still what stops that BOM from exporting properly.
+  (`FASTENERS.md` §5.0). ~~`B3` is still what stops that BOM from exporting properly.~~
+  **B3 is closed (2026-11-16)**: the assembly BOM/CPL now export 67 of 68 placeable parts per half;
+  what remains is the 5 LCSC lookups (`JLC-ASSEMBLY.md` §6).
 - Everything gated: `hardware_bom.py` **PASS**, regen stable, `check_published.py` reproduces B14
   exactly. `check_matrix.py` still fails on B1/B4 only.
 
@@ -48,7 +50,8 @@ and it was written to be read cold after a pause of weeks.
    the right PCB has no mounting holes, so there is nothing to solder a standoff into. The printed
    right case is a slicer-mirror of the left (`REVERSIBLE.md`), so bosses appear for free; the PCB
    is the blocker.
-2. **B3 — close the POS/CPL declaration** (2 of 98 placements export). Gates the whole assembly order.
+2. ~~**B3 — close the POS/CPL declaration**~~ ✅ done 2026-11-16 (2 → 67 placements/half). The
+   follow-up is **B7's data entry**: 5 LCSC codes in `kibot/jlc_parts.csv`.
 3. **B2 — one CI run** of the rewritten autoroute action (root cause fixed, never executed in CI).
 4. **B1 — pin maps** (the generated config already fixes them; the checked-in one does not).
 5. **B20 / the ledge** and the rim-vs-plate relationship (`FASTENERS.md` §7 Q5).
@@ -185,7 +188,7 @@ Build dir used below: `configurator/builds/sweepyway-2f79aca4/` (content-address
 ## 5. Blockers — current list
 
 Full prose lives in `docs/STATUS.md` §4. Status at session close (2026-11-16):
-**open = B2, B3, B5, B7, B8, B14, B15, B20, B22** (plus **B18**, accepted by design: the bay is open
+**open = B2, B5, B7 (LCSC data entry only), B8, B14, B15, B20, B22** (plus **B18**, accepted by design: the bay is open
 on purpose); **fixed and guarded = B1, B4, B6, B9, B10, B11, B12, B13, B16, B17, B19, B21**.
 B1 and B4 were fixed in session 3; **B22** (configurator drift would revert B13) is the new one.
 (B-numbers are stable identifiers; do not renumber them.)
@@ -198,10 +201,10 @@ B1 and B4 were fixed in session 3; **B22** (configurator drift would revert B13)
 |---|---|---|---|
 | **B1** | Row `R1` has no MCU pin, in **both** halves, and the two halves' maps differ: left P5+P9→`R5`, right P6+P7→`R5`; R6/R7 don't exist. Kills **R1 = 6 keys/half ⇒ 12 of 64 keys**. Generated configs already fix it (`P3..P7 → R5,R4,R3,R2,R1`). | 🔴 | `config.yaml` pin maps |
 | **B2** | ~~Published gerbers are unrouted.~~ **ROOT CAUSE FOUND 2026-11-16, fix pending.** `autoroute/action.yaml` reads `pcbs/${board}.dsn` **relative to the repo root**, where no `pcbs/` directory exists — and the body is wrapped in `if [ -e pcbs/... ]`, so it **silently does nothing**. No `.ses` is produced, `import-ses` is guarded on the `.ses` too so it also no-ops, and KiBot then exports the unrouted board: every step "succeeds". Proven routable locally: freerouting closed **105 nets, 0 unrouted, 0 violations** (score 1000.00) and the SES import produced a board with **980 segments + 91 vias** (`check_matrix.py --routing` agrees). Fix = prefix the paths with `ergogen/output/`, add `-mp 3` (the default `-mp 25` spent >10 min optimising), and gate on segment count. | 🔴 fix is 3 lines | `.github/actions/autoroute|import-ses|export-dsn/action.yaml` |
-| **B3** | Assembly data is 2 of 98 placements/half. Diodes have no `attr`, switches lack `smd`, sockets are virtual (0 pads). "Sockets placed by JLC" is currently inexpressible. | 🔴 | `kibot/jlpcb_pos.kibot.yaml`, ceoloide footprints |
+| **B3** | ~~Assembly data is 2 of 98 placements/half.~~ **FIXED 2026-11-16** — declaration bug, not geometry: `only_smd: true` was asked of footprints that lied (diode had *no* `attr`, switch had no `smd`, and the 86 preview/hole footprints were not marked virtual). CPL per half **2 → 67** (66 SMD + 1 THT); `kicad-cli pos --smd-only` now returns the same 66. Socket decision: its pads live in the switch footprint, so `S1…S32` *are* the socket placements. Gated by `scripts/jlc_assembly.py check`. Full story: `JLC-ASSEMBLY.md`. | ✅ fixed | `kibot/jlpcb_pos.kibot.yaml`, `kibot/jlc_parts.csv`, ceoloide footprints, `scripts/jlc_assembly.py` |
 | **B4** | Right half has no screws/standoffs/mounting holes (repo config). | 🔴 | `config.yaml` right_pcb |
 | **B5** | No `r_case_3d` / `r_cover` case at all ⇒ **you cannot print a right case**. (The `r_*` *outlines* DO exist as DXF.) | 🔴 | `config.yaml` `cases:` |
-| **B7** | No BOM with LCSC part numbers; not published. | 🟠 | KiBot |
+| **B7** | ~~No BOM with LCSC part numbers; not published.~~ **Mechanism fixed 2026-11-16** — and the old `jlpcb_bom` config never ran at all (KiBot's BoM outputs need a *schematic*; Ergogen makes none). `scripts/jlc_assembly.py bom` builds it from the PCB into `filtered-output/pcbs/bom/` with the LCSC column. **5 part numbers are still missing** (diode, socket, JST, reset, power) → `kibot/jlc_parts.csv`, listed in `JLC-ASSEMBLY.md` §6. | 🟠 data entry | `kibot/jlc_parts.csv`, `scripts/jlc_assembly.py` |
 | **B8** | Case↔tenting attachment, palm-rest attachment undefined. | 🟠 | ❓-4, ❓-5 |
 | **B13** | ~~4 of 5 screw points sit INSIDE the switch cutouts.~~ **FIXED 2026-11-16.** New points (PCB coords): **(43.80, 86.15) (43.80, 137.15) (128.80, 80.13) (128.80, 132.63) (131.70, 160.30)**. `check_assembly.py` **PASSES** (tightest +1.769 mm to a 14 mm cutout). FR4 plate now has 5 clean Ø2.2 holes; printed cover plate level = 32 keys + 5 screw holes; case floor 5 holes. **Three traps found doing it:** (a) **ergogen point y runs opposite to PCB y** — a shift delta must be `-dy`; (b) the thumb point lives in a **rotated frame (~25°)**, so a shift is rotated with it — solve with the calibrated basis `L(1,0)=(0.9063,0.4226)`, `L(0,1)=(0.42667,-0.90667)`; (c) the binding constraint is the **plate OUTLINE**, not the PCB edge — the plate is the key cluster while the PCB has 2–4 mm of padding beyond it, so a screw 6 mm inside the PCB edge can still clip the plate and turn the hole into a notch. | ✅ fixed | `config.yaml` → `l_screw_*` |
 | **B14** | `filtered-output/` **mixes two builds**: PCB+plate are current layout but with 6.9 mm cutouts; `outlines/` and `cases/l_cover.stl` are an older layout — cover registers on screws to 0.019 mm yet its key openings are **21.77 mm off the switches**. | 🔴 | `filtered-output/` **Root cause found + gated 2026-11-16:** the workflow copied with `rsync -a` (no `--delete`) and never wiped the folder, so files from older runs survived; it also never committed back, so the folder is a *manual* merge of artifact zips. The workflow now does `rm -rf filtered-output` first, uses `rsync --delete`, writes `BUILD-STAMP.txt` (commit + config sha1) and runs `scripts/check_published.py` before publishing. **The folder as committed is still stale** — it fails the new gate (no stamp, 6.9 mm cutouts, cover 21.770 mm off). | 🔴 until rebuilt in CI | `filtered-output/`, `.github/workflows/build.yaml` |
@@ -274,6 +277,7 @@ All commands run from the repo root with `./.venv/Scripts/python.exe`.
 | `scripts/check_render.py` | measure a PNG: fill, islands, see-through holes, symmetry | `... check_render.py out/*-top.png` |
 | `scripts/repair_stl.py` | weld/orient/fill/invert; **`--drop-to-bed`** (Ergogen exports the cover at z=25) | `... repair_stl.py x.stl --drop-to-bed` |
 | `scripts/check_assembly.py` | **the new one**: 20 cross-artifact checks (wiring + fit) | `... check_assembly.py --cases configurator/builds/<slug>/assets` |
+| `scripts/jlc_assembly.py` | **B3/B7**: KiBot raw POS → JLC CPL (`cpl`), PCB → JLC BoM with an LCSC column (`bom`), and the agreement gate (`check`) | `./.venv/Scripts/python.exe scripts/jlc_assembly.py check` |
 | `scripts/check_published.py` | **B14 gate**: refuses a stale/mixed `filtered-output/` (build stamp + config sha1 + cross-artifact checks + 14 mm cutout signature) | `./.venv/Scripts/python.exe scripts/check_published.py` |
 
 ### Traps (each one produced a fake defect in this session — do not repeat)
