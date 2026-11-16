@@ -1,0 +1,24 @@
+{
+  "$schema": "../schema.json",
+  "name": "sweepyway",
+  "comment": "The keyboard as built in this repo: 7 staggered columns, 5 rows, 3-key thumb fan, CFX caps at 17 mm, choc V1 switches with V2-compatible plate.",
+  "switch": { "family": "choc", "support": "v1+v2", "hotswap": true },
+  "spacing": { "kx": 17, "ky": 17, "keycap": "cfx" },
+  "layout": {
+    "rows": ["row5", "row4", "row3", "row2", "row1"],
+    "columns": [
+      { "name": "col1", "net": "C1", "stagger": 0, "cells": ["row4", "row3", "row2", "row1"] },
+      { "name": "col2", "net": "C2", "stagger": 4.25, "cells": ["row5", "row4", "row3", "row2", "row1"] },
+      { "name": "col3", "net": "C3", "stagger": 11.22, "cells": ["row5", "row4", "row3", "row2", "row1"] },
+      { "name": "col4", "net": "C4", "stagger": -4.25, "cells": ["row4", "row3", "row2", "row1"] },
+      { "name": "col5", "net": "C5", "stagger": -2.55, "cells": ["row4", "row3", "row2", "row1"] },
+      { "name": "col6", "net": "C6", "stagger": -3.4, "cells": ["row4", "row3", "row2", "row1"] },
+      { "name": "col7", "net": "C7", "stagger": 3.4, "cells": ["row4", "row3", "row2"] }
+    ],
+    "thumb": { "enabled": true, "count": 3, "rotate": -10, "spread": 17, "splay": [-15, -5] }
+  },
+  "case": { "bottomThickness": 3, "wallThickness": 1.2 },
+  "palmRest": { "enabled": true, "height": 10, "curve": 3 },
+  "tenting": { "enabled": true, "angle": 6.5, "zMin": 3, "hollow": 10 },
+  "fab": { "plateThickness": 1.2, "pcbThickness": 1.2 }
+}

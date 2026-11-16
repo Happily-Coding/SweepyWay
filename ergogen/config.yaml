@@ -16,8 +16,8 @@ presets:
 
     px: 5 #10 #3.5 #How much to pad horizontally
     py: 5 #10 #3.5 #how much to pad vertically
-    plate_kx: 13.8 # key cutout hole width (cherry, choc v2: 14, choc v1: 13.8)
-    plate_ky: 13.8 # key cutout hole height (cherry, choc v2: 14, choc v1: 13.8)
+    plate_kx: 14.0 # key cutout hole width (choc v1: 13.8, choc v2: 13.95) - 14.0 = v1+v2 compatible
+    plate_ky: 14.0 # key cutout hole height (choc v1: 13.8, choc v2: 13.95) - 14.0 = v1+v2 compatible
     vertical_diode_shift: 1.5 # How much to shift to avoid overlap
     horizontal_diode_shift: -0.5 plate_kx - 0.85
     diode_rotation: 0
@@ -49,10 +49,51 @@ units:
   case_wall_thickness: 1.2
   pcb_to_case_wall_tolerance: 0.25
   bottom_plate_thickness: 1.0
-  top_plate_thickness: 1.6
+  top_plate_thickness: 1.2 # choc switches need a 1.2mm plate (1.5mm FR4 absolute max) or they do not seat
   internal_distance_between_plates: 4
-  case_border_height: 16 # added by me, in a quick search soffle choic was arround 17 theoretically
+
+  # ---- vertical stack-up (B17). Read docs/HARDWARE-STACK.md §4.0 before touching these. ----
+  # Kailh PG1350 rule: the plate lives in a band whose TOP is 2.2 mm above the PCB top.
+  # With a 1.2 mm plate that leaves a 1.0 mm air gap between plate and PCB.
   case_bottom_thickness: 3
+  # ---- the ONE knob you may vary (B17) ----
+  # Allowed range: the hotswap socket protrudes ~3.0-3.5 mm below the PCB, so the floor needs that
+  # much clearance => standoff_length >= 4.5. Above ~10 mm the case just gets silly. Everything that
+  # depends on it below is DERIVED, so any value in range keeps the choc band and the screw stack
+  # consistent. 5 mm is the tight end (1.5 mm socket clearance); 6 mm is the BOM part; 8-10 = chunky.
+  standoff_length: 6
+  # ---- F3b: WHICH METAL PART SUPPLIES THE THREAD (docs/FASTENERS.md §3 F3b) ----
+  # `standoff_body_length` = length of the metal part hanging BELOW the PCB. The printed boss is
+  # DERIVED as standoff_length - standoff_body_length, so the two always add up to the same stack.
+  # Changing this one number switches anchoring topology; nothing else needs editing.
+  #   3 -> soldered XHHD M2*3+3 (LCSC C192879, 5 333 in stock). JLCPCB's PCB Assembly service
+  #        (SMT + THT + mixed, double-sided) solders the 3 mm stud into the PCB; the printed boss
+  #        fills the remaining 3 mm. Builder buys screws only.        <-- F3b, recommended
+  #   6 -> press-fit standoff (docs/BOM.md item 12) spanning floor -> PCB, boss 0 (the old design).
+  #   0 -> no metal part: the boss becomes a full-height printed post (thread in plastic = F1).
+  standoff_body_length: 3
+  standoff_boss_height: standoff_length - standoff_body_length
+  standoff_boss_radius: 2.1 # Ø4.2; the 8.83 mm minimum key clearance allows it (FASTENERS §4.2)
+  pcb_thickness: 1.2 # B15: was implicit (ergogen wrote 1.6); 1.2 is the measured board
+  plate_top_above_pcb_top: 2.2
+  # How much thread the screws should bite. Budget: top + bottom engagement <= standoff_length.
+  screw_engagement: 2.5
+  # Derived screw lengths. Neither depends on standoff_length: each screw only crosses the fixed
+  # stack on its own side of the standoff, then bites `screw_engagement` into it.
+  #   top: plate 1.2 + air 1.0 + PCB 1.2 + 2.5 = 5.9  -> use 6 mm
+  #   bottom: floor 3.0 + 2.5 = 5.5                   -> use 6 mm
+  screw_top_length: 6
+  screw_bottom_length: 6
+
+  # case_border_height is DERIVED, never authored: the rim top must coincide with the plate top.
+  #   3.0 floor + 6.0 standoff + 1.2 PCB + 2.2 choc band = 12.4
+  # Authoring 16 here (the old value) put the wall 3.6 mm above the plate, so CFX caps (3.7 mm)
+  # ended up flush with the rim and the outer keys looked walled in. NOTE: ergogen evaluates units
+  # top-down, so every symbol in this expression must be defined ABOVE it.
+  case_border_height: case_bottom_thickness + standoff_length + pcb_thickness + plate_top_above_pcb_top
+  # USB-C opening: from the floor up to 1 mm below the rim, so it can never break through the rim
+  # (it used to be a literal 10, which reached z=13 and would have cut the 12.4 rim open).
+  usbc_slot_height: case_border_height - case_bottom_thickness - 1
   #TODO: aplicar offset adicional por screw minimo. porque no va a entrar asi , hay que buscar a la esquina posta. si no choca con switch.
   screw_offset_x: 0.4 kx #How much to move the screw from the reference point. To avoid landing inside the switches
   screw_offset_y: -0.2 ky #how much to move the screw from the referene point
@@ -267,38 +308,68 @@ points:
     #key.tags: [key,mirrorkey]
     
     #TODO AGREGAR SILKSCREEN PARA SCREWS PARA QUE NO SE PONGAN CIRCUITOS ABAJO!
-    #TODO ACA TAMBIEN TENDRIAMOS QUE DEFINIR LOS DEL LADO DERECHO
+    # Right twins use mirrored key anchors and preserve the B13 left screw shifts.
     #Define the points at which we need to make each screw hole
     l_screw_left_top:
       anchor:
         - ref: matrix_col1_row1
-          shift: [screw_offset_x , screw_offset_y]
+          shift: [screw_offset_x + 2, screw_offset_y + -0.75]  # B13: was (41.8, 85.4)
       key.tags:
         - left_screw
+    r_screw_left_top:
+      anchor:
+        - ref: mirror_matrix_col1_row1
+          shift: [screw_offset_x + 2, screw_offset_y + -0.75]
+      key.tags:
+        - right_screw
     l_screw_left_bottom:
       anchor:
         - ref: matrix_col1_row4
-          shift: [screw_offset_x , screw_offset_y]
+          shift: [screw_offset_x + 2, screw_offset_y + -0.75]  # B13: was (41.8, 136.4)
       key.tags:
         - left_screw
+    r_screw_left_bottom:
+      anchor:
+        - ref: mirror_matrix_col1_row4
+          shift: [screw_offset_x + 2, screw_offset_y + -0.75]
+      key.tags:
+        - right_screw
     l_screw_right_top:
       anchor:
         - ref: matrix_col6_row1
-          shift: [screw_offset_x , screw_offset_y]
+          shift: [screw_offset_x + 2, screw_offset_y + 0]  # B13: was (126.8, 80.13)
       key.tags:
         - left_screw
+    r_screw_right_top:
+      anchor:
+        - ref: mirror_matrix_col6_row1
+          shift: [screw_offset_x + 2, screw_offset_y + 0]
+      key.tags:
+        - right_screw
     l_screw_right_bottom:
       anchor:
         - ref: matrix_col6_row4
-          shift: [screw_offset_x , screw_offset_y]
+          shift: [screw_offset_x + 2, screw_offset_y + -1.5]  # B13: was (126.8, 131.13)
       key.tags:
         - left_screw
+    r_screw_right_bottom:
+      anchor:
+        - ref: mirror_matrix_col6_row4
+          shift: [screw_offset_x + 2, screw_offset_y + -1.5]
+      key.tags:
+        - right_screw
     l_screw_thumb:
       anchor:
         - ref: thumbfan_col2_thumb_row_1
-          shift: [screw_offset_x , screw_offset_y]
+          shift: [screw_offset_x + 1.65, screw_offset_y - 3.506]  # B13: was (131.70,156.42); lands at (131.70,160.30) — clears the 14 mm cutouts, the plate OUTLINE (was 1.07 mm -> clipped notch) and stays ~10.9 mm from any key  # B13: was (131.70,156.42); lands at (131.70,160.30) — clears the 14 mm cutouts, the plate OUTLINE (was 1.07 mm -> clipped notch) and stays 10.9 mm from any key  # B13: was (131.70,156.42); lands at (131.70,160.30) — clears plate cutouts, the plate OUTLINE (was 1.07 mm -> notch) and stays 10.9 mm from any key  # B13: was (131.70,156.42), thumb frame is rotated ~25 deg  # B13: was (131.70,156.42)  # B13: was (131.70,156.42)  # B13: was (131.7, 156.42)
       key.tags:
         - left_screw
+    r_screw_thumb:
+      anchor:
+        - ref: mirror_thumbfan_col2_thumb_row_1
+          shift: [screw_offset_x + 1.65, screw_offset_y - 3.506]
+      key.tags:
+        - right_screw
 
 outlines:
   l_key_based_board_outline:
@@ -483,8 +554,30 @@ outlines:
       where: [left_screw]
       radius: screw_radius
 
+  # F3b: threadless post at each screw point (height = standoff_boss_height).
+  # Hollow, because the screw passes through it into the metal part above.
+  l_standoff_bosses:
+    - what: circle
+      where: [left_screw]
+      radius: standoff_boss_radius
+    - operation: subtract
+      what: circle
+      where: [left_screw]
+      radius: screw_radius
+
   r_screws_outline:
     - what: circle
+      where: [right_screw]
+      radius: screw_radius
+
+  # F3b: threadless post at each screw point (height = standoff_boss_height).
+  # Hollow, because the screw passes through it into the metal part above.
+  r_standoff_bosses:
+    - what: circle
+      where: [right_screw]
+      radius: standoff_boss_radius
+    - operation: subtract
+      what: circle
       where: [right_screw]
       radius: screw_radius
 
@@ -529,12 +622,12 @@ outlines:
       name: r_case_border_do_not_ocupy
 
   ##### Preparing for tenting system
-  l_tenting_base_bottom_outline: ####HERE IS THE PROBLEM
+  l_tenting_base_bottom_outline: # B16: ring from PCB edge out to case_bottom+2 (6 mm wide)
     #Sorround the bottom
     - what: outline
       name: l_case_bottom
       expand: 2
-    #And go inward quite a bit to hold the keyboard bottom case
+    #And go inward to the PCB edge (this is what makes it a RING, not a solid slab)
     - what: outline
       name: l_pcb_outline
       operation: subtract
@@ -543,15 +636,14 @@ outlines:
     #  expand : -5
     #  operation: subtract
 
-  r_tenting_base_bottom_outline:
+  r_tenting_base_bottom_outline: # B16 fix: true mirror of the left (was l_case_bottom twice -> empty geometry)
     #Sorround the bottom
     - what: outline
-      name: l_case_bottom
+      name: r_case_bottom
       expand: 2
-    #And go inward quite a bit to hold the keyboard bottom case
+    #And go inward to the PCB edge (must match the left construction exactly)
     - what: outline
-      name: l_case_bottom
-      expand : -5
+      name: r_pcb_outline
       operation: subtract
 
   l_tenting_base_border_outline: ####HERE IS NO PROBLEM
@@ -586,12 +678,12 @@ outlines:
   l_keys_outline:
     - what: rectangle
       where: [[leftkey]]
-      size: [plate_kx/2, plate_ky/2]
+      size: [plate_kx, plate_ky] # NOTE: rectangle.size is the FULL extent, not half
 
   r_keys_outline:
     - what: rectangle
       where: [[rightkey]]
-      size: [plate_kx/2, plate_ky/2]
+      size: [plate_kx, plate_ky]
 
   l_coverpart_switch_plate_outline: 
   # The top plate of the keyboard with the holes for the key switches bottom to go through and the edges for their middle to sit at.
@@ -694,7 +786,7 @@ pcbs:
     template: kicad8
     outlines:
       right:
-        outline: r_cover_outline
+        outline: r_coverpart_switch_plate_outline
     footprints:
       jlc:
         what: ceoloide/utility_text
@@ -871,13 +963,16 @@ pcbs:
           #MODIFIED
           # Creo que tal vez la lcave no es separarlos si no poner bien al borde los de rows, empezando mas afuera los de mas abajo y
           #los de columns si lo mas separados posibles para el lugar correcot.
-          P3: "R2" # Row
-          P4: "R3" # Row
-          P5: "R5" # Row
-          P6: "R4" # Row
-          P7: "R7" # Row
-          P8: "R6" # Row
-          P9: "R5" # Row
+          # B1 (fixed 2026-11-16): rows are R1..R5, so the pins must form a bijection with
+          # them. This block had NO pin on R1 (every R1 key dead) and two pins on R5
+          # (shorted GPIOs); R6/R7 were assigned to nets no key uses. Order matches the
+          # configurator generator (row5..row1 against ROW_PIN_POOL P3..P7).
+          P3: "R5" # Row
+          P4: "R4" # Row
+          P5: "R3" # Row
+          P6: "R2" # Row
+          P7: "R1" # Row
+          # P8 / P9 deliberately free (were R6 / R7 =nounused nets -> wasted pins)
 
           # Left Side
           # RAW:      # Battery Pos
@@ -941,7 +1036,7 @@ pcbs:
       pads_bat:
         what: ceoloide/battery_connector_jst_ph_2
         params:
-          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/JSTPH2-S2B-PH-K-S-LF-SN.step"
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/JSTPH2-S2B-PH-K-LF-SN.step"
           model_xyz_rotation: [-90,0,0]
           model_xyz_offset: [0,1.5,0]
           model_xyz_scale: [1, 1, 1]
@@ -1018,7 +1113,7 @@ pcbs:
         where: left_screw
         params:
           screw_diameter: m2
-          length: 6  # Standoff height in mm
+          length: standoff_length  # B17: single source of truth (was a literal 6)
           model_xyz_offset: [0,0,-10]
           model_xyz_rotation: [90,0,0]
           # model_filename auto-selected based on screw_diameter and length
@@ -1032,9 +1127,9 @@ pcbs:
         where: left_screw
         params:
           screw_diameter: m2
-          length: 4  # Screw length in mm
+          length: screw_top_length  # B21: derived minimum 5.9 mm; was 4 (only 0.6 mm of bite)
           head_type: low_socket  # Options: pan, low_socket, flat
-          standoff_height: 4  # Must match standoff length
+          standoff_height: standoff_length  # must match the real standoff
           plate_thickness: top_plate_thickness  # Switch plate thickness
           # model_filename auto-selected based on parameters
           # model_xyz_offset auto-calculated based on standoff_height + plate_thickness
@@ -1047,7 +1142,7 @@ pcbs:
         where: left_screw
         params:
           screw_diameter: m2
-          length: 4  # Screw length in mm
+          length: screw_bottom_length  # B21: derived minimum 5.5 mm; was 4 (only 1.0 mm of bite)
           head_type: low_socket  # Options: pan, low_socket, flat
           case_bottom_thickness: case_bottom_thickness  # Case bottom thickness
           # model_filename auto-selected based on parameters
@@ -1183,13 +1278,16 @@ pcbs:
           # GND
           # GND
           P2: "DPE" # Display CS (nice!view only) FIXME? ZPM default?
-          P3: "R2" # Row
-          P4: "R3" # Row
-          P5: "R4" # Row
-          P6: "R5" # Row
-          P7: "R5" # Row
-          P8: "R6" # Row
-          P9: "R7" # Row
+          # B1 (fixed 2026-11-16): rows are R1..R5, so the pins must form a bijection with
+          # them. This block had NO pin on R1 (every R1 key dead) and two pins on R5
+          # (shorted GPIOs); R6/R7 were assigned to nets no key uses. Order matches the
+          # configurator generator (row5..row1 against ROW_PIN_POOL P3..P7).
+          P3: "R5" # Row
+          P4: "R4" # Row
+          P5: "R3" # Row
+          P6: "R2" # Row
+          P7: "R1" # Row
+          # P8 / P9 deliberately free (were R6 / R7 =nounused nets -> wasted pins)
 
           # Left Side
           # RAW:      # Battery Pos
@@ -1254,7 +1352,7 @@ pcbs:
           model_xyz_rotation: [-90,0,0]
           model_xyz_offset: [0,1.5,0]
           model_xyz_scale: [1, 1, 1]
-          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/JSTPH2-S2B-PH-K-S-LF-SN.step"
+          model_filename: "${PATH_TO_SWEEPYWAY_COMPONENT_MODELS}/JSTPH2-S2B-PH-K-LF-SN.step"
         where:
           ref: mirror_mcu
           shift: [mcu_x/2 +22, -10]
@@ -1318,6 +1416,13 @@ pcbs:
       #     ref: mirror_mcu
       #     shift: [-mcu_y/2 -22,  -2]
 
+      screws:
+        what: ceoloide/mounting_hole_npth
+        where: right_screw
+        params:
+          hole_size: screw_diameter
+          hole_drill: screw_diameter
+
       # Standoff 3D previews - virtual footprints for 3D visualization
       # Positioned at standoff height above PCB
       r_standoffs:
@@ -1325,7 +1430,7 @@ pcbs:
         where: right_screw
         params:
           screw_diameter: m2
-          length: 6  # Standoff height in mm
+          length: standoff_length  # B17: single source of truth (was a literal 6)
           model_xyz_offset: [0,0,-10]
           model_xyz_rotation: [90,0,0]
           # model_filename auto-selected based on screw_diameter and length
@@ -1338,9 +1443,9 @@ pcbs:
         where: right_screw
         params:
           screw_diameter: m2
-          length: 5  # Screw length in mm
+          length: screw_top_length  # B21: derived minimum 5.9 mm; was 5
           head_type: low_socket  # Options: pan, low_socket, flat
-          standoff_height: 4  # Must match standoff length
+          standoff_height: standoff_length  # must match the real standoff
           plate_thickness: top_plate_thickness
           do_not_populate: DNP
 
@@ -1364,10 +1469,13 @@ cases:
   l_case_3d:
     - name: l_case_bottom #l_key_based_board_outline_with_extra_padding
       extrude: case_bottom_thickness
+    - name: l_standoff_bosses
+      extrude: standoff_boss_height
+      shift: [0, 0, case_bottom_thickness]
     - name: l_case_border #l_case_border_outline
       extrude: case_border_height
     - name : l_usbc_border_outline
-      extrude: 10 #10 More than necessary for a cable to fit with the border inside the case, but i use 12 for more leeway just in case
+      extrude: usbc_slot_height # derived: floor -> 1 mm below the rim
       shift: [-20,5,case_bottom_thickness]
       operation: subtract
 
@@ -1393,7 +1501,7 @@ cases:
     - name: l_case_border #l_case_border_outline
       extrude: case_border_height
     - name : l_usbc_border_outline
-      extrude: 10 #10 More than necessary for a cable to fit with the border inside the case, but i use 12 for more leeway just in case
+      extrude: usbc_slot_height # derived: floor -> 1 mm below the rim
       shift: [-20,5,case_bottom_thickness]
       operation: subtract
     - name: l_coverpart_switch_plate_outline

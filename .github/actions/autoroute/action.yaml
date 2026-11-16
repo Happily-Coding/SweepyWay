@@ -4,6 +4,14 @@ inputs:
   boards:
     description: 'Specctra SES output file'
     required: true
+  passes:
+    description: 'Max auto-routing passes. 6 reaches 0 unrouted on SweepyWay; more only feeds the optimizer.'
+    required: false
+    default: '6'
+  threads:
+    description: 'Thread-pool size for route OPTIMIZATION (this is what the long tail is).'
+    required: false
+    default: '8'
 runs:
   using: 'docker'
   image: 'docker://ceoloide/ergogen-freerouting:latest'
@@ -11,15 +19,49 @@ runs:
   args:
     - '-c'
     - |
+      # B2 (fixed 2026-11-16): the paths used to be `pcbs/...` relative to the repo root, where no
+      # `pcbs/` directory exists. The whole body sat inside `if [ -e pcbs/... ]`, so it silently did
+      # nothing, no .ses was ever produced, import-ses skipped too, and KiBot exported the UNROUTED
+      # board while every step reported success.
+      #
+      # Measured on SweepyWay left_pcb (2026-11-16):
+      #   -mp 1  -> 23 unrouted in ~100 s   (too few)
+      #   -mp 6  -> 0 unrouted, 0 violations, router done in 134 s
+      #   -mp 25 -> same result, ~10 min    (pure optimizer tail; -mp does NOT cap it)
+      # -mt only sizes the optimizer's thread pool, so give it real threads.
+      PCB_DIR="$PWD/ergogen/output/pcbs"
+      RULES="$PWD/freerouting/freerouting.rules"
+      USER_DATA="$PWD/freerouting"
+      status=0
       for board in ${{ inputs.boards }};
       do
-        echo "Processing $board";
-        if [ -e pcbs/${board}.ses ]; then
-          echo "Cleaning up pcbs/${board}.ses";
-          rm -f pcbs/${board}.ses;
+        dsn="$PCB_DIR/${board}.dsn"
+        ses="$PCB_DIR/${board}.ses"
+        rm -f "$ses"
+        if [ ! -e "$dsn" ]; then
+          echo "::error::missing $dsn (did export-dsn run?)"
+          status=1
+          continue
         fi
-        if [ -e pcbs/${board}.dsn ]; then
-          echo "Autoroute PCB";
-          java -jar /opt/freerouting.jar -de pcbs/${board}.dsn -do pcbs/${board}.ses -dr ./freerouting/freerouting.rules --user-data-path ./freerouting -mp 25 -mt 1 -dct 0 --gui.enabled=false
+        echo "Autoroute $board (passes=${{ inputs.passes }} threads=${{ inputs.threads }})"
+        # run the boards in parallel; each one only touches its own files
+        java -jar /opt/freerouting.jar \
+          -de "$dsn" -do "$ses" \
+          -dr "$RULES" --user-data-path "$USER_DATA" \
+          -mp ${{ inputs.passes }} -mt ${{ inputs.threads }} \
+          -dct 0 --gui.enabled=false > "/tmp/${board}.route.log" 2>&1 &
+      done
+      wait
+      for board in ${{ inputs.boards }};
+      do
+        echo "===== $board ====="
+        grep -E "Auto-routing stage completed|Optimization stage completed" "/tmp/${board}.route.log" || true
+        ses="$PCB_DIR/${board}.ses"
+        if [ -s "$ses" ]; then
+          echo "ok   $board.ses ($(wc -c < "$ses") bytes)"
+        else
+          echo "::error::$board produced no .ses — refusing to publish an unrouted board"
+          status=1
         fi
       done
+      exit $status

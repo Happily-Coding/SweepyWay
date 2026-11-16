@@ -1,0 +1,46 @@
+# Normalize line endings so Windows checkouts stop producing 250+ file diffs.
+# See docs/STATUS.md §8.
+
+* text=auto eol=lf
+
+# Explicit text types that benefit from LF
+*.sh      text eol=lf
+*.py      text eol=lf
+*.js      text eol=lf
+*.yaml    text eol=lf
+*.yml     text eol=lf
+*.md      text eol=lf
+*.json    text eol=lf
+*.kibot.yaml text eol=lf
+
+# Windows-specific files keep CRLF
+*.bat     text eol=crlf
+*.cmd     text eol=crlf
+
+# Binary / generated artefacts: never touch, never diff
+*.step    binary
+*.STEP    binary
+*.stp     binary
+*.wrl     binary
+*.stl     binary
+*.glb     binary
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.webp    binary
+*.pdf     binary
+*.zip     binary
+*.ods     binary
+*.pdn     binary
+*.drl     binary
+*.gbr     binary
+*.gtl     binary
+*.gbl     binary
+*.gts     binary
+*.gbs     binary
+*.gto     binary
+*.gbo     binary
+*.gm1     binary
+
+# Keep the vendored submodule untouched
+ergogen/footprints/ceoloide/** -text

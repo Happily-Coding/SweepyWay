@@ -1,0 +1,257 @@
+/**
+ * Config schema for the SweepyWay configurator.
+ *
+ * One JSON object describes a keyboard. It is deliberately boring: everything the
+ * current `ergogen/config.yaml` can meaningfully vary, and nothing else. `normalize()`
+ * fills defaults, `validate()` returns a list of human-readable problems.
+ */
+
+export const SWITCH_SUPPORT = {
+  // plate cutout in mm - the only values with a physical meaning (see docs/KEYBOARD-REFERENCE.md §2)
+  v1: { plate: 13.8, label: "Choc V1 only" },
+  v2: { plate: 13.95, label: "Choc V2 only" },
+  "v1+v2": { plate: 14.0, label: "Choc V1 + V2 (compromise)" },
+};
+
+export const KEYCAPS = {
+  cfx: { w: 16.5, h: 16.5, label: "CFX 16.5x16.5 (pitch >= 17)" },
+  mbk: { w: 17.5, h: 16.5, label: "MBK 17.5x16.5 (pitch >= 17.5)" },
+};
+
+const DEFAULT_ROWS = ["row5", "row4", "row3", "row2", "row1"];
+
+export function sweepywayLayout() {
+  const cols = [
+    { name: "col1", stagger: 0, cells: ["row4", "row3", "row2", "row1"] },
+    { name: "col2", stagger: 4.25, cells: DEFAULT_ROWS },
+    { name: "col3", stagger: 11.22, cells: DEFAULT_ROWS },
+    { name: "col4", stagger: -4.25, cells: ["row4", "row3", "row2", "row1"] },
+    { name: "col5", stagger: -2.55, cells: ["row4", "row3", "row2", "row1"] },
+    { name: "col6", stagger: -3.4, cells: ["row4", "row3", "row2", "row1"] },
+    { name: "col7", stagger: 3.4, cells: ["row4", "row3", "row2"] },
+  ];
+  return { rows: DEFAULT_ROWS.slice(), columns: cols };
+}
+
+export function defaults() {
+  const layout = sweepywayLayout();
+  return {
+    name: "sweepyway",
+    switch: { family: "choc", support: "v1+v2", hotswap: true },
+    spacing: { kx: 17, ky: 17, keycap: "cfx" },
+    layout: {
+      rows: layout.rows,
+      columns: layout.columns,
+      // Absolute x offset (mm) per row, in `rows` order. Non-null switches the layout from
+      // column stagger to row stagger; the generator converts these to ergogen's cumulative
+      // deltas. Example (0.25u per row on a 17 mm pitch, top row flush): [17, 12.75, 8.5, 4.25, 0]
+      rowStagger: null,
+      thumb: {
+        enabled: true,
+        count: 3,
+        rotate: -10,
+        spread: 17,
+        splay: [-15, -5],
+        rowNet: null, // null = net of the first row
+      },
+    },
+    // borderHeight is DERIVED from the vertical stack (B17): floor + standoff + PCB + the 2.2 mm
+    // choc plate band = 3 + 6 + 1.2 + 2.2 = 12.4. The rim top must coincide with the plate top.
+    // The old default of 16 left the wall 3.6 mm above the plate, so CFX caps (3.7 mm) ended up
+    // flush with the rim. Overriding this is allowed but `generate.mjs` will then emit a literal
+    // instead of the self-consistent formula.
+    // standoffLength is the ONE vertical knob (B17): the hotswap socket protrudes ~3.0-3.5 mm
+    // below the PCB, so the floor needs that much clearance => 4.5 mm minimum. Everything else
+    // (wall height, USB-C opening) is derived from it in generate.mjs.
+    // borderHeight === null means "derive it" (the normal case). Set a number only to
+    // deliberately override the wall height away from floor+standoff+PCB+2.2.
+    // standoffBodyLength (F3b): length of the METAL part hanging below the PCB. 3 = soldered
+    // XHHD M2*3+3 (LCSC C192879) placed+soldered by JLCPCB's PCB Assembly service; 6 = press-fit
+    // standoff spanning floor->PCB; 0 = no metal, thread in printed plastic. The printed boss
+    // height is DERIVED as standoffLength - standoffBodyLength, so the stack never changes.
+    case: { bottomThickness: 3, standoffLength: 6, standoffBodyLength: 3, borderHeight: null, wallThickness: 1.2 },
+    palmRest: { enabled: true, height: 10, curve: 3 },
+    tenting: { enabled: true, angle: 6.5, zMin: 3, hollow: 10, includePalmRest: false },
+    fab: { plateThickness: 1.2, pcbThickness: 1.2 },
+    // B16: which halves to print. Every ergogen outline exists as l_*/r_*, and the right tenting
+    // bottom outline used to be empty (it is fixed now), so both sides can be produced.
+    printSides: ["l", "r"],
+  };
+}
+
+export function normalize(input = {}) {
+  const d = defaults();
+  const cfg = {
+    ...d,
+    ...input,
+    switch: { ...d.switch, ...(input.switch || {}) },
+    spacing: { ...d.spacing, ...(input.spacing || {}) },
+    layout: { ...d.layout, ...(input.layout || {}) },
+    case: { ...d.case, ...(input.case || {}) },
+    palmRest: { ...d.palmRest, ...(input.palmRest || {}) },
+    tenting: { ...d.tenting, ...(input.tenting || {}) },
+    fab: { ...d.fab, ...(input.fab || {}) },
+  };
+  const sides = input.printSides ?? d.printSides;
+  cfg.printSides = (Array.isArray(sides) ? sides : [sides])
+    .map((s) => String(s).toLowerCase().replace(/[^lr]/g, ""))
+    .filter((s, i, a) => s && a.indexOf(s) === i);
+  if (!cfg.printSides.length) cfg.printSides = ["l"];
+  cfg.layout.thumb = { ...d.layout.thumb, ...(input.layout?.thumb || {}) };
+
+  // rows + columns: keep order, drop unknown row names, never leave a column empty
+  const rows = (input.layout?.rows || d.layout.rows).filter((r, i, a) => a.indexOf(r) === i);
+  cfg.layout.rows = rows.length ? rows : d.layout.rows;
+  const cols = (input.layout?.columns || d.layout.columns).map((c, i) => ({
+    name: c.name || `col${i + 1}`,
+    net: c.net || `C${i + 1}`,
+    stagger: Number(c.stagger ?? 0),
+    spread: c.spread == null ? null : Number(c.spread),
+    splay: Number(c.splay ?? 0),
+    cells: (c.cells || []).filter((r) => cfg.layout.rows.includes(r)),
+  }));
+  cfg.layout.columns = cols.length ? cols : d.layout.columns;
+
+  for (const k of ["kx", "ky"]) cfg.spacing[k] = Number(cfg.spacing[k]);
+  cfg.fab.plateThickness = Number(cfg.fab.plateThickness);
+  cfg.fab.pcbThickness = Number(cfg.fab.pcbThickness);
+  cfg.case.standoffLength = Number(cfg.case.standoffLength);
+  cfg.case.standoffBodyLength = Number(cfg.case.standoffBodyLength);
+  cfg.palmRest.height = Number(cfg.palmRest.height);
+  cfg.palmRest.curve = Number(cfg.palmRest.curve);
+  cfg.tenting.angle = Number(cfg.tenting.angle);
+  cfg.tenting.zMin = Number(cfg.tenting.zMin);
+  cfg.tenting.hollow = Number(cfg.tenting.hollow);
+  cfg.name = String(cfg.name || "keyboard").replace(/[^a-zA-Z0-9_.-]+/g, "-");
+  return cfg;
+}
+
+export function plateCutout(cfg) {
+  return SWITCH_SUPPORT[cfg.switch.support]?.plate ?? 14.0;
+}
+
+/** Named points the generator will produce, so outlines can be rewritten to match. */
+export function pointNames(cfg) {
+  const rows = cfg.layout.rows;
+  const cols = cfg.layout.columns;
+  const firstCol = cols[0];
+  const lastCellOf = (col) => col.cells[col.cells.length - 1] || rows[rows.length - 1];
+  const anchorCol = cols[Math.max(0, cols.length - 2)];
+  const midCol = cols[Math.floor((cols.length - 1) / 2)];
+  const thumbCount = cfg.layout.thumb.enabled ? Math.max(0, Math.min(3, cfg.layout.thumb.count)) : 0;
+  return {
+    // references used by the outlines / anchors in the canonical config.yaml
+    col1Bottom: `${firstCol.name}_${lastCellOf(firstCol)}`,
+    colN2Bottom: `${anchorCol.name}_${lastCellOf(anchorCol)}`,
+    midColBottom: `${midCol.name}_${rows[rows.length - 1]}`,
+    thumbFirst: thumbCount ? `col1_thumb_row_1` : null,
+    thumbLast: thumbCount ? `col${thumbCount}_thumb_row_1` : null,
+    thumbCount,
+    thumbRowNet: cfg.layout.thumb.rowNet || netOfRow(cfg, rows[0]),
+  };
+}
+
+function netOfRow(cfg, rowName) {
+  const idx = cfg.layout.rows.indexOf(rowName);
+  return `R${cfg.layout.rows.length - idx}`;
+}
+
+/** Matrix cells as (colNet, rowNet) pairs + thumb keys, for duplicate detection. */
+export function matrixPairs(cfg) {
+  const rows = cfg.layout.rows;
+  const rowNet = (r) => `R${rows.length - rows.indexOf(r)}`;
+  const pairs = [];
+  for (const col of cfg.layout.columns) {
+    for (const cell of col.cells) {
+      pairs.push({ key: `${col.name}_${cell}`, col: col.net, row: rowNet(cell) });
+    }
+  }
+  const thumbCount = cfg.layout.thumb.enabled ? Math.max(0, Math.min(3, cfg.layout.thumb.count)) : 0;
+  // NB: slice(-0) === slice(0) returns everything, so guard the empty case
+  const thumbNets = thumbCount > 0 ? cfg.layout.columns.slice(-thumbCount).map((c) => c.net) : [];
+  const thumbRow = cfg.layout.thumb.rowNet || rowNet(rows[0]);
+  thumbNets.forEach((net, i) => pairs.push({ key: `thumb${i + 1}`, col: net, row: thumbRow }));
+  return pairs;
+}
+
+export function validate(cfg) {
+  const errs = [];
+  const warns = [];
+
+  // 1. keycap must fit the pitch
+  const cap = KEYCAPS[cfg.spacing.keycap] ?? KEYCAPS.cfx;
+  if (cfg.spacing.kx < cap.w + 0.4) {
+    errs.push(
+      `keycap ${cfg.spacing.keycap} is ${cap.w} mm wide but kx is ${cfg.spacing.kx} mm ` +
+        `(need >= ${(cap.w + 0.4).toFixed(1)}) - keycaps would collide`,
+    );
+  }
+  if (cfg.spacing.ky < cap.h + 0.4) {
+    errs.push(
+      `keycap is ${cap.h} mm tall but ky is ${cfg.spacing.ky} mm ` +
+        `(need >= ${(cap.h + 0.4).toFixed(1)})`,
+    );
+  }
+
+  // 2. plate cutout vs pitch
+  const cut = plateCutout(cfg);
+  if (cut >= cfg.spacing.kx) errs.push(`plate cutout ${cut} mm does not fit a ${cfg.spacing.kx} mm pitch`);
+
+  // 3. matrix must be well formed
+  const pairs = matrixPairs(cfg);
+  if (!pairs.length) errs.push("layout has no keys");
+  const empty = cfg.layout.columns.filter((c) => !c.cells.length).map((c) => c.name);
+  if (empty.length) errs.push(`column(s) without any row: ${empty.join(", ")}`);
+  const dupCells = {};
+  for (const p of pairs) {
+    const id = `${p.col}|${p.row}`;
+    dupCells[id] = (dupCells[id] || 0) + 1;
+  }
+  const collisions = Object.entries(dupCells).filter(([, n]) => n > 1);
+  for (const [id, n] of collisions) {
+    errs.push(`two keys share the matrix position ${id.replace("|", " x ")} (x${n}) - the matrix cannot distinguish them`);
+  }
+
+  // 4. pins
+  const need = cfg.layout.columns.length + cfg.layout.rows.length;
+  if (need > COLUMN_PIN_POOL.length + ROW_PIN_POOL.length) {
+    errs.push(`${need} nets need MCU pins but only ${COLUMN_PIN_POOL.length + ROW_PIN_POOL.length} are available`);
+  }
+
+  // 5. geometry sanity
+  if (cfg.tenting.enabled && (cfg.tenting.angle <= 0 || cfg.tenting.angle > 45)) {
+    errs.push(`tenting angle ${cfg.tenting.angle} deg is out of range (0-45)`);
+  }
+  if (cfg.palmRest.enabled && cfg.palmRest.height <= 0) errs.push("palm rest height must be > 0");
+  if (!(cfg.case.standoffLength >= 4.5 && cfg.case.standoffLength <= 15)) {
+    errs.push(
+      `standoff ${cfg.case.standoffLength} mm is out of range: 4.5-15 mm ` +
+        `(below 4.5 the hotswap sockets hit the case floor)`,
+    );
+  }
+  if (!(cfg.case.standoffBodyLength >= 0 && cfg.case.standoffBodyLength <= cfg.case.standoffLength)) {
+    errs.push(
+      `metal part ${cfg.case.standoffBodyLength} mm must be between 0 and the standoff ` +
+      `(${cfg.case.standoffLength} mm) — it hangs below the PCB inside that gap`,
+    );
+  }
+  if (cfg.fab.plateThickness > 1.5 && cfg.switch.family === "choc") {
+    warns.push(
+      `plate thickness ${cfg.fab.plateThickness} mm is above the choc ceiling (1.5 mm FR4); ` +
+        `switches may not seat - 1.2 mm is the spec value`,
+    );
+  }
+  if (cfg.fab.pcbThickness < 1.0 && cfg.switch.hotswap) {
+    warns.push(
+      `PCB at ${cfg.fab.pcbThickness} mm is thinner than any choc-hotswap build found; ` +
+        `socket grip and board flex are untested (see docs/DECISIONS.md)`,
+    );
+  }
+  if (!cfg.layout.thumb.enabled) warns.push("thumb cluster disabled - is the keyboard still usable?");
+
+  return { errors: errs, warnings: warns };
+}
+
+// Chosen so that a 7x5 matrix plus 4 spare keys fits a nice!nano with nice!view reserved.
+export const ROW_PIN_POOL = ["P3", "P4", "P5", "P6", "P7", "P8", "P9"];
+export const COLUMN_PIN_POOL = ["P21", "P20", "P19", "P18", "P15", "P14", "P16", "P10"];

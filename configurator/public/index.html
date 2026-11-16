@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SweepyWay configurator</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header>
+      <h1>SweepyWay <span>configurator</span></h1>
+      <div class="controls">
+        <label>Preset
+          <select id="preset"></select>
+        </label>
+        <label>Name <input id="name" size="12" /></label>
+        <button id="btn-download" class="ghost">Download JSON</button>
+        <label class="file ghost">Load JSON<input id="file" type="file" accept=".json" hidden /></label>
+      </div>
+      <div class="controls">
+        <button id="btn-preview">Generate geometry</button>
+        <button id="btn-prints" class="ghost">+ print files</button>
+        <span id="status" class="status"></span>
+      </div>
+    </header>
+
+    <main>
+      <section id="form" class="panel">
+        <div class="group">
+          <h2>Switch &amp; spacing</h2>
+          <div class="row">
+            <label>Switch family
+              <select id="switch-family">
+                <option value="choc">Kailh Choc (low profile)</option>
+                <option value="mx" disabled>MX (not implemented yet)</option>
+              </select>
+            </label>
+            <label>Plate cutout / compatibility
+              <select id="switch-support">
+                <option value="v1">Choc V1 only (13.8 mm)</option>
+                <option value="v2">Choc V2 only (13.95 mm)</option>
+                <option value="v1+v2">V1 + V2 (14.0 mm, compromise)</option>
+              </select>
+            </label>
+          </div>
+          <div class="row">
+            <label>Keycaps
+              <select id="keycap">
+                <option value="cfx">CFX 16.5 x 16.5 (3.7 mm tall)</option>
+                <option value="mbk">MBK 17.5 x 16.5 (5.5 mm tall)</option>
+              </select>
+            </label>
+            <label>Pitch X <input id="kx" type="number" step="0.1" min="15" max="25" /></label>
+            <label>Pitch Y <input id="ky" type="number" step="0.1" min="15" max="25" /></label>
+          </div>
+          <p class="hint" id="pitch-hint"></p>
+        </div>
+
+        <div class="group">
+          <h2>Layout</h2>
+          <p class="hint">
+            Tick the cells that exist. Rows are listed bottom-first, exactly like the YAML.
+            Column stagger adds up column to column; row stagger (optional) adds up row to row.
+          </p>
+          <div id="grid" class="grid"></div>
+          <div class="row">
+            <label class="check"><input id="rowstagger-on" type="checkbox" /> use row stagger instead of column stagger</label>
+          </div>
+          <div id="rowstagger" class="row hidden"></div>
+          <div class="row">
+            <label class="check"><input id="thumb-on" type="checkbox" /> thumb cluster</label>
+            <label>keys <input id="thumb-count" type="number" min="1" max="3" /></label>
+            <label>rotate <input id="thumb-rotate" type="number" step="1" /></label>
+            <label>spread <input id="thumb-spread" type="number" step="0.5" /></label>
+          </div>
+        </div>
+
+        <div class="group">
+          <h2>Case</h2>
+          <div class="row">
+            <label>Bottom <input id="case-bottom" type="number" step="0.5" /> mm</label>
+            <label>Standoff <input id="case-standoff" type="number" step="0.5" min="4.5" max="15" /> mm</label>
+            <label>Wall height <input id="case-height" type="number" step="0.5" placeholder="auto" /> mm</label>
+            <label>Wall thickness <input id="case-wall" type="number" step="0.1" /> mm</label>
+          </div>
+          <div class="row">
+            <label>Metal part below PCB
+              <input id="case-body" type="number" step="0.5" min="0" max="15" /> mm
+              <small>&nbsp;3 = soldered C192879 (JLCPCB PCB Assembly), 6 = press-fit standoff, 0 = printed only. The printed boss becomes standoff − this.</small>
+            </label>
+          </div>
+        </div>
+
+        <div class="group">
+          <h2>Palm rest</h2>
+          <div class="row">
+            <label class="check"><input id="palm-on" type="checkbox" /> include palm rest files</label>
+            <label>height <input id="palm-height" type="number" step="0.5" /> mm</label>
+            <label>curve <input id="palm-curve" type="number" step="0.5" min="0.1" max="10" /></label>
+          </div>
+        </div>
+
+        <div class="group">
+          <h2>Tenting</h2>
+          <div class="row">
+            <label class="check"><input id="tent-on" type="checkbox" /> include tenting base files</label>
+            <label>angle <input id="tent-angle" type="number" step="0.5" /> deg</label>
+            <label>low-end height <input id="tent-zmin" type="number" step="0.5" /> mm</label>
+            <label>hollow wall <input id="tent-hollow" type="number" step="0.5" /> mm</label>
+            <label class="check"><input id="tent-palm" type="checkbox" /> merge palm rest</label>
+          </div>
+        </div>
+
+        <div class="group">
+          <h2>Fabrication</h2>
+          <div class="row">
+            <label>PCB thickness <input id="pcb-thickness" type="number" step="0.1" /> mm</label>
+            <label>Plate thickness <input id="plate-thickness" type="number" step="0.1" /> mm</label>
+          </div>
+        </div>
+
+        <div id="issues" class="issues"></div>
+      </section>
+
+      <section id="output" class="panel">
+        <div class="group">
+          <h2>Build stages</h2>
+          <ol id="stages" class="stages"></ol>
+        </div>
+        <div class="group">
+          <h2>Geometry</h2>
+          <div id="metrics" class="metrics"></div>
+          <div id="svgs" class="svgs"></div>
+        </div>
+        <div class="group">
+          <h2>3D</h2>
+          <div class="row" id="stl-picker"></div>
+          <div id="viewer" class="viewer"><span>Build to see the 3D models.</span></div>
+        </div>
+        <div class="group">
+          <h2>Files</h2>
+          <div id="files" class="files"></div>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

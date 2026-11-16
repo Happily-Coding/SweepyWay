@@ -1,0 +1,19 @@
+{
+  "name": "minimal-3x5",
+  "comment": "Tiny 3x4 + 3 thumb split, for testing the generator with a completely different layout.",
+  "switch": { "family": "choc", "support": "v1", "hotswap": true },
+  "spacing": { "kx": 18, "ky": 17, "keycap": "mbk" },
+  "layout": {
+    "rows": ["row5", "row4", "row3", "row2", "row1"],
+    "columns": [
+      { "name": "col1", "net": "C1", "stagger": 0, "cells": ["row4", "row3", "row2", "row1"] },
+      { "name": "col2", "net": "C2", "stagger": 3, "cells": ["row4", "row3", "row2", "row1"] },
+      { "name": "col3", "net": "C3", "stagger": 6, "cells": ["row4", "row3", "row2", "row1"] }
+    ],
+    "thumb": { "enabled": true, "count": 3, "rotate": -8, "spread": 18, "splay": [-12, -4] }
+  },
+  "case": { "bottomThickness": 3, "wallThickness": 1.2 },
+  "palmRest": { "enabled": false, "height": 8, "curve": 3 },
+  "tenting": { "enabled": true, "angle": 10, "zMin": 2.5, "hollow": 8 },
+  "fab": { "plateThickness": 1.2, "pcbThickness": 1.2 }
+}
