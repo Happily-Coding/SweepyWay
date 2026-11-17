@@ -35,11 +35,17 @@ Deliverable: **`docs/OUTPUT-INVENTORY.md`** — one row per artifact with:
 | field | why |
 |---|---|
 | path on the site | the thing to look at |
+| **what it contains (1–2 lines)** | so the inventory is usable without opening every file: which parts are present (case / cover / plate / PCB / switches / keycaps / screws), assembled or exploded, materials/colours, which half(s), and whether copper, silk and pads are included |
 | producer (workflow step + script) | so it can be regenerated |
 | frame + units | addendum below: several of these are in different frames |
 | checked into the repo? | `filtered-output/` is committed, so drift is possible |
 | stale? (stamp / measured) | the 16 mm case above |
 | known-bug caveats | e.g. `*-misscaled.glb` next to the fixed one |
+
+**How to open any of these:** drag the file onto **<https://3dviewer.net/>** in a browser — it renders
+GLB (with materials/colours) and STL, and it can load several files at once to compare variants.
+Plain STL carries no colours or part names, so prefer GLB when both exist. `export3d/` in this repo
+is already in assembly frame, so case + plate load together and line up.
 
 **Assume same-content-different-extension files disagree** (your warning). Already confirmed:
 `filtered-output/pcbs/3d/` holds `left_pcb-3d{,-misscaled}.glb` **and** `.step` **and** `.stl`;
@@ -74,30 +80,35 @@ Derive both from `ergogen/config.yaml` (`case_bottom_thickness`, `standoff_lengt
 
 ---
 
-## 2. The plate decision — direction settled, one number missing
+## 2. The plate decision — D2 is the base, and it NEEDS a controller opening
 
 - **Author picked D2** (`plate_*_full`). D1 "could work but needs tweaking so it doesn't cut
   into the keys".
+- **The controller is on the SAME face as the keycaps — on top of the board** (author, from the
+  render, twice). It is therefore between the PCB and the plate, so a flat plate **cannot** pass
+  over it: whatever variant ships needs an opening over the controller. D1's bay was the right
+  idea and is only wrong in **size/shape** (see the next bullet). I got this wrong twice in this
+  session — first asserted it from an axis-flipped export, then "corrected" it to the underside.
+  Do not trust my geometry claims here without re-measuring.
 - D1 as generated **deletes 4 switch cutouts per half** — measured, not inferred:
   25+3 vs 29+3 switch-shaped loops, the notch contour is 65 × 46 mm centred (96.9, 64.9),
   swallowed positions (69.0, 66.5), (86.0, 70.8), (103.0, 73.3), (120.0, 76.7) on the left and
-  the mirror on the right. `docs/img/B20-D1-DELETES-SWITCHES.png`.
-- **Correction (author's render): the controller is on the face OPPOSITE the keycaps.** My
-  "8.6 mm above the PCB top, so the plate collides" was an **axis sign error** — that stack is
-  below the board. So the plate probably needs **no controller opening at all**, and D1's bay may
-  be unnecessary rather than merely mis-sized.
+  the mirror on the right. `docs/img/B20-D1-DELETES-SWITCHES.png`. So the opening must be the
+  MCU/pin **keep-out**, not the 50 × 30 controller-area rectangle.
 
-Verify before cutting anything:
+Measure this before cutting (it decides whether an opening in the plate is even sufficient):
 
 1. Load `filtered-output/pcbs/3d/left_pcb-3d.glb` and take **per-node transforms**
    (`scene.graph[node]`), *not* `scene.geometry[...].bounds` — those are model-local and rotated
-   by the exporter; that is how the sign error happened.
-2. Establish the up axis by the keycap side (keycaps are the unambiguous "top").
-3. Measure the header/MCU stack **below** the PCB bottom.
-4. Compare with `standoff_length: 6` (the single knob for case height). If the stack under the
-   board exceeds 6 mm, that is the real interference — a case/standoff problem, not a plate one.
-
-Then: drop the bay variant, or keep `plate_*_bay` only if something else needs that window.
+   by the exporter; that is the source of the sign error above.
+2. Establish up unambiguously: keycaps are the top (they reach ~10.9 on that axis, PCB top 1.51).
+3. Measure the MCU + header stack on the **keycap side**, and the 2D extent of the tallest part.
+4. Compare the stack top against the plate underside (**11.2**) and the case top (**11.2**), and
+   the feet on the PCB against the switch cutouts' edges (the four cutouts start at y 59.5 on the
+   PCB frame and the MCU keep-out reaches ~64.7 — that overlap is what makes the notch eat keys).
+5. If the stack pokes above 11.2, an opening in the plate is not enough on its own: it needs a
+   raised tower / window in the case too (same family of decision as B20 option C). Record the
+   number before proposing anything.
 
 ---
 
@@ -163,3 +174,6 @@ shapes) **and 5 screw holes**, or fail. This is the check that would have caught
 3. Judge 2D outlines by **entity/contour counts**, not SVG bytes or a rendered image.
 4. `kicad-cli` glTF/STL exports carry rotations in node transforms and a metres→mm scale bug —
    always transform to world space and sanity-check one known dimension (the PCB thickness) first.
+5. **When the author sends a render, that render is ground truth about intent.** My export math
+   lost to it twice on the controller side. If they disagree, say so and re-measure — never
+   declare the author's observation mistaken.
