@@ -1,7 +1,23 @@
+import argparse
+import os
+
 import trimesh
 import numpy as np
 from shapely.geometry import Polygon, Point
-from scipy.spatial import Delaunay, cKDTree
+from scipy.spatial import cKDTree
+from trimesh.creation import triangulate_polygon
+
+
+def parse_args():
+    ap = argparse.ArgumentParser(description="Generate the parametric palm rest STL from the hand-rest outline.")
+    ap.add_argument("--dxf", default="./ergogen/output/outlines/l_hand_rest_polygon.dxf",
+                    help="input outline (produced by ergogen)")
+    ap.add_argument("--out", default="./filtered-output/palmrest/palm_rest.stl",
+                    help="output STL path")
+    ap.add_argument("--height", type=float, default=10.0, help="tall-end height in mm")
+    ap.add_argument("--curve", type=float, default=3.0, help="curve strength (1 = linear ease)")
+    ap.add_argument("--edge-steps", type=int, default=10, help="boundary interpolation steps")
+    return ap.parse_args()
 
 def polygon_to_numpy(polygon: Polygon) -> np.ndarray:
     coords = np.array(polygon.exterior.coords)
@@ -59,80 +75,66 @@ def sample_points_in_polygon(polygon: Polygon, spacing: float) -> np.ndarray:
     return points
 
 if __name__ == "__main__":
+    ARGS = parse_args()
     # Load DXF and extract polygon
-    dxf_path = "./ergogen/output/outlines/l_hand_rest_polygon.dxf"
+    dxf_path = ARGS.dxf
     entities = trimesh.load(dxf_path, force='2D')
     shapely_poly = max(entities.polygons_full, key=lambda p: p.area)
 
-    # Interpolate boundary for smooth edge
+    # Interpolate the boundary so the sloped top has enough resolution in y.
     poly_2d = polygon_to_numpy(shapely_poly)
     poly_2d = interpolate_edges(poly_2d, 50)
-
-    # Sample interior points
     shapely_poly = Polygon(poly_2d)
-    interior_points = sample_points_in_polygon(shapely_poly, spacing=2.0)
 
-    # Combine boundary and interior
-    all_points = np.vstack((poly_2d, interior_points))
+    # Constrained triangulation of the polygon itself (no interior points, so the
+    # boundary of the mesh IS the polygon boundary -> watertight by construction).
+    vertices_2d, faces_2d = triangulate_polygon(shapely_poly)
 
-    # Triangulate all points
-    delaunay = Delaunay(all_points)
-    triangles = delaunay.simplices
-
-    # Filter triangles that are inside the polygon
-    valid_faces = []
-    for tri in triangles:
-        centroid = np.mean(all_points[tri], axis=0)
-        if shapely_poly.contains(Point(centroid)):
-            valid_faces.append(tri.tolist())
-
-    valid_faces = np.array(valid_faces)
-
-    # Z computation
-    y_smallest = find_smallest_y(all_points)
-    y_largest = find_biggest_y(all_points)
+    # Z ramp: tallest at the back (far from the hands), easing down towards the keys.
+    y_smallest = find_smallest_y(vertices_2d)
+    y_largest = find_biggest_y(vertices_2d)
     last_key_end = y_largest - 20
 
-    # Bottom (flat)
-    vertices_bottom = add_height(all_points, 0.0)
+    vertices_bottom = add_height(vertices_2d, 0.0)
+    vertices_top = adjust_z(vertices_2d, ARGS.height, ARGS.height * 0.3, last_key_end,
+                            y_smallest, curve_strength=ARGS.curve)
 
-    # Top (curved)
-    vertices_top = adjust_z(all_points, 10, 3, last_key_end, y_smallest, curve_strength=1)
-
-    # Combine
     vertices = np.vstack((vertices_bottom, vertices_top))
     offset = len(vertices_bottom)
 
-    # Build faces
     final_faces = []
-
-    # Bottom cap
-    for f in valid_faces:
+    for f in faces_2d:                       # bottom cap
         final_faces.append(f.tolist())
-
-    # Top cap (reverse winding)
-    for f in valid_faces:
+    for f in faces_2d:                       # top cap, reversed winding
         final_faces.append([i + offset for i in f[::-1]])
 
-    # Side walls (using boundary)
-    tree = cKDTree(all_points)
-    boundary_indices = [tree.query(p)[1] for p in poly_2d]
-
-    for i in range(len(boundary_indices)):
-        a = boundary_indices[i]
-        b = boundary_indices[(i + 1) % len(boundary_indices)]
-        a_top = a + offset
-        b_top = b + offset
-        final_faces.append([a, b, a_top])
-        final_faces.append([b, b_top, a_top])
+    # Side walls from the edges that belong to exactly one triangle -> exact loop.
+    edges = {}
+    for f in faces_2d:
+        for a, b in ((f[0], f[1]), (f[1], f[2]), (f[2], f[0])):
+            edges[(min(a, b), max(a, b))] = edges.get((min(a, b), max(a, b)), 0) + 1
+    for (a, b), n in edges.items():
+        if n != 1:
+            continue
+        if (a, b) in {(f[0], f[1]) for f in faces_2d}:   # keep original orientation
+            a, b = a, b
+        final_faces.append([a, b, a + offset])
+        final_faces.append([b, b + offset, a + offset])
 
     # Final mesh
     mesh = trimesh.Trimesh(vertices=vertices, faces=final_faces, process=True)
-    
+    mesh.merge_vertices()
+    mesh.remove_unreferenced_vertices()
+    mesh.fix_normals()
+    mesh.fill_holes()
+    if mesh.volume < 0:          # winding came out inside-out -> flip
+        mesh.invert()
+
     # Add color (blue for palm rest)
     mesh.visual.vertex_colors = np.tile(
         [60, 60, 200, 255], (len(mesh.vertices), 1)
     )
     
-    mesh.export("./filtered-output/palmrest/palm_rest.stl")
-    print("Palmrest STL file saved as 'palm_rest.stl'")
+    os.makedirs(os.path.dirname(ARGS.out) or ".", exist_ok=True)
+    mesh.export(ARGS.out)
+    print(f"Palmrest STL saved: {ARGS.out}  (height={ARGS.height} curve={ARGS.curve})")

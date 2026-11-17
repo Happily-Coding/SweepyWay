@@ -5,6 +5,16 @@ The stack (B17) is derived from `standoff_length`, so the screws that hold it mu
 (B21): a screw has to cross the fixed stack on its own side of the standoff and then bite into it,
 without the two screws meeting in the middle and without the heads sticking out.
 
+B20 option D (`plate_sits_on_wall: 1`, docs/B20-PLATE-ON-WALL.md) splits the top of the stack in
+two, and this file is where that must NOT be fudged:
+
+    wall top / case_border_height = floor + standoff + PCB + band - plate   = 11.2
+    plate TOP (rim in the old sense) = floor + standoff + PCB + band        = 12.4
+
+Before D they were the same number and `case_border_height` was both. A `--case-stl` assertion that
+still compared the STL height to 12.4 would now be asserting the wrong thing, so the case height and
+the plate top are carried separately (`wall_top` vs `plate_top`).
+
 Reads the units from `ergogen/config.yaml`, computes everything, and writes
 `docs/HARDWARE-BOM.md`. Exits non-zero if the screw/stack combination does not work, so it can be
 used as a gate after changing `standoff_length`.
@@ -53,6 +63,9 @@ def units(path: Path) -> dict[str, float]:
         if not m:
             raise SystemExit(f"could not find units.{key} in {path}")
         got[key] = float(m.group(1))
+    # B20-D. Optional on purpose: a config without the flag is the pre-D stack (wall top == plate top).
+    m = re.search(r"^  plate_sits_on_wall:\s*([-\d.]+)", text, flags=re.M)
+    got["plate_sits_on_wall"] = float(m.group(1)) if m else 0.0
     m = re.search(r"^  screw_top_length:\s*([-\d.]+)", text, flags=re.M)
     got["screw_top_length"] = float(m.group(1)) if m else float("nan")
     m = re.search(r"^  screw_bottom_length:\s*([-\d.]+)", text, flags=re.M)
@@ -69,7 +82,12 @@ def evaluate(u: dict[str, float], standoff: float | None = None) -> dict:
     band, plate = u["plate_top_above_pcb_top"], u["top_plate_thickness"]
     eng = u["screw_engagement"]
     air = band - plate
-    rim = floor + s + pcb + band
+    # B20-D: `plate_top` is where the FR4 plate's TOP face ends up (12.4, unchanged since B17).
+    # `wall_top` is the printed wall (case_border_height): equal to plate_top before D, and one
+    # plate thickness lower under D, because the plate then sits ON the wall and overhangs it.
+    plate_top = floor + s + pcb + band
+    sits = 1 if u.get("plate_sits_on_wall", 0) else 0
+    wall_top = plate_top - sits * plate
     top_stack = plate + air + pcb
     bottom_stack = floor
     head_t, head_b = HEAD_HEIGHT["low_socket"], HEAD_HEIGHT["low_socket"]
@@ -78,7 +96,9 @@ def evaluate(u: dict[str, float], standoff: float | None = None) -> dict:
     return {
         "s": s, "floor": floor, "pcb": pcb, "band": band, "plate": plate, "eng": eng,
         "body": body, "boss": boss, "bottom_stack_f3b": floor + max(boss, 0.0),
-        "air": air, "rim": rim, "top_stack": top_stack, "bottom_stack": bottom_stack,
+        "air": air, "rim": plate_top, "plate_top": plate_top, "wall_top": wall_top,
+        "plate_sits_on_wall": sits,
+        "top_stack": top_stack, "bottom_stack": bottom_stack,
         "bite_top": bite_t, "bite_bottom": bite_b,
         "middle_gap": s - (bite_t + bite_b),
         "socket_clearance": s - SOCKET_DEPTH,
@@ -127,6 +147,10 @@ def main() -> int:
 
     chk(abs(r["air"] - 1.0) < 0.05,
         f"choc air gap is {r['air']:.2f} mm, must be 1.00 (plate top = PCB top + 2.2)")
+    if r["plate_sits_on_wall"]:
+        chk(abs(r["plate_top"] - r["wall_top"] - r["plate"]) < 1e-6,
+            f"plate_sits_on_wall is set but plate top {r['plate_top']:.2f} - wall top "
+            f"{r['wall_top']:.2f} is not the plate thickness {r['plate']:.2f}")
     chk(r["socket_clearance"] >= 1.0,
         f"only {r['socket_clearance']:.2f} mm between the hotswap sockets and the case floor "
         f"(need >= 1.0; sockets are {SOCKET_DEPTH} mm deep)")
@@ -157,8 +181,11 @@ def main() -> int:
     if args.case_stl:
         import trimesh
         h = round(float(trimesh.load(args.case_stl).extents[2]), 2)
-        chk(abs(h - r["rim"]) < 0.05,
-            f"case STL is {h:.2f} mm tall but the stack says the rim must be {r['rim']:.2f}")
+        # B20-D: the STL is the PRINTED WALL, so it must equal the wall top, not the plate top.
+        chk(abs(h - r["wall_top"]) < 0.05,
+            f"case STL is {h:.2f} mm tall but the stack says the wall top (case_border_height) "
+            f"must be {r['wall_top']:.2f}"
+            + (f" (plate top stays {r['plate_top']:.2f})" if r["plate_sits_on_wall"] else ""))
 
     per_half = 5
     if args.topology in ("soldered", "printed"):
@@ -272,11 +299,22 @@ def main() -> int:
                f"{r['s']:.1f} | {r['floor'] + r['s']:.1f} |"]
     md += [
         f"| PCB | {r['pcb']:.1f} | {r['floor'] + r['s'] + r['pcb']:.1f} |",
-        f"| air gap (choc rule) | {r['air']:.1f} | {r['rim'] - r['plate']:.1f} |",
-        f"| plate `top_plate_thickness` | {r['plate']:.1f} | **{r['rim']:.1f}** = case rim |",
+        f"| air gap (choc rule) | {r['air']:.1f} | {r['plate_top'] - r['plate']:.1f} = plate underside |",
+        (f"| plate `top_plate_thickness` **sits ON the wall** | {r['plate']:.1f} | "
+         f"**{r['plate_top']:.1f}** = plate top (= the old rim) |"
+         if r["plate_sits_on_wall"] else
+         f"| plate `top_plate_thickness` | {r['plate']:.1f} | **{r['plate_top']:.1f}** = case rim |"),
         "",
-        f"- Hotswap sockets need {SOCKET_DEPTH} mm under the PCB → clearance **{r['socket_clearance']:.2f} mm**",
-        f"- Keycap tops sit {3.7:.1f} mm above the plate → **{3.7:.1f} mm above the rim** (never walled in)",
+        (f"- **B20 option D**: the printed wall stops at the plate's underside "
+         f"(`case_border_height` = **{r['wall_top']:.1f}** mm); the FR4 plate overhangs it and is the lid, "
+         f"so its edge has full-perimeter support and nothing extra is printed. The plate top stays "
+         f"{r['plate_top']:.1f} mm, so keycaps, USB-C and the screw stack do not move."
+         if r["plate_sits_on_wall"] else
+         f"- `plate_sits_on_wall: 0` (pre-B20-D): the wall runs to the plate TOP "
+         f"({r['plate_top']:.1f} mm) and the plate hangs inside the cavity on the switch latches."),
+        f"- Wall height (`case_border_height`) = **{r['wall_top']:.1f} mm** — this is what a case STL must measure.",
+        f"- Hotswap sockets need {SOCKET_DEPTH} mm under the PCB -> clearance **{r['socket_clearance']:.2f} mm**",
+        f"- Keycap tops sit {3.7:.1f} mm above the plate -> **{3.7:.1f} mm above the plate top** (never walled in)",
         "",
         "## Fasteners  (a full keyboard = 2 halves)",
         "",

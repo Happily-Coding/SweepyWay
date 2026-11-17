@@ -1,3 +1,6 @@
+import argparse
+import os
+
 import trimesh
 import numpy as np
 from shapely.geometry import Polygon, Point, MultiPolygon
@@ -127,23 +130,38 @@ def make_tented_solid(shapely_poly: Polygon,
     # Final mesh
     mesh = trimesh.Trimesh(vertices=vertices, faces=final_faces, process=False)
 
-    # Ensure correct orientation for slicing
+    # Weld duplicate vertices so the shell closes, then orient outward.
+    mesh.merge_vertices()
+    mesh.remove_unreferenced_vertices()
     mesh.fix_normals()
     mesh.fill_holes()
-
+    if mesh.volume < 0:          # winding came out inside-out -> flip
+        mesh.invert()
     return mesh
 
 if __name__ == "__main__":
+    ap = argparse.ArgumentParser(description="Generate the sloped/hollow tenting base STL.")
+    ap.add_argument("--dxf", default="./ergogen/output/outlines/l_tenting_base_bottom_outline.dxf")
+    ap.add_argument("--palm-dxf", default="./ergogen/output/outlines/l_hand_rest_polygon.dxf")
+    ap.add_argument("--out", default="./filtered-output/cases/tenting_system.stl")
+    ap.add_argument("--angle", type=float, default=6.5, help="slope angle in degrees")
+    ap.add_argument("--z-min", type=float, default=3.0, help="height at the low end in mm")
+    ap.add_argument("--hollow", type=float, default=10.0, help="wall thickness when hollowed")
+    ap.add_argument("--no-hollow", action="store_true", help="solid part instead of a shell")
+    ap.add_argument("--include-palm-rest", action="store_true",
+                    help="merge the palm rest area into the same tented solid")
+    ARGS = ap.parse_args()
+
     # ===== PARAMETERS =====
-    APPLY_HOLLOW_REMOVAL = True
-    INCLUDE_PALM_REST = False
-    HOLLOW_OFFSET = 10.0  # wall thickness
-    SLOPE_ANGLE_DEG = 6.5
-    Z_MIN = 3.0 # min height
+    APPLY_HOLLOW_REMOVAL = not ARGS.no_hollow
+    INCLUDE_PALM_REST = ARGS.include_palm_rest
+    HOLLOW_OFFSET = ARGS.hollow  # wall thickness
+    SLOPE_ANGLE_DEG = ARGS.angle
+    Z_MIN = ARGS.z_min  # min height
     # ======================
 
     # Load keyboard base polygon
-    dxf_path = './ergogen/output/outlines/l_tenting_base_bottom_outline.dxf'
+    dxf_path = ARGS.dxf
     entities = trimesh.load(dxf_path, force='2D')
     keyboard_poly = max(entities.polygons_full, key=lambda p: p.area)
 
@@ -164,7 +182,7 @@ if __name__ == "__main__":
 
     # Optionally include palm rest as a separate tented solid
     if INCLUDE_PALM_REST:
-        palm_rest_path = "./ergogen/output/outlines/l_hand_rest_polygon.dxf"
+        palm_rest_path = ARGS.palm_dxf
         palm_entities = trimesh.load(palm_rest_path, force='2D')
         palm_poly = max(palm_entities.polygons_full, key=lambda p: p.area)
 
@@ -187,5 +205,8 @@ if __name__ == "__main__":
         [200, 60, 60, 255], (len(final_mesh.vertices), 1)
     )
     
-    final_mesh.export("./filtered-output/cases/tenting_system.stl")
-    print("Tenting system STL file saved as 'tenting_system.stl'")
+    os.makedirs(os.path.dirname(ARGS.out) or ".", exist_ok=True)
+    final_mesh.export(ARGS.out)
+    print(f"Tenting base saved: {ARGS.out}  (angle={SLOPE_ANGLE_DEG} z_min={Z_MIN} "
+          f"hollow={HOLLOW_OFFSET if APPLY_HOLLOW_REMOVAL else 'no'})")
+    print(f"  watertight={final_mesh.is_watertight} volume={final_mesh.volume/1000:.2f} cm3")

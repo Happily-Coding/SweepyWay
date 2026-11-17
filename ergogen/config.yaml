@@ -85,15 +85,31 @@ units:
   screw_top_length: 6
   screw_bottom_length: 6
 
-  # case_border_height is DERIVED, never authored: the rim top must coincide with the plate top.
-  #   3.0 floor + 6.0 standoff + 1.2 PCB + 2.2 choc band = 12.4
-  # Authoring 16 here (the old value) put the wall 3.6 mm above the plate, so CFX caps (3.7 mm)
-  # ended up flush with the rim and the outer keys looked walled in. NOTE: ergogen evaluates units
-  # top-down, so every symbol in this expression must be defined ABOVE it.
-  case_border_height: case_bottom_thickness + standoff_length + pcb_thickness + plate_top_above_pcb_top
-  # USB-C opening: from the floor up to 1 mm below the rim, so it can never break through the rim
+  # ---- B20 option D: the plate sits ON the wall (docs/B20-PLATE-ON-WALL.md) ----
+  # 1 -> the printed wall stops at the plate's UNDERSIDE and the FR4 plate overhangs it, so the
+  #      plate IS the lid: it gets full-perimeter support, nothing extra to print, no 2 mm reveal.
+  # 0 -> the old geometry: the wall runs to the plate TOP (rim = plate top) and the plate is a
+  #      panel that hangs inside the cavity on the 32 switch latches. Kept as the escape hatch.
+  plate_sits_on_wall: 1
+  # case_border_height is DERIVED, never authored. NOTE: ergogen evaluates units top-down, so every
+  # symbol in this expression must be defined ABOVE it.
+  #   plate_sits_on_wall = 1 -> wall top = plate UNDERSIDE
+  #         3.0 floor + 6.0 standoff + 1.2 PCB + 2.2 choc band - 1.2 plate = 11.2 (= plate bottom)
+  #   plate_sits_on_wall = 0 -> wall top = plate TOP (the pre-B20-D rim)
+  #         3.0 + 6.0 + 1.2 + 2.2 = 12.4
+  # Authoring 16 here (the original value) put the wall 3.6 mm above the plate, so CFX caps (3.7 mm)
+  # ended up flush with the rim and the outer keys looked walled in.
+  case_border_height: case_bottom_thickness + standoff_length + pcb_thickness + plate_top_above_pcb_top - plate_sits_on_wall * top_plate_thickness
+  # USB-C opening: from the floor up to 1 mm below the wall top, so it can never break through it.
   # (it used to be a literal 10, which reached z=13 and would have cut the 12.4 rim open).
-  usbc_slot_height: case_border_height - case_bottom_thickness - 1
+  # B20-D: the wall top is now 11.2, so the window is 7.2 tall -> z 3.0..10.2. The plate itself caps
+  # it from above. See "the USB-C consequence" in docs/B20-PLATE-ON-WALL.md before raising it.
+  # USB-C window: full wall height (was "1 mm below the rim"). Under B20 option D the wall stops
+  # at 11.2 so the old formula gave 7.2 -> a window to z=10.2, i.e. its top edge was the PCB's top
+  # face, and the nice!nano's 3.34 mm mid-mount connector could lose up to ~1.2 mm of its mouth
+  # (measured, docs/B20-PLATE-ON-WALL.md §5). Taking the window to the wall top recovers 1.0 mm at
+  # zero cost, and with the default D1 plate the controller bay is notched out, so nothing caps it.
+  usbc_slot_height: case_border_height - case_bottom_thickness
   #TODO: aplicar offset adicional por screw minimo. porque no va a entrar asi , hay que buscar a la esquina posta. si no choca con switch.
   screw_offset_x: 0.4 kx #How much to move the screw from the reference point. To avoid landing inside the switches
   screw_offset_y: -0.2 ky #how much to move the screw from the referene point
@@ -731,6 +747,43 @@ outlines:
     - operation: subtract
       name: r_keys_outline
 
+  ########### B20 option D: the FR4 plate is the case FOOTPRINT (it sits on the wall) ###########
+  # Today's plate (l_coverpart_switch_plate_outline) is the *key cluster*, i.e. 2-4 mm smaller than
+  # the cavity, so it hangs from the switch latches with nothing under its edge (B20). Under D the
+  # wall stops at 11.2 and the plate (11.2..12.4) overhangs it, so the plate must be the case
+  # footprint: l_case_bottom = l_pcb_outline expanded 4 mm, ALREADY minus the 5 screw bores.
+  # Two variants, because the controller bay has to stay reachable (B18) and the MCU / JST bodies are
+  # 3.34 / 7.60 mm tall -- far taller than the 1.0 mm air gap under the plate:
+  #   l_plate_on_wall_bay  (D1, DEFAULT) : footprint - keys - screws - controller bay - JSPh bay
+  #   l_plate_on_wall      (D2)          : footprint - keys - screws   (bay covered)
+  l_plate_on_wall_bay:
+    - name: l_case_bottom # the case footprint (PCB + 4, minus the screw bores)
+    - operation: subtract
+      name: l_keys_outline
+    - operation: subtract
+      name: l_controller_area # MCU / reset / power / display bay stays open -> B18 stays true
+    - operation: subtract
+      name: l_jsph_area # the JST-PH battery connector is 7.60 mm tall; it MUST be notched
+
+  l_plate_on_wall:
+    - name: l_case_bottom
+    - operation: subtract
+      name: l_keys_outline
+
+  r_plate_on_wall_bay:
+    - name: r_case_bottom
+    - operation: subtract
+      name: r_keys_outline
+    - operation: subtract
+      name: r_controller_area
+    - operation: subtract
+      name: r_jsph_area
+
+  r_plate_on_wall:
+    - name: r_case_bottom
+    - operation: subtract
+      name: r_keys_outline
+
   l_usbc_border_outline:
     - what: rectangle
       where: left_controller_center
@@ -798,11 +851,101 @@ outlines:
 
 
 pcbs:
+  # ---- B20-D: the plate is the lid, so there are TWO orderable outlines per half ----
+  # `plate_left` / `plate_right` keep working and point at the D1 (bay open) variant, which is the
+  # recommendation. The `_bay` / `_full` twins are the explicit names; `_full` (bay covered) is for
+  # inspecting D2 only -- it lays FR4 over the 3.34 mm MCU and the 7.60 mm JST connector.
+  plate_left_bay:
+    template: kicad8
+    outlines:
+      right:
+        outline: l_plate_on_wall_bay
+    footprints:
+      url:
+        what: ceoloide/utility_text
+        params:
+          text: *kb_url
+        adjust:
+          shift: [0,-6]
+        where:
+          - [ key, -1_5u, space]
+      jlc:
+        what: ceoloide/utility_text
+        params:
+          text: JLCJLCJLCJLC
+          side: B
+          mirrored: true
+        adjust:
+          shift: [0, 6]
+        where:
+          - [ key, -1_5u, space]
+  plate_left_full:
+    template: kicad8
+    outlines:
+      right:
+        outline: l_plate_on_wall
+    footprints:
+      url:
+        what: ceoloide/utility_text
+        params:
+          text: *kb_url
+        adjust:
+          shift: [0,-6]
+        where:
+          - [ key, -1_5u, space]
+  plate_right_bay:
+    template: kicad8
+    outlines:
+      right:
+        outline: r_plate_on_wall_bay
+    footprints:
+      jlc:
+        what: ceoloide/utility_text
+        params:
+          text: JLCJLCJLCJLC
+          side: B
+          mirrored: true
+        adjust:
+          shift: [0, 6]
+        where:
+          - [ /^mirror.*/, key, -1_5u, space]
+      url:
+        what: ceoloide/utility_text
+        params:
+          text: *kb_url
+        adjust:
+          shift: [0,-6]
+        where:
+          - [ /^mirror.*/, key, -1_5u, space]
+  plate_right_full:
+    template: kicad8
+    outlines:
+      right:
+        outline: r_plate_on_wall
+    footprints:
+      jlc:
+        what: ceoloide/utility_text
+        params:
+          text: JLCJLCJLCJLC
+          side: B
+          mirrored: true
+        adjust:
+          shift: [0, 6]
+        where:
+          - [ /^mirror.*/, key, -1_5u, space]
+      url:
+        what: ceoloide/utility_text
+        params:
+          text: *kb_url
+        adjust:
+          shift: [0,-6]
+        where:
+          - [ /^mirror.*/, key, -1_5u, space]
   plate_right:
     template: kicad8
     outlines:
       right:
-        outline: r_coverpart_switch_plate_outline
+        outline: r_plate_on_wall_bay # B20-D: default = D1, the bay stays open
     footprints:
       jlc:
         what: ceoloide/utility_text
@@ -826,7 +969,7 @@ pcbs:
     template: kicad8
     outlines:
       right:
-        outline: l_coverpart_switch_plate_outline
+        outline: l_plate_on_wall_bay # B20-D: default = D1, the bay stays open
     footprints:
       url:
         what: ceoloide/utility_text
@@ -1491,7 +1634,7 @@ cases:
     - name: l_case_border #l_case_border_outline
       extrude: case_border_height
     - name : l_usbc_border_outline
-      extrude: usbc_slot_height # derived: floor -> 1 mm below the rim
+      extrude: usbc_slot_height # derived: floor -> wall top (11.2 under B20-D)
       shift: [-20,5,case_bottom_thickness]
       operation: subtract
 
@@ -1517,7 +1660,7 @@ cases:
     - name: l_case_border #l_case_border_outline
       extrude: case_border_height
     - name : l_usbc_border_outline
-      extrude: usbc_slot_height # derived: floor -> 1 mm below the rim
+      extrude: usbc_slot_height # derived: floor -> wall top (11.2 under B20-D)
       shift: [-20,5,case_bottom_thickness]
       operation: subtract
     - name: l_coverpart_switch_plate_outline
@@ -1555,7 +1698,7 @@ cases:
     - name: r_case_border #r_case_border_outline
       extrude: case_border_height
     - name : r_usbc_border_outline
-      extrude: usbc_slot_height # derived: floor -> 1 mm below the rim
+      extrude: usbc_slot_height # derived: floor -> wall top (11.2 under B20-D)
       shift: [20,5,case_bottom_thickness]
       operation: subtract
 
@@ -1581,7 +1724,7 @@ cases:
     - name: r_case_border #r_case_border_outline
       extrude: case_border_height
     - name : r_usbc_border_outline
-      extrude: usbc_slot_height # derived: floor -> 1 mm below the rim
+      extrude: usbc_slot_height # derived: floor -> wall top (11.2 under B20-D)
       shift: [20,5,case_bottom_thickness]
       operation: subtract
     - name: r_coverpart_switch_plate_outline

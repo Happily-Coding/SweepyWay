@@ -1,0 +1,9 @@
+*.step
+*.wrl
+*.glb
+*.stl
+*.webp
+filtered-output/
+component_3d_models/
+ergogen/output/
+*

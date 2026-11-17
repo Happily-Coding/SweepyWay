@@ -41,6 +41,24 @@ const DEFAULT_ROWS = ["row5", "row4", "row3", "row2", "row1"];
 // MCU / controller bay / JST / USB-C block 3.0 mm closer to the seam — see docs/B5-RIGHT-3D.md.
 export const MCU_MIRROR_DISTANCE = 168;
 
+/**
+ * B20 option D: does the FR4 plate sit ON the printed wall (plate = lid), or inside the cavity?
+ *
+ * 1 = D (docs/B20-PLATE-ON-WALL.md): `case_border_height` = floor + standoff + PCB + choc band
+ *     MINUS `top_plate_thickness` = 11.2 = the plate's underside; the plate (11.2..12.4) overhangs
+ *     the wall and is the case's lid. The plate OUTLINES are therefore the case footprint
+ *     (`l_plate_on_wall_bay` / `l_plate_on_wall`), not the key cluster.
+ * 0 = the pre-D shape: the wall runs to the plate top (12.4) and the plate is a panel inside the
+ *     cavity. Kept as an escape hatch, but flipping it alone is NOT enough: `plate_left` /
+ *     `plate_right` must also be repointed at `l_coverpart_switch_plate_outline` (key cluster),
+ *     because a case-footprint plate on a 12.4 mm wall would hang over the outside.
+ *     `scripts/check_assembly.py` fails loudly if the wall height and the plate outlines disagree.
+ *
+ * Like MCU_MIRROR_DISTANCE this is emitted verbatim into the generated config so the two files
+ * cannot disagree; `scripts/check_config_drift.mjs` is the gate on that.
+ */
+export const PLATE_SITS_ON_WALL = 1;
+
 export const SCREW_SHIFTS = {
   l_screw_left_top: [2, -0.75],
   l_screw_left_bottom: [2, -0.75],

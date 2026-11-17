@@ -12,7 +12,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import { plateCutout, KEYCAPS, ROW_PIN_POOL, COLUMN_PIN_POOL, matrixPairs, PRESETS, SCREW_SHIFTS, SPACING_KEYS, spacingValues, MCU_MIRROR_DISTANCE } from "./schema.mjs";
+import { plateCutout, KEYCAPS, ROW_PIN_POOL, COLUMN_PIN_POOL, matrixPairs, PRESETS, SCREW_SHIFTS, SPACING_KEYS, spacingValues, MCU_MIRROR_DISTANCE, PLATE_SITS_ON_WALL } from "./schema.mjs";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 export const CANONICAL_CONFIG = resolve(REPO, "ergogen/config.yaml");
@@ -411,14 +411,23 @@ export function generate(cfg) {
   setScalar(/  standoff_length: [\d.]+[^\n]*/, `  standoff_length: ${num(cfg.case.standoffLength)}`, "standoff_length");
   setScalar(/  standoff_body_length: [\d.]+[^\n]*/,
     `  standoff_body_length: ${num(cfg.case.standoffBodyLength)}`, "standoff_body_length");
+  // B20-D: `plate_sits_on_wall` is the shape decision (the wall stops at the plate's underside and
+  // the FR4 plate is the lid). It is a fixed property of this generation of the design, exactly like
+  // MCU_MIRROR_DISTANCE: if it is ever flipped, the rim formula below has to flip with it, and the
+  // drift gate (scripts/check_config_drift.mjs) is what refuses a half-flip.
+  setScalar(/  plate_sits_on_wall: [\d.]+[^\n]*/, `  plate_sits_on_wall: ${PLATE_SITS_ON_WALL}`, "plate_sits_on_wall");
   {
     const PLATE_BAND = 2.2;
+    const band = PLATE_BAND;
     const derived =
-      Number(cfg.case.bottomThickness) + Number(cfg.case.standoffLength) + Number(cfg.fab.pcbThickness) + PLATE_BAND;
+      Number(cfg.case.bottomThickness) + Number(cfg.case.standoffLength) + Number(cfg.fab.pcbThickness) + band
+      - (PLATE_SITS_ON_WALL ? Number(cfg.fab.plateThickness) : 0);
     const override = cfg.case.borderHeight == null || cfg.case.borderHeight === "" ? null : cfg.case.borderHeight;
     const rim =
       override == null || Math.abs(Number(override) - derived) < 0.05
-        ? "case_bottom_thickness + standoff_length + pcb_thickness + plate_top_above_pcb_top"
+        ? PLATE_SITS_ON_WALL
+          ? "case_bottom_thickness + standoff_length + pcb_thickness + plate_top_above_pcb_top - plate_sits_on_wall * top_plate_thickness"
+          : "case_bottom_thickness + standoff_length + pcb_thickness + plate_top_above_pcb_top"
         : num(override);
     setScalar(/  case_border_height: [^\n]*/, `  case_border_height: ${rim}`, "case_border_height");
   }
