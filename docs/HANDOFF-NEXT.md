@@ -80,11 +80,38 @@ Derive both from `ergogen/config.yaml` (`case_bottom_thickness`, `standoff_lengt
 
 ---
 
-## 2. The plate decision — D2 as-is, NO controller opening
+## 1d. Local reproduction status (scripts/build_outputs.sh)
 
-- **Author picked D2** (`plate_*_full`) and **D2 does not need a controller opening**: the
-  reference combined scene has the controller fully enclosed and was fine. Treat "no opening" as
-  the design intent. Do **not** cut a bay.
+Working today, no docker: `--ergogen`, `--gates` (all four green), `--copy`, `--jscad` (cases now
+**11.20 mm**) and `--verify` (asserts case height + D1/D2 edge counts + flags the tenting mesh).
+
+Working with docker: `--kibot default`, `boards`, `3d_preview` and `jlpcb_pos`, plus
+`scripts/jlc_assembly.py cpl|bom|check` (**PASS**, 67 placements/half, 5 BoM lines, 0 LCSC gaps).
+
+Still to do:
+
+- `kibot pdf` writes both PDFs and then **never exits locally** (container gone, shell waiting).
+  The PDFs are produced (133 KB / 134 KB); make the stage tolerate it with a timeout + file check.
+- `--assembly` (palm rest, tenting, `create_full_3d_visual`) needs `uv`; `fix_glb_scale.py` alone
+  works with the venv (regenerated both fixed GLBs today).
+- WSL gotcha baked into the script: `docker -v` needs `C:/…`, not `/mnt/c/…`, and `cygpath` does
+  not exist here (this is WSL, not MSYS) — the script converts with `sed`.
+
+## 1e. Height-budget finding (new, and it reframes the plate question)
+
+See §2 — the short case leaves **1.0 mm** of air above the PCB top while the controller zone
+measures **8.62 mm** tall on the fresh export.
+
+## 2. The plate decision — D2 main, D1 optional view window
+
+- **Author picked D2** (`plate_*_full`) as the main variant. D2 as generated has **no** controller
+  opening, matching the old reference scene where the controller was enclosed and fine.
+- **But the headroom changed underneath that decision** (§1e): the reference scene was a ~23 mm
+  tall enclosure; B20-D made the plate the lid at 12.4 mm, leaving **1.0 mm** of air above the PCB
+  top against a controller zone that measures **8.62 mm**. So "no opening" is the intent for the
+  *old* geometry, not evidence that it is feasible in the new one. Resolve this before ordering
+  plates: either the controller really is shorter than 1 mm above the board (measure the hardware),
+  or D1's window becomes functionally necessary — which is exactly the "view window" below.
 - **The controller is on the SAME face as the keycaps** (author, from the render, twice). My
   "collides with the plate / needs an opening" claims were wrong twice in this session — first
   from an axis-flipped export, then "corrected" to the underside. Do not trust my geometry
@@ -103,23 +130,42 @@ Derive both from `ergogen/config.yaml` (`case_bottom_thickness`, `standoff_lengt
 - Keep the build target ordering explicit: `plate_*` → D2 (main). `plate_*_bay` → optional,
   must pass the cutout gate before it can be offered as a choice.
 
-### Why the numbers in this doc disagree with each other (read before measuring)
+### Measured on FRESH geometry (2.4 mm of headroom is all the current case has)
 
-- The "MCU + header stack reaches 8.6 mm above the PCB top" figure came from
-  **`header-preview_nano`**, a *preview* footprint, inside a glTF export that this repo already
-  patches with a separate `fix_glb_scale.py` step (and which ships `*-misscaled.glb` files). It is
-  not trustworthy for a clearance call.
-- The **published `combined_scene.glb` cannot validate clearances either**: its parts are stacked
-  incoherently — `Case` 0…16, PCB 0…1.51, `Cover` **25…32** — because
-  `create_full_3d_visual.py` applies a hardcoded "move the PCB up 7 units" plus a magic −90°
-  rotation. That is one of the things to fix in §1c before any 3D clearance claim is made.
-- So: accept the author's intent (enclosed controller, no opening), and if a real interference
-  ever shows up on printed parts, the minimal fix is a **local raised region in the case**, not
-  removing keys from the plate.
+From `filtered-output/pcbs/3d/left_pcb-3d.glb` regenerated today (per-node transforms, up axis
+fixed by the keycap side, PCB slab 0.00…1.51 on y):
 
-What to actually measure, once §1c makes the scene coherent: controller top (keycap side) against
-the plate underside (**11.2**) and the case top (**11.2**), using the real nice!nano model rather
-than the preview header.
+| item | mm above the PCB top |
+|---|---|
+| `Choc_V1_Keycap_MBK_White_1u` | 3.91 … **9.41** |
+| `PinHeader_1x12_P2.54mm_Vertical` (controller zone) | −2.91 … **+8.62** |
+| `Choc_V1_Switch` | −4.54 … 6.46 |
+| `Choc_V1_Hotswap` (socket) | −3.56 … −0.51 → sits **below** the board |
+
+Caveat: those headers come from the `header-preview_nano` *preview* footprint and total 11.5 mm of
+length, which is longer than a normal 2.54 header — treat 8.62 as "the controller zone is the
+tallest thing on the board after keycaps", not as a certified height. The author can measure the
+real stack on hardware in under a minute.
+
+What the case offers above the PCB top, today:
+
+```
+plate_top_above_pcb_top 2.2 − top_plate_thickness 1.2 = 1.0 mm  (plate underside)
+plate top                                               = 2.2 mm
+```
+
+What the OLD design offered: `case_border_height: 16` (the author's own comment: "a quick search,
+soft choice was around 17") **plus** a printed cover 132.62 × 134.80 × **7.00 mm** on top of it, with
+a different sandwich (`bottom_plate_thickness 1.0`, `internal_distance_between_plates 4`,
+`top_plate_thickness 1.6`). That is where "no opening, and it was fine" comes from — the enclosure
+was roughly **23 mm** tall. B20-D then made the FR4 plate the lid at **12.4 mm** total.
+
+So the two statements are both true and they belong to different geometries: *the old tall
+enclosure enclosed the controller without an opening*, and *the new short one has 1.0 mm of air
+above the PCB*. If the real stack is taller than ~1 mm, the short design needs one of: a window in
+the plate (D1, sized to the controller), a local raised region in the case, or more
+`standoff_length`. `standoff_length` is the single knob for case height and the author wants short,
+so this is a decision, not a measurement.
 
 ---
 
