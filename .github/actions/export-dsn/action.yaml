@@ -6,22 +6,43 @@ inputs:
     required: true
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/inti-cmnb/kicad8_auto:latest'
+  # B2 (2026-11-16): this used kicad8_auto while Ergogen emits KiCad 9 files
+  # (format 20241229), so pcbnew raised
+  #   OSError: KiCad was unable to open this file because it was created with a more
+  #   recent version than the one you are running
+  # ...and because this script had no error handling, that traceback did not stop it:
+  # it still printed "DSN export completed" and exited 0 with NO .dsn on disk. The
+  # autoroute step then had nothing to route (and the old version of it silently
+  # skipped), so KiBot exported an unrouted board while every step looked green.
+  # Now: KiCad 9 (same image as the kibot step) + hard failure when a board produces
+  # no DSN.
+  image: 'docker://ghcr.io/inti-cmnb/kicad9_auto:latest'
   entrypoint: '/bin/bash'
   args:
     - '-c'
     - |
+      set -uo pipefail
+      rc=0
+      PCB_DIR="$GITHUB_WORKSPACE/ergogen/output/pcbs"
       for board in ${{ inputs.boards }};
       do
         echo "Processing $board";
-        if [ -e $GITHUB_WORKSPACE/ergogen/output/pcbs/${board}.dsn ]; then
-          echo "Cleaning up $GITHUB_WORKSPACE/ergogen/output/pcbs/${board}.dsn";
-          rm -f $GITHUB_WORKSPACE/ergogen/output/pcbs/${board}.dsn;
+        dsn="$PCB_DIR/${board}.dsn"
+        pcb="$PCB_DIR/${board}.kicad_pcb"
+        rm -f "$dsn"
+        if [ ! -e "$pcb" ]; then
+          echo "::error::missing $pcb — did the ergogen step run?"
+          rc=1
+          continue
         fi
-        if [ -e ergogen/output/pcbs/${board}.kicad_pcb ]; then
-          echo "Export DSN";
-          $GITHUB_WORKSPACE/kibot/export_dsn.py -b $GITHUB_WORKSPACE/ergogen/output/pcbs/${board}.kicad_pcb -o $GITHUB_WORKSPACE/ergogen/output/pcbs/${board}.dsn 
+        # python3 explicitly: the script is invoked, not executed, so the shebang and
+        # the exec bit cannot decide the interpreter.
+        python3 "$GITHUB_WORKSPACE/kibot/export_dsn.py" -b "$pcb" -o "$dsn"
+        if [ -s "$dsn" ]; then
+          echo "ok   $board.dsn ($(wc -c < "$dsn") bytes)"
+        else
+          echo "::error::$board produced no .dsn — refusing to let the router run on nothing"
+          rc=1
         fi
       done
-      wait
-      echo "✅ DSN export completed for all boards."
+      exit $rc

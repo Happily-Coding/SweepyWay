@@ -6,20 +6,36 @@ inputs:
     required: true
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/inti-cmnb/kicad8_auto:latest'
+  # B2 (2026-11-16): same stale-image bug as export-dsn — kicad8_auto cannot open the
+  # KiCad 9 PCBs Ergogen writes, and the script had no error handling, so it printed
+  # success with no _autorouted.kicad_pcb on disk. KiCad 9 + hard failure instead.
+  image: 'docker://ghcr.io/inti-cmnb/kicad9_auto:latest'
   entrypoint: '/bin/bash'
   args:
     - '-c'
     - |
+      set -uo pipefail
+      rc=0
+      PCB_DIR="$GITHUB_WORKSPACE/ergogen/output/pcbs"
       for board in ${{ inputs.boards }};
       do
         echo "Processing $board";
-        if [ -e $GITHUB_WORKSPACE/ergogen/output/pcbs/${board}_autorouted.kicad_pcb ]; then
-          echo "Cleaning up $GITHUB_WORKSPACE/ergogen/output/pcbs/${board}_autorouted.kicad_pcb";
-          rm -f $GITHUB_WORKSPACE/ergogen/output/pcbs/${board}_autorouted.kicad_pcb;
+        pcb="$PCB_DIR/${board}.kicad_pcb"
+        ses="$PCB_DIR/${board}.ses"
+        out="$PCB_DIR/${board}_autorouted.kicad_pcb"
+        rm -f "$out"
+        if [ ! -s "$ses" ]; then
+          echo "::error::missing $ses — the autoroute step must run first and produce one"
+          rc=1
+          continue
         fi
-        if [ -e $GITHUB_WORKSPACE/ergogen/output/pcbs/${board}.ses ]; then
-          echo "Import SES";
-          $GITHUB_WORKSPACE/kibot/import_ses.py -b $GITHUB_WORKSPACE/ergogen/output/pcbs/${board}.kicad_pcb -s $GITHUB_WORKSPACE/ergogen/output/pcbs/${board}.ses -o $GITHUB_WORKSPACE/ergogen/output/pcbs/${board}_autorouted.kicad_pcb
+        echo "Import SES";
+        python3 "$GITHUB_WORKSPACE/kibot/import_ses.py" -b "$pcb" -s "$ses" -o "$out"
+        if [ -s "$out" ]; then
+          echo "ok   ${board}_autorouted.kicad_pcb ($(wc -c < "$out") bytes)"
+        else
+          echo "::error::$board: SES import produced no routed board"
+          rc=1
         fi
       done
+      exit $rc
