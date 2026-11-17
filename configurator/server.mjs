@@ -100,7 +100,23 @@ async function stageGenerate(cfg, dir) {
   if (errors.length) {
     return { name: "validate", ok: false, ms: 0, log: errors.join("\n"), errors, warnings, data: null };
   }
-  const yaml = generate(cfg);
+  let yaml;
+  try {
+    yaml = generate(cfg);
+  } catch (err) {
+    // B22: the generator asserts the canonical config still looks like it expects, and refuses to
+    // emit an outline snapped to a non-existent point (e.g. a layout the canonical `outlines:`
+    // section has no references for). Surface that instead of a 500 with a stack trace.
+    return {
+      name: "generate",
+      ok: false,
+      ms: 0,
+      log: `generator refused this layout: ${err.message}`,
+      errors: [err.message],
+      warnings,
+      data: null,
+    };
+  }
   await writeFile(join(dir, "config.yaml"), yaml, "utf8");
   const pairs = matrixPairs(cfg);
   return {

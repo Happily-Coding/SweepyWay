@@ -1,7 +1,9 @@
 # Configurator ↔ config.yaml drift (blocker B22)
 
 **Found:** 2026-11-16 (session 3), while explaining B1 to the author.
-**Status:** open, **not fixed**. Read this before running the configurator.
+**Status:** **fixed for the default preset** (session 4). The generator now reproduces
+`ergogen/config.yaml`, and `scripts/check_config_drift.mjs` (pre-push + CI) fails if that ever
+stops being true. Non-default presets are still only partly covered — see §Current state at the end.
 
 ## What "checked-in config" vs "configurator-generated config" means
 
@@ -94,3 +96,46 @@ lost:
    stale `filtered-output/` impossible).
 
 Until step 5 exists, any configurator run can silently undo hand-fixes. That is B22.
+
+## Current state after the B22 fix (session 4)
+
+**What is guaranteed now.** Every measured/decided value the generator emits lives in
+`configurator/lib/schema.mjs` as data — `PRESETS` (the whole `presets:` block, including the MBK
+baseline that `choc_spacing` keeps and the three keys `cfx_spacing` overrides), `SCREW_SHIFTS` (the
+B13 deltas **as final ergogen-space offsets**, so the rotated thumb's `+1.65 / −3.506` is stored and
+not derived), `ROW_PIN_POOL`/`COLUMN_PIN_POOL` (B1) and the `case`/`fab` block of `defaults()`
+(`standoff_length`, `standoff_body_length`, `pcb_thickness`, the B17 derived `case_border_height`).
+`generate()` now (a) emits the per-point screw shifts instead of the bare
+`screw_offset_x, screw_offset_y`, (b) leaves outline point references **exactly as written** when
+the point still exists (`matrix_col2_row4` is not `matrix_col1_row4`; the old rename map silently
+reshaped the thumb/hand-rest polygons) and throws instead of snapping an unresolvable reference to
+the wrong key, (c) asserts that both halves carry an NPTH mounting hole (B4) instead of injecting a
+second coincident `r_screws:` block next to the existing one, and (d) no longer unifies
+`mcu_3dmodel_xyz_offset` (the committed 2.5/5 asymmetry is left to the config). The F3b bosses
+(`l_/r_standoff_bosses`, their `extrude: standoff_boss_height` and the `l_case_3d` shift) are
+preserved because the generator never rewrites them — they are template text, and the gate proves
+nothing touches them.
+
+**The gate.** `node scripts/check_config_drift.mjs` regenerates the default preset **in memory**
+(it never writes `ergogen/config.yaml`), parses both documents, and compares them structurally:
+comments/key order are ignored and ergogen expressions are evaluated against each file's own
+`units`/`presets`, so `key.stagger: 0.25 ky` equals `4.25` and `14.0` equals `14`. Anything else
+fails with the path and both values. It is step 3/4 of `scripts/pre-push.sh` and the
+`config-drift` job in `.github/workflows/build.yaml`. Sanity check that the gate is honest: feeding
+the previous generator's output through `ergogen` produced **19 differing artifacts** (both
+`l_/r_screws_outline`, `l_/r_standoff_bosses`, both case bottoms, the plate outlines, the thumb
+polygon and the PCBs — the thumb screw moved from `(131.71, −160.30)` back to `(131.70, −156.42)`,
+inside the cutout); the current generator's output is **byte-identical** to the committed config's
+ergogen output.
+
+**What remains.** Only the default preset round-trips. `minimal-3x5.json` and
+`row-stagger-1u.json` still cannot be regenerated faithfully: the canonical `outlines:` section
+hardcodes 7-column/5-row point names (`matrix_col7_row2`, `thumbfan_col3_*`) that those layouts do
+not have, so the generator now **throws** a readable error for them instead of emitting an outline
+snapped to an arbitrary key. That is deliberate: a loud failure is acceptable, silent wrong
+geometry is not. Making other presets work means authoring per-preset outline reference maps (or
+parameterising the outlines), which is a design change, not a drift fix. The textual diff between
+the generated file and the committed one is also still non-empty - comments, hand-formatted
+expressions (`0.25 ky` vs `4.25`, `spread: kx` vs `17`, `+ -0.75` vs `- 0.75`) and key order only;
+the values are identical, which is what the gate enforces. Adopting the generated file as the
+committed one (old step 4) is therefore still optional and now safe to do at any time.

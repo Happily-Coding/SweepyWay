@@ -20,6 +20,75 @@ export const KEYCAPS = {
 
 const DEFAULT_ROWS = ["row5", "row4", "row3", "row2", "row1"];
 
+// ---------------------------------------------------------------------------------------------
+// DATA the generator must reproduce verbatim from `ergogen/config.yaml` (B22).
+// Everything here is measured/decided geometry that used to live only in the hand-maintained
+// YAML. The generator emits it; `scripts/check_config_drift.mjs` fails when the two disagree.
+// Change a number here AND in `ergogen/config.yaml` — the gate is what keeps them honest.
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * B13 screw points, as FINAL ergogen-space deltas added to `screw_offset_x` / `screw_offset_y`
+ * (which are themselves `0.4 kx` / `-0.2 ky`). Stored as absolute deltas, not as a formula:
+ * the thumb cluster frame is rotated ~25 deg, so its +1.65 / -3.506 is not comparable to the
+ * matrix corners' +2 / -0.75 and cannot be derived from one.
+ *   x: pushes the hole 2 mm toward the centre of the field, out of the 14 mm switch cutouts
+ *   y: nudges it to the corner of the plate outline (the thumb needed 3.506 mm to clear it)
+ */
+export const SCREW_SHIFTS = {
+  l_screw_left_top: [2, -0.75],
+  l_screw_left_bottom: [2, -0.75],
+  l_screw_right_top: [2, 0],
+  l_screw_right_bottom: [2, -1.5],
+  l_screw_thumb: [1.65, -3.506],
+};
+
+/**
+ * The `presets:` block, as data. Key order is the emission order, values are numbers or ergogen
+ * expressions. When a preset is the SELECTED one, its spacing keys are replaced by the JSON
+ * config's numbers (see `spacingValues()` in generate.mjs), so the JSON stays authoritative for
+ * the preset being edited while the other presets keep their documented values.
+ *
+ * `choc_spacing` is deliberately the MBK-ish baseline (17.5 x 16.5 caps at 18 mm vertical pitch)
+ * that the committed config documents; `cfx_spacing` overrides the three keys that make it a
+ * 17 x 17 CFX matrix. mbk_spacing exists only when selected (it is not in the committed file).
+ */
+export const PRESETS = {
+  choc_spacing: {
+    values: [
+      ["kx", 17],
+      ["ky", 18],
+      ["keycap_x_1u", 17.5],
+      ["keycap_y_1u", 16.5],
+      ["px", 5],
+      ["py", 5],
+      ["plate_kx", 14.0],
+      ["plate_ky", 14.0],
+      ["vertical_diode_shift", 1.5],
+      ["horizontal_diode_shift", "-0.5 plate_kx - 0.85"],
+      ["diode_rotation", 0],
+    ],
+  },
+  cfx_spacing: {
+    $extends: "presets.choc_spacing",
+    values: [
+      ["kx", 17],
+      ["ky", 17],
+      ["keycap_x_1u", 16.5],
+    ],
+  },
+};
+
+/** Keys of a preset that the JSON config owns while that preset is selected. */
+export const SPACING_KEYS = [
+  "kx",
+  "ky",
+  "keycap_x_1u",
+  "keycap_y_1u",
+  "plate_kx",
+  "plate_ky",
+];
+
 export function sweepywayLayout() {
   const cols = [
     { name: "col1", stagger: 0, cells: ["row4", "row3", "row2", "row1"] },
@@ -128,6 +197,20 @@ export function normalize(input = {}) {
 
 export function plateCutout(cfg) {
   return SWITCH_SUPPORT[cfg.switch.support]?.plate ?? 14.0;
+}
+
+/** The values a selected preset takes from the JSON config (see SPACING_KEYS). */
+export function spacingValues(cfg) {
+  const cap = KEYCAPS[cfg.spacing.keycap] ?? KEYCAPS.cfx;
+  const plate = plateCutout(cfg);
+  return {
+    kx: cfg.spacing.kx,
+    ky: cfg.spacing.ky,
+    keycap_x_1u: cap.w,
+    keycap_y_1u: cap.h,
+    plate_kx: plate,
+    plate_ky: plate,
+  };
 }
 
 /** Named points the generator will produce, so outlines can be rewritten to match. */

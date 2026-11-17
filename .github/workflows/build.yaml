@@ -12,9 +12,31 @@ on:
       - '*.nix'
       - 'palmrest_and_tenting_creation/*.py'
       - 'create_full_3d_visual*.py'
+      # B22: the configurator can rewrite ergogen/config.yaml, so a change to it must be checked
+      - 'configurator/**'
+      - 'scripts/check_config_drift.mjs'
 
 name: Build
 jobs:
+  config-drift:
+    # B22: nothing may let a configurator run disagree with the committed ergogen/config.yaml.
+    # Cheap and first: no Docker, no KiCad, ~10 s. It regenerates the default preset in memory
+    # and fails if the result means anything different from the file Ergogen actually reads.
+    runs-on: ubuntu-latest
+    name: Config drift
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install
+      - name: Configurator output must equal ergogen/config.yaml
+        run: node scripts/check_config_drift.mjs
+
   board:
     runs-on: ubuntu-latest
     name: Generate

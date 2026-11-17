@@ -4,9 +4,10 @@
 # It runs only what takes seconds, and only *blocks* on things that must always hold:
 #   1. ergogen still parses the config            (catches YAML/unit-order breakage)
 #   2. the configurator can still generate        (catches the CRLF trap in generate.mjs)
-#   3. the vertical stack + screws are consistent (hardware_bom.py, B17/B21)
-# Everything that is known-open today (B1 pin maps, B4 right-half screws, B13 screw points) is
-# REPORTED but not enforced, because a hook that is red on arrival just gets --no-verify'd.
+#   3. the configurator output == config.yaml     (B22: a run must never revert a hand-fix)
+#   4. the vertical stack + screws are consistent (hardware_bom.py, B17/B21)
+# Everything that is known-open today is REPORTED but not enforced, because a hook that is red
+# on arrival just gets --no-verify'd.
 #
 # The heavy artifacts (gerbers, routing, 3D) deliberately do NOT run here: they need Docker and
 # minutes. They are produced by CI, which now wipes + stamps + gates filtered-output/.
@@ -28,12 +29,12 @@ fail() { printf '  \033[31mFAIL\033[0m %s\n' "$1"; red=1; }
 ok() { printf '  ok   %s\n' "$1"; }
 warn() { printf '  \033[33mwarn\033[0m %s\n' "$1"; }
 
-say "1/3 ergogen parses the config"
+say "1/4 ergogen parses the config"
 if ./scripts/regen.sh >/tmp/prepush-regen.log 2>&1; then ok "regen"; else
   fail "regen failed — see /tmp/prepush-regen.log"; tail -5 /tmp/prepush-regen.log | sed 's/^/       /'
 fi
 
-say "2/3 configurator can generate from the canonical config"
+say "2/4 configurator can generate from the canonical config"
 if $NODE configurator/lib/generate.mjs configurator/presets/sweepyway.json \
       --out C:/tmp/prepush-gen.yaml >/tmp/prepush-gen.log 2>&1; then
   ok "generate.mjs"
@@ -42,7 +43,15 @@ else
   grep -iE "error|start marker" /tmp/prepush-gen.log | head -3 | sed 's/^/       /'
 fi
 
-say "3/3 vertical stack + fasteners (B17/B21)"
+say "3/4 configurator output has not drifted from config.yaml (B22)"
+if $NODE scripts/check_config_drift.mjs >/tmp/prepush-drift.log 2>&1; then
+  ok "check_config_drift.mjs"
+else
+  fail "generating would change the keyboard — see /tmp/prepush-drift.log"
+  grep -E "^  |committed:|generated:" /tmp/prepush-drift.log | head -8 | sed 's/^/       /'
+fi
+
+say "4/4 vertical stack + fasteners (B17/B21)"
 if $PY scripts/hardware_bom.py >/tmp/prepush-bom.log 2>&1; then ok "hardware_bom.py"; else
   fail "the screw/standoff combination cannot be assembled"
   grep -E "^- " /tmp/prepush-bom.log | head -6 | sed 's/^/       /'

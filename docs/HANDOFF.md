@@ -17,8 +17,10 @@ from `docs/README.md` §2 are used: `⚠️ UNVERIFIED`, `🟡 BEST-GUESS`, `❓
 fixed** (right half now has 5 mounting holes, mirror axis x=170), **B1 is fixed** (`check_matrix` went
 15 failures → **0**: no dead rows, no shorted GPIOs), and the router was re-proven end to end.
 Next: **B3** (CPL/BOM completeness — a worker is on it) and a CI run for **B2**.
-A new blocker, **B22**, says the configurator generator would revert B13 if anyone ran it
-(`docs/CONFIGURATOR-DRIFT.md`).
+**B22 is now fixed and gated** (session 4): the configurator generator reproduces
+`ergogen/config.yaml` exactly, and `scripts/check_config_drift.mjs` (step 3/4 of
+`scripts/pre-push.sh` + the `config-drift` CI job) fails if it ever stops doing so — see
+`docs/CONFIGURATOR-DRIFT.md` §Current state. Do not re-fix it by hand.
 
 **Superseded session-2 notes below (still accurate for F3b/B13/B17):**
 
@@ -185,9 +187,10 @@ Build dir used below: `configurator/builds/sweepyway-2f79aca4/` (content-address
 ## 5. Blockers — current list
 
 Full prose lives in `docs/STATUS.md` §4. Status at session close (2026-11-16):
-**open = B2, B3, B5, B7, B8, B14, B15, B20, B22** (plus **B18**, accepted by design: the bay is open
-on purpose); **fixed and guarded = B1, B4, B6, B9, B10, B11, B12, B13, B16, B17, B19, B21**.
-B1 and B4 were fixed in session 3; **B22** (configurator drift would revert B13) is the new one.
+**open = B2, B3, B5, B7, B8, B14, B15, B20** (plus **B18**, accepted by design: the bay is open
+on purpose); **fixed and guarded = B1, B4, B6, B9, B10, B11, B12, B13, B16, B17, B19, B21, B22**.
+B1 and B4 were fixed in session 3; **B22** (a configurator run would revert B13) was fixed and gated
+in session 4 — its only residue is that non-default presets do not round-trip yet.
 (B-numbers are stable identifiers; do not renumber them.)
 
 > **B16–B19 were found in the 2026-11-16 (session 2) visual pass — read `docs/VISUAL-AUDIT.md`
@@ -275,6 +278,7 @@ All commands run from the repo root with `./.venv/Scripts/python.exe`.
 | `scripts/repair_stl.py` | weld/orient/fill/invert; **`--drop-to-bed`** (Ergogen exports the cover at z=25) | `... repair_stl.py x.stl --drop-to-bed` |
 | `scripts/check_assembly.py` | **the new one**: 20 cross-artifact checks (wiring + fit) | `... check_assembly.py --cases configurator/builds/<slug>/assets` |
 | `scripts/check_published.py` | **B14 gate**: refuses a stale/mixed `filtered-output/` (build stamp + config sha1 + cross-artifact checks + 14 mm cutout signature) | `./.venv/Scripts/python.exe scripts/check_published.py` |
+| `scripts/check_config_drift.mjs` | **B22 gate**: regenerates the default preset **in memory** and refuses to let the configurator's output differ (semantically: comments/key order ignored, ergogen expressions evaluated) from `ergogen/config.yaml` | `node scripts/check_config_drift.mjs` |
 
 ### Traps (each one produced a fake defect in this session — do not repeat)
 
@@ -485,5 +489,7 @@ feasibility, cost, risk — Q-14) · `HARDWARE-STACK.md` (heights/gaps/fasteners
 
 **Scripts that are gates:** `scripts/check_assembly.py` (17 checks, currently PASS) ·
 `scripts/hardware_bom.py` (BOM + geometry, currently PASS) · `scripts/check_published.py`
-(B14, reproduces the bug on an unstamped folder) · `scripts/check_matrix.py` (B1/B4, still
-failing by design) · `scripts/pre-push.sh` (`ln -sf ../../scripts/pre-push.sh .git/hooks/pre-push`).
+(B14, reproduces the bug on an unstamped folder) · `scripts/check_config_drift.mjs`
+(B22, currently PASS — pass `configurator/presets/<x>.json` to try another preset) ·
+`scripts/check_matrix.py` (B1/B4, currently PASS) ·
+`scripts/pre-push.sh` (`ln -sf ../../scripts/pre-push.sh .git/hooks/pre-push`).
