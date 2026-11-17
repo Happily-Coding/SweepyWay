@@ -21,25 +21,24 @@
 # the board must not silently skip the assembly paperwork.
 footprint,comment,lcsc,assemble,jlc_lib
 diode_tht_sod123,1N4148W SOD-123 diode,C81598,yes,base
-# CONSIGNED / PRE-ORDER (verified 2026-11-17 against JLC's parts API + their PCB Assembly page).
-# No hotswap socket is *in stock* at JLC: stock=0 and isBuyComponent=0 on every registration.
-# But several socket registrations exist, and JLC supports two sourcing routes for exactly that:
-#   "Pre-order parts added to your private library"  and  "Consigned parts supplied by you"
-#   (jlcpcb.com/pcb-assembly -> "What if I can't find a component in the JLCPCB parts library?")
-# Candidates, all min-quantity > 0:
-#   C9900243373  "1350"                      凯华Kailh热插拔轴底座  【邮寄专用】 mail-in   min 441
-#                urlSuffix = JLCPCBAssembly-1350  <- JLC's own assembly registration for the
-#                PG1350 (Choc V1) socket. Both Kailh entries carry
-#                noBuyReason='no longer manufactured', i.e. neither is purchasable from stock;
-#                for a consignment the code is the PAPERWORK anchor and you supply the sockets.
-#   C9900300066  KEYBOARD-SW                  轴座_焊接热插拔_不带灯   【邮寄专用】 mail-in   min  10
-#   C9900010116  Kailh Low-Profile Hot-Swappable Socket (凯华矮轴热插拔)                  min 1000
-#   C9900034372  Gateron low-profile hot-swap socket                                     min 441
-#   C9900190495/496/497  DUROCK Hotswap PCB Sockets Blue/...  【邮寄专用】 mail-in         min 441
-# Chosen: C9900243373 — it is explicitly the Kailh 1350 (Choc) socket base, which is this part.
-# The 441 minimum is JLC's batch size for a mail-in consignment, not the number the board needs
-# (64). Set assemble=no instead if you prefer to hand-solder them (CPL then drops to 35/half).
-choc_v1_v2,Kailh Choc V1 hotswap socket (PG1350),C9900243373,yes,expand
+# SOCKET = CPG135001S30, consigned. Verified 2026-11-17.
+# Kailh's own product page (kailhswitch.com -> Choc Type Hot Swap Socket) states:
+#   "Kailh PCB Hot Swapping Sockets which can support Kailh Choc V1 Low Profile switches,
+#    product no#CPG135001S30" and "The Choc socket only works with Kailh's low profile Choc V1
+#    switches."  So CPG135001S30 is the SOCKET, not the switch. Searching JLC by that part number
+#    returns exactly three registrations, all stock 0 and all allowPostFlag=true (mail-in OK):
+#      C9900248317  【邮寄专用】CPG135001S30   min  10   <- chosen: the mail-in registration
+#      C5333465     CPG135001S30              min  71   <- the ordinary LCSC listing for the part
+#      C9900009224  CPG135001S30              min 1000
+# All three carry noBuyReason='no longer manufactured', which for this flow does not matter: the
+# code identifies the part to JLC's assembly system and YOU supply the physical sockets. Buy 64+
+# Kailh Choc hotswap sockets (CPG135001S30), mail them with the order.
+# Other socket registrations that are NOT our part (kept for reference): C9900010116 Kailh
+# Low-Profile Hot-Swappable Socket, C9900034372 Gateron low-profile, C9900190495/496/497 DUROCK and
+# C9900017168 Gaote (MX-type). Kailh also makes a separate MX-line socket ("Rainbow MX Hot Swapping
+# PCB Socket"), which is NOT this one - ours is Choc V1.
+# If you prefer to hand-solder them instead, set assemble=no (the CPL then drops to 35/half).
+choc_v1_v2,Kailh Choc V1 hotswap socket (CPG135001S30),C9900248317,yes,expand
 battery_connector_jst_ph_2,JST PH 2.0mm 2-pin battery connector S2B-PH-K-S,C173752,yes,expand
 reset_switch_smd_side,Panasonic EVQ-PUC02K SMD side reset switch,C79174,yes,expand
 power_switch_smd_side,Alps SSSS811101 SMD side power switch,C109335,yes,expand

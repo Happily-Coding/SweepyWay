@@ -26,8 +26,12 @@ and from `ergogen/config.yaml`.
 | 10 | Keycaps | **CFX 1u** (Chosfox) ×64 | 32 | **64** | 16.50 × 16.50 ±0.07 mm, 3.70 mm tall (verified) @ 17 mm pitch. MBK (17.5 × 16.5 mm) does **not** fit this spacing |
 | 11 | Optional | nice!view display | 0 | 0–2 | P0/P1/P2 are reserved for it; not in the current BOM |
 
-Reference part numbers already used in the repo: switch `CPG135001S30` (Kailh Choc V1, the number
-JLC uses), header `PPTC121LFMS-RC`.
+Reference part numbers already used in the repo: the **Choc V1 hotswap socket** is `CPG135001S30`
+(Kailh's own product no#; LCSC listings `C9900248317` mail-in min 10 / `C5333465` min 71 — see
+`JLC-ASSEMBLY.md` §6), and the header is `PPTC121LFMS-RC`.
+
+**Switches are NOT a JLC part** — they are Kailh Choc V1 (e.g. Choc Ambient), bought separately and
+pressed into the soldered sockets by the builder, like keycaps.
 
 ### 1.1 What JLCPCB assembles, and the missing LCSC codes
 

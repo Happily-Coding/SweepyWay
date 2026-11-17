@@ -107,11 +107,14 @@ file is empty. Everything else is polish, documentation, and firmware.
    contain all 86 preview/hole footprints. KiCad and KiBot never disagreed; both were reading the
    same missing `attr`. See `JLC-ASSEMBLY.md` §2.
 8. ~~**`fix_pos_package_name.py` maps `switch_choc_v1_v2 → CPG135001S30`**~~ — **deleted 2026-11-16**
-   with its workflow step: JLC reads the part from the BoM, so a part number in the CPL's `Package`
-   column was never the mechanism, and the number it wrote was the *switch*'s, not the socket's
-   (`JLC-ASSEMBLY.md` §3, §4). The finding itself stands: `CPG135001S30` is the *Kailh Choc
-   V1 switch* part number, not a hotswap-socket part number. It encodes the older intent
-   "JLC places switches", which conflicts with the current intent "hotswap" (`DECISIONS.md` D-6).
+   with its workflow step: JLC reads the part from the **BoM**, so a part number in the CPL's
+   `Package` column was never the mechanism (`JLC-ASSEMBLY.md` §3, §4).
+   **CORRECTION 2026-11-17:** this entry used to claim `CPG135001S30` was the *switch* and not the
+   socket. That was wrong. Kailh's own product page for the Choc Type Hot Swap Socket says
+   *"product no#CPG135001S30"*, and JLC's listing for that model is typed
+   `Mechanical Keyboard Shaft` — a bad category, not the part's identity. `CPG135001S30` **is** the
+   Choc V1 hotswap socket. What stands is only that a switch part number did not belong in the CPL's
+   package column.
 
 ## 6. Suggested next steps (in order)
 
