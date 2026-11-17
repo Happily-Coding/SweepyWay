@@ -130,44 +130,58 @@ measures **8.62 mm** tall on the fresh export.
 - Keep the build target ordering explicit: `plate_*` → D2 (main). `plate_*_bay` → optional,
   must pass the cutout gate before it can be offered as a choice.
 
-### Measured on FRESH geometry (2.4 mm of headroom is all the current case has)
+### B23 — controller headroom: it IS necessary, and it is a raised area, not an opening
 
-From `filtered-output/pcbs/3d/left_pcb-3d.glb` regenerated today (per-node transforms, up axis
-fixed by the keycap side, PCB slab 0.00…1.51 on y):
+Author's call: **no opening**; the controller area gets taller *only if necessary* (and it looks
+necessary). Measured against the real model, it is:
 
-| item | mm above the PCB top |
-|---|---|
-| `Choc_V1_Keycap_MBK_White_1u` | 3.91 … **9.41** |
-| `PinHeader_1x12_P2.54mm_Vertical` (controller zone) | −2.91 … **+8.62** |
-| `Choc_V1_Switch` | −4.54 … 6.46 |
-| `Choc_V1_Hotswap` (socket) | −3.56 … −0.51 → sits **below** the board |
+| quantity | value | source |
+|---|---|---|
+| air above the PCB top today | **1.0 mm** to the plate underside, 2.2 mm to the plate top | `plate_top_above_pcb_top 2.2 − top_plate_thickness 1.2` |
+| `Nice_Nano_V2.step` extent | 17.78 × 36.15 × **9.28** (model z **−1.58 … +7.70** against its own board) | parsed `CARTESIAN_POINT`s in `component_3d_models/Nice_Nano_V2.step` |
+| its placement | `mcu_3dmodel_xyz_offset: [0,0,2.5]` left, **[0,0,5]** right | `ergogen/config.yaml` ~1106 / ~1424 |
+| controller **head** (board + pins/socket) above the PCB top | model z −1.58…+7.70 at offset 2.5 → top **≈ +10.2 mm**; at offset 5.0 → ≈ +12.7 mm | same file + offsets |
+| bare-board worst case | 1.6 mm board + a ~1.7 mm module ≈ **3.3 mm** > 1.0 | — |
 
-Caveat: those headers come from the `header-preview_nano` *preview* footprint and total 11.5 mm of
-length, which is longer than a normal 2.54 header — treat 8.62 as "the controller zone is the
-tallest thing on the board after keycaps", not as a certified height. The author can measure the
-real stack on hardware in under a minute.
+The clearance target is the **head**, not the controller: what has to fit is board + headers +
+sockets, and it has to fit **inside the enclosure** — nothing may protrude through the plate or
+the case. So the hood is a raised part of the case that encloses the head, and its inner height is
+driven by the head: `hood_inner_top = pcb_top + mcu_head_height + clearance`.
 
-What the case offers above the PCB top, today:
+So even the most optimistic reading exceeds the available air: a raised controller area is
+required. **Two things to fix while doing it:**
+
+1. **The two halves disagree** — 2.5 vs 5.0 mm offset for the same footprint. Pick one (the real
+   socket/header stack decides it) and put it in `schema.mjs` as a constant so the drift gate
+   owns it, exactly like `MCU_MIRROR_DISTANCE`.
+2. **Do not hardcode the hood height.** Derive it:
+   `hood_top = case_bottom_thickness + standoff_length + pcb_thickness + mcu_stack + clearance`
+   with `mcu_head_height` and `clearance` as named units. On today's numbers the head top is
+   ≈ 20.4 mm (offset 2.5) or ≈ 22.9 mm (offset 5.0), so the hood rises roughly **8–10.5 mm above
+   the plate top** — bigger than the old cover's +5.4 mm, which is worth knowing before committing
+   to it: the head height is the number to confirm on hardware, because it drives the case height
+   more than anything else in this design.
+
+**The reference geometry is the old cover, and it did exactly this:**
 
 ```
-plate_top_above_pcb_top 2.2 − top_plate_thickness 1.2 = 1.0 mm  (plate underside)
-plate top                                               = 2.2 mm
+old cover: key field top 26.60, controller area top 32.00  ->  +5.4 mm raised hood, no opening
 ```
 
-What the OLD design offered: `case_border_height: 16` (the author's own comment: "a quick search,
-soft choice was around 17") **plus** a printed cover 132.62 × 134.80 × **7.00 mm** on top of it, with
-a different sandwich (`bottom_plate_thickness 1.0`, `internal_distance_between_plates 4`,
-`top_plate_thickness 1.6`). That is where "no opening, and it was fine" comes from — the enclosure
-was roughly **23 mm** tall. B20-D then made the FR4 plate the lid at **12.4 mm** total.
+(`cover.stl` at `13c8ffa`/`45abc3b`, sliced: flat at 26.60 for y −172.6…−71.5, then 32.00 for
+y −71.5…−37.8, base at 25.00.) So "taller only if necessary" is not a new idea in this project —
+it is the previous design's own solution, and the height reduction to 12.4 is what removed it.
 
-So the two statements are both true and they belong to different geometries: *the old tall
-enclosure enclosed the controller without an opening*, and *the new short one has 1.0 mm of air
-above the PCB*. If the real stack is taller than ~1 mm, the short design needs one of: a window in
-the plate (D1, sized to the controller), a local raised region in the case, or more
-`standoff_length`. `standoff_length` is the single knob for case height and the author wants short,
-so this is a decision, not a measurement.
+Consequences to design through:
 
----
+- the **plate** must butt against the hood wall rather than span the bay (flat FR4 cannot step), so
+  the bay cutout comes back — but bounded by the switch field, **not** by the 50 × 30 controller
+  rectangle that ate four keys. That is precisely D1's shape done correctly, and it costs no
+  switches because the hood's wall is what the plate's bay edge rests on.
+- nothing about the hood is an "opening": the controller stays enclosed.
+- add two gates: (a) **containment** — the highest controller geometry (from the PCB 3D export,
+  keycap side) must be below the hood's inner top, with clearance, i.e. the head fits *inside*;
+  and (b) `hood footprint ∩ switch cutouts = ∅`, so the hood never costs a switch.
 
 ## 3. Restore the gate that was deleted (do this early, it is 20 lines)
 
