@@ -1,0 +1,543 @@
+models:
+    export:
+        models:
+            '0':
+                paths:
+                    ShapeLine1_Bottom_Bottom:
+                        type: line
+                        origin:
+                            - 27
+                            - -146
+                        end:
+                            - 39
+                            - -146
+                    ShapeLine4_Bottom_Bottom:
+                        type: line
+                        origin:
+                            - 39
+                            - -146
+                        end:
+                            - 39
+                            - -153.75
+                    ShapeLine1_StartCap_Outer:
+                        type: arc
+                        origin:
+                            - 44
+                            - -153.75
+                        radius: 5
+                        startAngle: 180
+                        endAngle: 270
+                    ShapeLine1_Bottom_Bottom_1:
+                        type: line
+                        origin:
+                            - 44
+                            - -158.75
+                        end:
+                            - 60
+                            - -158.75
+                    ShapeLine1_EndCap_Outer:
+                        type: arc
+                        origin:
+                            - 60
+                            - -153.75
+                        radius: 5
+                        startAngle: 270
+                        endAngle: 360
+                    ShapeLine2_Bottom_Bottom:
+                        type: line
+                        origin:
+                            - 65
+                            - -153.75
+                        end:
+                            - 65
+                            - -147.53
+                    ShapeLine1_Bottom_Bottom_2:
+                        type: line
+                        origin:
+                            - 65
+                            - -147.53
+                        end:
+                            - 77
+                            - -147.53
+                    ShapeLine1_EndCap_Outer_1:
+                        type: arc
+                        origin:
+                            - 77
+                            - -142.53
+                        radius: 5
+                        startAngle: 270
+                        endAngle: 360
+                    ShapeLine2_Bottom_Bottom_1:
+                        type: line
+                        origin:
+                            - 82
+                            - -142.53
+                        end:
+                            - 82
+                            - -134.78
+                    ShapeLine1_Bottom_Bottom_3:
+                        type: line
+                        origin:
+                            - 82
+                            - -134.78
+                        end:
+                            - 90.6413878
+                            - -134.78
+                    ShapeLine1_StartCap_Outer_1:
+                        type: arc
+                        origin:
+                            - 95
+                            - -132.33
+                        radius: 5
+                        startAngle: 209.34058137535197
+                        endAngle: 270
+                    ShapeLine1_Bottom_Bottom_4:
+                        type: line
+                        origin:
+                            - 95
+                            - -137.33
+                        end:
+                            - 96.88427367743444
+                            - -137.33
+                    ShapeLine4_Bottom_Bottom_1:
+                        type: line
+                        origin:
+                            - 96.88427367743444
+                            - -137.33000000000004
+                        end:
+                            - 94.58831374719014
+                            - -150.35103580000003
+                    ShapeLine1_StartCap_Outer_2:
+                        type: arc
+                        origin:
+                            - 99.5123526
+                            - -151.2192766
+                        radius: 5
+                        startAngle: 170
+                        endAngle: 259.99064212676194
+                    ShapeLine1_Bottom_Bottom_5:
+                        type: line
+                        origin:
+                            - 98.64411170000001
+                            - -156.1433154
+                        end:
+                            - 114.31000363469235
+                            - -158.90563477344327
+                    ShapeLine1_Bottom_Bottom_6:
+                        type: line
+                        origin:
+                            - 114.31000363469235
+                            - -158.90563477344327
+                        end:
+                            - 128.72715269999998
+                            - -165.62846179999997
+                    ShapeLine1_EndCap_Outer_2:
+                        type: arc
+                        origin:
+                            - 130.84024399999998
+                            - -161.0969228
+                        radius: 5
+                        startAngle: 245
+                        endAngle: 248.48492458647905
+                    ShapeLine1_StartCap_Outer_3:
+                        type: arc
+                        origin:
+                            - 131.7651015
+                            - -161.5783731
+                        radius: 5
+                        startAngle: 236.5150789224383
+                        endAngle: 240
+                    ShapeLine1_Bottom_Bottom_7:
+                        type: line
+                        origin:
+                            - 129.2651015
+                            - -165.90850009999997
+                        end:
+                            - 143.12150789999998
+                            - -173.90850009999997
+                    ShapeLine1_EndCap_Outer_3:
+                        type: arc
+                        origin:
+                            - 145.6215079
+                            - -169.5783731
+                        radius: 5
+                        startAngle: 240
+                        endAngle: 330
+                    ShapeLine2_Bottom_Bottom_2:
+                        type: line
+                        origin:
+                            - 149.9516349
+                            - -172.0783731
+                        end:
+                            - 157.9516349
+                            - -158.2219667
+                    ShapeLine2_EndCap_Outer:
+                        type: arc
+                        origin:
+                            - 153.62150789999998
+                            - -155.72196669999997
+                        radius: 5
+                        startAngle: 330
+                        endAngle: 420
+                    ShapeLine3_Bottom_Bottom:
+                        type: line
+                        origin:
+                            - 156.12150789999998
+                            - -151.3918397
+                        end:
+                            - 142.2651015
+                            - -143.3918397
+                    ShapeLine3_EndCap_Outer:
+                        type: arc
+                        origin:
+                            - 139.7651015
+                            - -147.7219667
+                        radius: 5
+                        startAngle: 60
+                        endAngle: 76.61381063799934
+                    ShapeLine2_EndCap_Outer_1:
+                        type: arc
+                        origin:
+                            - 137.6021362
+                            - -146.5959982
+                        radius: 5
+                        startAngle: 48.38618807170744
+                        endAngle: 65
+                    ShapeLine3_Bottom_Bottom_1:
+                        type: line
+                        origin:
+                            - 139.7152275
+                            - -142.06445920000002
+                        end:
+                            - 132.1408068
+                            - -138.5324488
+                    ShapeLine1_EndCap_Outer_4:
+                        type: arc
+                        origin:
+                            - 128
+                            - -135.73
+                        radius: 5
+                        startAngle: 325.9103255009552
+                        endAngle: 341.3370750676412
+                    ShapeLine1_Bottom_Bottom_8:
+                        type: line
+                        origin:
+                            - 132.7370877
+                            - -137.32999999999998
+                        end:
+                            - 145
+                            - -137.33
+                    ShapeLine1_EndCap_Outer_5:
+                        type: arc
+                        origin:
+                            - 145
+                            - -132.33
+                        radius: 5
+                        startAngle: 270
+                        endAngle: 360
+                    ShapeLine2_Bottom_Bottom_3:
+                        type: line
+                        origin:
+                            - 150
+                            - -132.33
+                        end:
+                            - 150
+                            - -116.33000000000001
+                    ShapeLine2_EndCap_Outer_2:
+                        type: arc
+                        origin:
+                            - 145
+                            - -116.33000000000001
+                        radius: 5
+                        startAngle: 0
+                        endAngle: 5.7391704606889435
+                    ShapeLine1_EndCap_Outer_6:
+                        type: arc
+                        origin:
+                            - 145
+                            - -115.33000000000001
+                        radius: 5
+                        startAngle: 354.2608295393111
+                        endAngle: 360
+                    ShapeLine2_Bottom_Bottom_4:
+                        type: line
+                        origin:
+                            - 150
+                            - -115.33000000000001
+                        end:
+                            - 150
+                            - -99.33000000000001
+                    ShapeLine2_EndCap_Outer_3:
+                        type: arc
+                        origin:
+                            - 145
+                            - -99.33000000000001
+                        radius: 5
+                        startAngle: 0
+                        endAngle: 5.7391704606889435
+                    ShapeLine1_EndCap_Outer_7:
+                        type: arc
+                        origin:
+                            - 145
+                            - -98.33000000000001
+                        radius: 5
+                        startAngle: 354.2608295393111
+                        endAngle: 360
+                    ShapeLine2_Bottom_Bottom_5:
+                        type: line
+                        origin:
+                            - 150
+                            - -98.33000000000001
+                        end:
+                            - 150
+                            - -82.33000000000001
+                    ShapeLine2_EndCap_Outer_4:
+                        type: arc
+                        origin:
+                            - 145
+                            - -82.33000000000001
+                        radius: 5
+                        startAngle: 0
+                        endAngle: 90
+                    ShapeLine3_Bottom_Bottom_2:
+                        type: line
+                        origin:
+                            - 145
+                            - -77.33000000000001
+                        end:
+                            - 133
+                            - -77.33000000000001
+                    ShapeLine2_Bottom_Bottom_6:
+                        type: line
+                        origin:
+                            - 133
+                            - -77.33000000000001
+                        end:
+                            - 133
+                            - -68.73000000000002
+                    ShapeLine2_EndCap_Outer_5:
+                        type: arc
+                        origin:
+                            - 128
+                            - -68.72999999999999
+                        radius: 5
+                        startAngle: 0
+                        endAngle: 90
+                    ShapeLine3_Bottom_Bottom_3:
+                        type: line
+                        origin:
+                            - 128
+                            - -63.72999999999999
+                        end:
+                            - 120
+                            - -63.72999999999999
+                    ShapeLine3_Bottom_Bottom_4:
+                        type: line
+                        origin:
+                            - 120
+                            - -63.72999999999999
+                        end:
+                            - 120
+                            - -55.76999999999999
+                    ShapeLine3_EndCap_Outer_1:
+                        type: arc
+                        origin:
+                            - 115
+                            - -55.769999999999996
+                        radius: 5
+                        startAngle: 0
+                        endAngle: 69.51268489009499
+                    ShapeLine2_Bottom_Bottom_7:
+                        type: line
+                        origin:
+                            - 116.75
+                            - -51.086251499999996
+                        end:
+                            - 116.75
+                            - -40.769999999999996
+                    ShapeLine2_EndCap_Outer_6:
+                        type: arc
+                        origin:
+                            - 111.75
+                            - -40.769999999999996
+                        radius: 5
+                        startAngle: 0
+                        endAngle: 90
+                    ShapeLine3_Bottom_Bottom_5:
+                        type: line
+                        origin:
+                            - 111.75
+                            - -35.769999999999996
+                        end:
+                            - 67.75
+                            - -35.769999999999996
+                    ShapeLine3_EndCap_Outer_2:
+                        type: arc
+                        origin:
+                            - 67.75
+                            - -40.769999999999996
+                        radius: 5
+                        startAngle: 90
+                        endAngle: 180
+                    ShapeLine4_Bottom_Bottom_2:
+                        type: line
+                        origin:
+                            - 62.75
+                            - -40.769999999999996
+                        end:
+                            - 62.75
+                            - -53.53
+                    ShapeLine3_Bottom_Bottom_6:
+                        type: line
+                        origin:
+                            - 62.75
+                            - -53.53
+                        end:
+                            - 61
+                            - -53.53
+                    ShapeLine3_EndCap_Outer_3:
+                        type: arc
+                        origin:
+                            - 61
+                            - -58.53
+                        radius: 5
+                        startAngle: 90
+                        endAngle: 180
+                    ShapeLine4_Bottom_Bottom_3:
+                        type: line
+                        origin:
+                            - 56
+                            - -58.53
+                        end:
+                            - 56
+                            - -64.75
+                    ShapeLine3_Bottom_Bottom_7:
+                        type: line
+                        origin:
+                            - 56
+                            - -64.75
+                        end:
+                            - 44
+                            - -64.75
+                    ShapeLine3_EndCap_Outer_4:
+                        type: arc
+                        origin:
+                            - 44
+                            - -69.75
+                        radius: 5
+                        startAngle: 90
+                        endAngle: 171.37307346998995
+                    ShapeLine3_Bottom_Bottom_8:
+                        type: line
+                        origin:
+                            - 39.05657
+                            - -69
+                        end:
+                            - 27
+                            - -69
+                    ShapeLine3_EndCap_Outer_5:
+                        type: arc
+                        origin:
+                            - 27
+                            - -74
+                        radius: 5
+                        startAngle: 90
+                        endAngle: 180
+                    ShapeLine4_Bottom_Bottom_4:
+                        type: line
+                        origin:
+                            - 22
+                            - -74
+                        end:
+                            - 22
+                            - -90
+                    ShapeLine1_StartCap_Outer_4:
+                        type: arc
+                        origin:
+                            - 27
+                            - -90
+                        radius: 5
+                        startAngle: 180
+                        endAngle: 185.7391704606889
+                    ShapeLine3_EndCap_Outer_6:
+                        type: arc
+                        origin:
+                            - 27
+                            - -91
+                        radius: 5
+                        startAngle: 174.26082953931103
+                        endAngle: 180
+                    ShapeLine4_Bottom_Bottom_5:
+                        type: line
+                        origin:
+                            - 22
+                            - -91
+                        end:
+                            - 22
+                            - -107
+                    ShapeLine1_StartCap_Outer_5:
+                        type: arc
+                        origin:
+                            - 27
+                            - -107
+                        radius: 5
+                        startAngle: 180
+                        endAngle: 185.7391704606889
+                    ShapeLine3_EndCap_Outer_7:
+                        type: arc
+                        origin:
+                            - 27
+                            - -108
+                        radius: 5
+                        startAngle: 174.26082953931103
+                        endAngle: 180
+                    ShapeLine4_Bottom_Bottom_6:
+                        type: line
+                        origin:
+                            - 22
+                            - -108
+                        end:
+                            - 22
+                            - -124
+                    ShapeLine1_StartCap_Outer_6:
+                        type: arc
+                        origin:
+                            - 27
+                            - -124
+                        radius: 5
+                        startAngle: 180
+                        endAngle: 185.7391704606889
+                    ShapeLine3_EndCap_Outer_8:
+                        type: arc
+                        origin:
+                            - 27
+                            - -125
+                        radius: 5
+                        startAngle: 174.26082953931103
+                        endAngle: 180
+                    ShapeLine4_Bottom_Bottom_7:
+                        type: line
+                        origin:
+                            - 22
+                            - -125
+                        end:
+                            - 22
+                            - -141
+                    ShapeLine1_StartCap_Outer_7:
+                        type: arc
+                        origin:
+                            - 27
+                            - -141
+                        radius: 5
+                        startAngle: 180
+                        endAngle: 270
+                origin:
+                    - 0
+                    - 0
+        origin:
+            - 0
+            - 0
+units: mm
+origin:
+    - 0
+    - 0
