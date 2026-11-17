@@ -109,7 +109,12 @@ units:
   # face, and the nice!nano's 3.34 mm mid-mount connector could lose up to ~1.2 mm of its mouth
   # (measured, docs/B20-PLATE-ON-WALL.md §5). Taking the window to the wall top recovers 1.0 mm at
   # zero cost, and with the default D1 plate the controller bay is notched out, so nothing caps it.
-  usbc_slot_height: case_border_height - case_bottom_thickness
+  # The window must stop short of the wall top: the plate seats on the wall, so a slot that reaches
+  # 11.2 leaves 15 mm of plate edge unsupported (check_published asserts the wall is closed 0.4 mm
+  # below its top). One millimetre of lintel keeps the seat. Whether the window is tall enough for
+  # the connector is a B23 question (controller headroom / hood), not something to solve by opening
+  # the wall all the way up.
+  usbc_slot_height: case_border_height - case_bottom_thickness - 1
   #TODO: aplicar offset adicional por screw minimo. porque no va a entrar asi , hay que buscar a la esquina posta. si no choca con switch.
   screw_offset_x: 0.4 kx #How much to move the screw from the reference point. To avoid landing inside the switches
   screw_offset_y: -0.2 ky #how much to move the screw from the referene point

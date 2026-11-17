@@ -46,9 +46,9 @@ function l_case_border_extrude_11_2_outline_fn(){
 }
 
 
-function l_usbc_border_outline_extrude_8_2_outline_fn(){
+function l_usbc_border_outline_extrude_7_199999999999999_outline_fn(){
     return new CSG.Path2D([[74.25,-55.27],[89.25,-55.27]]).appendPoint([89.25,-40.27]).appendPoint([74.25,-40.27]).appendPoint([74.25,-55.27]).close().innerToCAG()
-.extrude({ offset: [0, 0, 8.2] });
+.extrude({ offset: [0, 0, 7.199999999999999] });
 }
 
 
@@ -106,7 +106,7 @@ function l_usbc_border_outline_extrude_8_2_outline_fn(){
             
 
                 // creating part 3 of case l_case_3d
-                let l_case_3d__part_3 = l_usbc_border_outline_extrude_8_2_outline_fn();
+                let l_case_3d__part_3 = l_usbc_border_outline_extrude_7_199999999999999_outline_fn();
 
                 // make sure that rotations are relative
                 let l_case_3d__part_3_bounds = l_case_3d__part_3.getBounds();
@@ -116,7 +116,7 @@ function l_usbc_border_outline_extrude_8_2_outline_fn(){
                 l_case_3d__part_3 = rotate([0,0,0], l_case_3d__part_3);
                 l_case_3d__part_3 = translate([l_case_3d__part_3_x, l_case_3d__part_3_y, 0], l_case_3d__part_3);
 
-                l_case_3d__part_3 = translate([-20,5,3], l_case_3d__part_3);
+                l_case_3d__part_3 = translate([0,7,3], l_case_3d__part_3);
                 result = result.subtract(l_case_3d__part_3);
                 
             
