@@ -80,35 +80,39 @@ Derive both from `ergogen/config.yaml` (`case_bottom_thickness`, `standoff_lengt
 
 ---
 
-## 2. The plate decision — D2 is the base, and it NEEDS a controller opening
+## 2. The plate decision — D2 as-is, NO controller opening
 
-- **Author picked D2** (`plate_*_full`). D1 "could work but needs tweaking so it doesn't cut
-  into the keys".
-- **The controller is on the SAME face as the keycaps — on top of the board** (author, from the
-  render, twice). It is therefore between the PCB and the plate, so a flat plate **cannot** pass
-  over it: whatever variant ships needs an opening over the controller. D1's bay was the right
-  idea and is only wrong in **size/shape** (see the next bullet). I got this wrong twice in this
-  session — first asserted it from an axis-flipped export, then "corrected" it to the underside.
-  Do not trust my geometry claims here without re-measuring.
-- D1 as generated **deletes 4 switch cutouts per half** — measured, not inferred:
-  25+3 vs 29+3 switch-shaped loops, the notch contour is 65 × 46 mm centred (96.9, 64.9),
-  swallowed positions (69.0, 66.5), (86.0, 70.8), (103.0, 73.3), (120.0, 76.7) on the left and
-  the mirror on the right. `docs/img/B20-D1-DELETES-SWITCHES.png`. So the opening must be the
-  MCU/pin **keep-out**, not the 50 × 30 controller-area rectangle.
+- **Author picked D2** (`plate_*_full`) and **D2 does not need a controller opening**: the
+  reference combined scene has the controller fully enclosed and was fine. Treat "no opening" as
+  the design intent. Do **not** cut a bay.
+- **The controller is on the SAME face as the keycaps** (author, from the render, twice). My
+  "collides with the plate / needs an opening" claims were wrong twice in this session — first
+  from an axis-flipped export, then "corrected" to the underside. Do not trust my geometry
+  claims here without re-measuring.
+- **D1's bay variant is therefore dead**, not merely mis-sized: it is unnecessary *and* it
+  deletes 4 switch cutouts per half. Measured: 25+3 vs 29+3 switch-shaped loops, notch contour
+  65 × 46 mm centred (96.9, 64.9), swallowed positions (69.0, 66.5), (86.0, 70.8), (103.0, 73.3),
+  (120.0, 76.7) on the left and the mirror on the right.
+  `docs/img/B20-D1-DELETES-SWITCHES.png`. Only keep the file around as the regression case for
+  the restored cutout gate (§3); it should not be a build target.
 
-Measure this before cutting (it decides whether an opening in the plate is even sufficient):
+### Why the numbers in this doc disagree with each other (read before measuring)
 
-1. Load `filtered-output/pcbs/3d/left_pcb-3d.glb` and take **per-node transforms**
-   (`scene.graph[node]`), *not* `scene.geometry[...].bounds` — those are model-local and rotated
-   by the exporter; that is the source of the sign error above.
-2. Establish up unambiguously: keycaps are the top (they reach ~10.9 on that axis, PCB top 1.51).
-3. Measure the MCU + header stack on the **keycap side**, and the 2D extent of the tallest part.
-4. Compare the stack top against the plate underside (**11.2**) and the case top (**11.2**), and
-   the feet on the PCB against the switch cutouts' edges (the four cutouts start at y 59.5 on the
-   PCB frame and the MCU keep-out reaches ~64.7 — that overlap is what makes the notch eat keys).
-5. If the stack pokes above 11.2, an opening in the plate is not enough on its own: it needs a
-   raised tower / window in the case too (same family of decision as B20 option C). Record the
-   number before proposing anything.
+- The "MCU + header stack reaches 8.6 mm above the PCB top" figure came from
+  **`header-preview_nano`**, a *preview* footprint, inside a glTF export that this repo already
+  patches with a separate `fix_glb_scale.py` step (and which ships `*-misscaled.glb` files). It is
+  not trustworthy for a clearance call.
+- The **published `combined_scene.glb` cannot validate clearances either**: its parts are stacked
+  incoherently — `Case` 0…16, PCB 0…1.51, `Cover` **25…32** — because
+  `create_full_3d_visual.py` applies a hardcoded "move the PCB up 7 units" plus a magic −90°
+  rotation. That is one of the things to fix in §1c before any 3D clearance claim is made.
+- So: accept the author's intent (enclosed controller, no opening), and if a real interference
+  ever shows up on printed parts, the minimal fix is a **local raised region in the case**, not
+  removing keys from the plate.
+
+What to actually measure, once §1c makes the scene coherent: controller top (keycap side) against
+the plate underside (**11.2**) and the case top (**11.2**), using the real nice!nano model rather
+than the preview header.
 
 ---
 
