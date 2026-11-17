@@ -396,6 +396,16 @@ class Report:
         self.ok &= bool(passed)
         print(f"  {'ok  ' if passed else 'FAIL'}  {name:<46} {detail}")
 
+    def note(self, text):
+        """Informational: recorded and printed, but does not fail the run.
+
+        For artifacts that are generated but explicitly NOT orderable (e.g. the experimental
+        controller view window while B23 is unresolved). Their problems stay visible without
+        teaching everyone to ignore a permanently red gate.
+        """
+        self.rows.append({"check": "(note)", "pass": True, "detail": text})
+        print(f"  --    {text}")
+
 
 def main() -> int:
     ap = argparse.ArgumentParser()
@@ -538,9 +548,28 @@ def main() -> int:
         if shape is None or not polys:
             rep.check(f"{name} parsed", False, "no closed cutout found")
             return
-        covered = [i for i, (x, y) in enumerate(sw_xy) if shape.contains(Point(x, y))]
-        rep.check(f"{name}: every switch has an opening", not covered,
-                  f"{len(sw_xy) - len(covered)}/32 openings, plate over: {covered[:4]}")
+        # A switch centre merely being inside *some* hole is not enough: B20-D's bay notch is a
+        # 1400 mm2 hole, so four switches whose cutouts it swallowed still sat "in an opening" and
+        # the old containment test passed while the plate was unbuildable. Each switch must sit in
+        # a hole of its OWN SIZE, i.e. the plate keeps material around it.
+        # A switch centre merely being inside *some* hole is not enough: B20-D's bay notch is a
+        # 1400+ mm2 hole, so switches whose cutouts it swallowed still sat "in an opening" and the
+        # old containment test passed while the plate was unbuildable. Each switch must sit in a
+        # hole of its OWN SIZE, which is the same thing as the plate keeping material around it.
+        holes_all = shape_holes(shape)
+        solid_over, swallowed = [], []
+        for i, (x, y) in enumerate(sw_xy):
+            pt = Point(x, y)
+            holder = next((h for h in holes_all if h.contains(pt)), None)
+            if holder is None:
+                solid_over.append(i)                       # plate material where a switch must go
+            elif not (lo_a <= holder.area <= hi_a):
+                swallowed.append((i, round(holder.area)))  # inside a merged notch
+        rep.check(f"{name}: every switch has an opening", not solid_over,
+                  f"{len(sw_xy) - len(solid_over)}/32 openings, plate over: {solid_over[:4]}")
+        rep.check(f"{name}: every switch sits in a KEY-SIZED hole (not a merged notch)", not swallowed,
+                  f"{len(swallowed)} switch(es) in an oversized hole {swallowed[:4]} "
+                  f"(key cutouts are {lo_a:.0f}-{hi_a:.0f} mm2)")
         key_faces = [k for k in polys if lo_a <= k["area"] <= hi_a]
         if key_faces:
             d2, _ = cKDTree(sw_xy).query(np.array([[k["cx"], k["cy"]] for k in key_faces]))
@@ -556,17 +585,31 @@ def main() -> int:
 
     plate_shape = plate_report("plate_left.kicad_pcb")
     if plate_shape is not None:
-        # D1 (default) must leave the bays open; D2 (full) must cover them. The largest hole of D1
-        # IS the merged bay notch, so its centre is the honest probe point.
-        holes = shape_holes(plate_shape)
-        if holes:
-            bay_pt = holes[0].representative_point()
-            full = pcb_net_shape(root / "plate_left_full.kicad_pcb")
-            rep.check("D1 (`plate_left`, default) leaves the bay open, D2 (`plate_left_full`) covers it",
-                      not plate_shape.contains(bay_pt) and full is not None and full.contains(bay_pt),
-                      f"probe {bay_pt.x:.2f},{bay_pt.y:.2f} inside the {holes[0].area:.0f} mm2 bay notch")
-        else:
-            rep.check("D1 has a bay notch", False, "no interior holes at all")
+        # Author's pick: D2 (`_full`, bay covered) is the orderable plate. D1 (`_bay`, controller
+        # view window) is an optional extra and is NOT orderable while its notch swallows switches
+        # (B23), so it is reported as a note instead of failing the gate on unshippable output.
+        full = pcb_net_shape(root / "plate_left_full.kicad_pcb")
+        bay = pcb_net_shape(root / "plate_left_bay.kicad_pcb")
+        if full is not None and bay is not None:
+            rep.check("the orderable left plate (`plate_left`) is the D2 variant (bay covered)",
+                      abs(plate_shape.area - full.area) < 0.5,
+                      f"plate_left {plate_shape.area:.1f} mm2 vs plate_left_full {full.area:.1f} mm2 "
+                      f"(D1 bay window {bay.area:.1f} mm2)")
+            bay_holes = [h for h in shape_holes(bay) if h.area > hi_a]
+            swallowed = 0
+            for (x, y) in sw_xy:
+                pt = Point(x, y)
+                holder = next((h for h in shape_holes(bay) if h.contains(pt)), None)
+                if holder is not None and not (lo_a <= holder.area <= hi_a):
+                    swallowed += 1
+            if abs(plate_shape.area - full.area) >= 0.5:
+                rep.check("plate_left is D2", False, "plate_left is not the full variant")
+            if swallowed or bay_holes:
+                rep.note(f"experimental D1 view window (plate_left_bay) is NOT orderable: "
+                         f"{swallowed} switch(es) sit in an oversized hole "
+                         f"(largest {max((h.area for h in bay_holes), default=0):.0f} mm2) - B23")
+            else:
+                rep.note("experimental D1 view window is orderable (all 32 switches in key-sized holes)")
         rshape = pcb_net_shape(root / "plate_right.kicad_pcb")
         rep.check("the right plate is the mirror of the left (same net area)",
                   rshape is not None and abs(rshape.area - plate_shape.area) < 0.5,

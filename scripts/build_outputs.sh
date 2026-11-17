@@ -31,7 +31,8 @@ cd "$(git rev-parse --show-toplevel)" || exit 1
 WS="$(pwd)"
 # docker -v needs a Windows-style path (C:/...) on this host, and MSYS_NO_PATHCONV=1 stops the
 # shell from fixing it up for us.
-WSM="$(cygpath -m "$WS" 2>/dev/null || echo "$WS")"
+# Host is WSL: docker.exe (Docker Desktop) needs C:/..., while pwd gives /mnt/c/...
+WSM="$(printf %s "$WS" | sed -E 's|^/mnt/([a-zA-Z])/|\U\1:/|')"
 PY="./.venv/Scripts/python.exe"
 [ -x "$PY" ] || PY="python3"
 NODE="node.exe"; command -v node.exe >/dev/null 2>&1 || NODE="node"

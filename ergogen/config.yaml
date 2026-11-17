@@ -851,10 +851,12 @@ outlines:
 
 
 pcbs:
-  # ---- B20-D: the plate is the lid, so there are TWO orderable outlines per half ----
-  # `plate_left` / `plate_right` keep working and point at the D1 (bay open) variant, which is the
-  # recommendation. The `_bay` / `_full` twins are the explicit names; `_full` (bay covered) is for
-  # inspecting D2 only -- it lays FR4 over the 3.34 mm MCU and the 7.60 mm JST connector.
+  # ---- B20-D: the plate is the lid, so there are TWO outlines per half ----
+  # `plate_left` / `plate_right` are the ORDERABLE plates and point at D2 (`_full`, bay covered),
+  # which is the author's pick. D1 (`_bay`, controller view window) is an optional extra, NOT
+  # orderable yet: its 50x30 controller-area notch swallows four switch cutouts per half (B23), so
+  # `check_assembly` reports it as a note instead of a pass. Fix the window to the MCU keep-out
+  # before offering it.
   plate_left_bay:
     template: kicad8
     outlines:
@@ -945,7 +947,7 @@ pcbs:
     template: kicad8
     outlines:
       right:
-        outline: r_plate_on_wall_bay # B20-D: default = D1, the bay stays open
+        outline: r_plate_on_wall # B23: orderable plate = D2 (bay covered)
     footprints:
       jlc:
         what: ceoloide/utility_text
@@ -969,7 +971,7 @@ pcbs:
     template: kicad8
     outlines:
       right:
-        outline: l_plate_on_wall_bay # B20-D: default = D1, the bay stays open
+        outline: l_plate_on_wall # B23: orderable plate = D2 (bay covered)
     footprints:
       url:
         what: ceoloide/utility_text
@@ -1635,7 +1637,11 @@ cases:
       extrude: case_border_height
     - name : l_usbc_border_outline
       extrude: usbc_slot_height # derived: floor -> wall top (11.2 under B20-D)
-      shift: [-20,5,case_bottom_thickness]
+      # B24: was [-20, 5] -- the -20 in x moved the 15 mm rectangle 20 mm off the controller bay,
+      # so it clipped a wall corner instead of opening a window (measured on 13c8ffa as well, so it
+      # was never working, not a regression). x=0 centres it on the MCU (case x 81.75); y=7 makes it
+      # span the 2 mm wall (wall band y -35.77..-33.77) so the cable actually gets through.
+      shift: [0,7,case_bottom_thickness]
       operation: subtract
 
   l_cover:
@@ -1661,7 +1667,11 @@ cases:
       extrude: case_border_height
     - name : l_usbc_border_outline
       extrude: usbc_slot_height # derived: floor -> wall top (11.2 under B20-D)
-      shift: [-20,5,case_bottom_thickness]
+      # B24: was [-20, 5] -- the -20 in x moved the 15 mm rectangle 20 mm off the controller bay,
+      # so it clipped a wall corner instead of opening a window (measured on 13c8ffa as well, so it
+      # was never working, not a regression). x=0 centres it on the MCU (case x 81.75); y=7 makes it
+      # span the 2 mm wall (wall band y -35.77..-33.77) so the cable actually gets through.
+      shift: [0,7,case_bottom_thickness]
       operation: subtract
     - name: l_coverpart_switch_plate_outline
       extrude: 3
@@ -1699,7 +1709,8 @@ cases:
       extrude: case_border_height
     - name : r_usbc_border_outline
       extrude: usbc_slot_height # derived: floor -> wall top (11.2 under B20-D)
-      shift: [20,5,case_bottom_thickness]
+      # B24: mirrored twin of the left slot; x=0 mirrors to the mirrored MCU position.
+      shift: [0,7,case_bottom_thickness]
       operation: subtract
 
   r_cover:
@@ -1725,7 +1736,8 @@ cases:
       extrude: case_border_height
     - name : r_usbc_border_outline
       extrude: usbc_slot_height # derived: floor -> wall top (11.2 under B20-D)
-      shift: [20,5,case_bottom_thickness]
+      # B24: mirrored twin of the left slot; x=0 mirrors to the mirrored MCU position.
+      shift: [0,7,case_bottom_thickness]
       operation: subtract
     - name: r_coverpart_switch_plate_outline
       extrude: 3
