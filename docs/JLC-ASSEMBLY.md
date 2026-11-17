@@ -207,6 +207,24 @@ Socket registrations that exist (all `minPurchaseNum` > 0):
 unattractive, set `assemble=no` for `choc_v1_v2` and hand-solder them — the CPL then drops to
 **35 placements/half** and the rest still arrives assembled.
 
+### Which socket code, and why not the other one (2026-11-17)
+
+Both Kailh entries are **Choc-side, not MX** — `矮轴` means low-profile and `1350` is PG1350, the
+Choc V1 part number. The MX-shaped entries in the list are the DUROCK and Gaote ones.
+
+| code | model / description | registration type | min | `noBuyReason` |
+|---|---|---|---|---|
+| **C9900243373** | "1350" · 凯华Kailh热插拔轴座/底座 | `JLCPCBAssembly-1350`, 【邮寄专用】 mail-in | 441 | **no longer manufactured** |
+| C9900010116 | Kailh Low-Profile Hot-Swappable Socket · 凯华矮轴热插拔 | shop registration | 1000 | **no longer manufactured** |
+
+Neither is purchasable from stock, so for a consignment the code is a **paperwork anchor**: it tells
+JLC's assembly system which footprint to place and which process it expects; the physical sockets
+come from you. `C9900243373` is preferred because JLC's own URL slug for it is
+`JLCPCBAssembly-1350` — it is the *assembly* registration for the PG1350 socket, i.e. built for this
+flow — and its minimum (441) is lower than the alternative's (1000). `allowPostFlag: true` on both
+confirms mail-in is accepted. Worth one message to JLC support to confirm they accept the 1350
+socket for consignment, since both registrations are flagged out of production.
+
 **Do not use `C5333465`.** The project's old notes recorded it for "CPG135001S30"; the API types it
 as `Mechanical Keyboard Shaft` — that is the Choc *switch*, not the socket, and it is discontinued
 (stock 0).

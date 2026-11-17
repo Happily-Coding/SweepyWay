@@ -5,9 +5,10 @@ inputs:
     description: 'Specctra SES output file'
     required: true
   passes:
-    description: 'Max auto-routing passes. 6 reaches 0 unrouted on SweepyWay; more only feeds the optimizer.'
+    description: 'Max auto-routing passes. 14 is the measured safe value: 6 reaches 0 only sometimes
+      (2 of 3 runs ended at 1 unrouted, which the completeness gate below now rejects).'
     required: false
-    default: '6'
+    default: '14'
   threads:
     description: 'Thread-pool size for route OPTIMIZATION (this is what the long tail is).'
     required: false
@@ -31,7 +32,6 @@ runs:
       # -mt only sizes the optimizer's thread pool, so give it real threads.
       PCB_DIR="$PWD/ergogen/output/pcbs"
       RULES="$PWD/freerouting/freerouting.rules"
-      USER_DATA="$PWD/freerouting"
       status=0
       for board in ${{ inputs.boards }};
       do
@@ -45,9 +45,11 @@ runs:
         fi
         echo "Autoroute $board (passes=${{ inputs.passes }} threads=${{ inputs.threads }})"
         # run the boards in parallel; each one only touches its own files
+        # NOTE: `--user-data-path` is NOT a valid argument in the bundled Freerouting
+        # (v2.5.1-SNAPSHOT warns "Unknown command line argument"); it was dead here and is gone.
         java -jar /opt/freerouting.jar \
           -de "$dsn" -do "$ses" \
-          -dr "$RULES" --user-data-path "$USER_DATA" \
+          -dr "$RULES" \
           -mp ${{ inputs.passes }} -mt ${{ inputs.threads }} \
           -dct 0 --gui.enabled=false > "/tmp/${board}.route.log" 2>&1 &
       done
@@ -57,11 +59,25 @@ runs:
         echo "===== $board ====="
         grep -E "Auto-routing stage completed|Optimization stage completed" "/tmp/${board}.route.log" || true
         ses="$PCB_DIR/${board}.ses"
-        if [ -s "$ses" ]; then
-          echo "ok   $board.ses ($(wc -c < "$ses") bytes)"
-        else
+        if [ ! -s "$ses" ]; then
           echo "::error::$board produced no .ses — refusing to publish an unrouted board"
           status=1
+          continue
+        fi
+        echo "ok   $board.ses ($(wc -c < "$ses") bytes)"
+        # A .ses existing is not enough: Freerouting happily writes a session that still has
+        # unrouted connections ("Skipping optimization stage: the board has 1 unrouted
+        # connection(s)"), and the board would ship with a missing trace. Require a complete route.
+        final=$(grep -aoE "final score: [0-9.]+ \([0-9]+ unrouted" "/tmp/${board}.route.log" | tail -1)
+        unrouted=$(printf '%s' "$final" | grep -oE "[0-9]+ unrouted" | grep -oE "[0-9]+")
+        if [ -z "${unrouted:-}" ]; then
+          echo "::error::$board: could not read the router's final score; refusing to publish blind"
+          status=1
+        elif [ "$unrouted" -ne 0 ]; then
+          echo "::error::$board finished with $unrouted unrouted connection(s) — increase 'passes'"
+          status=1
+        else
+          echo "ok   $board fully routed ($final)"
         fi
       done
       exit $status

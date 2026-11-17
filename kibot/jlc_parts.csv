@@ -27,7 +27,11 @@ diode_tht_sod123,1N4148W SOD-123 diode,C81598,yes,base
 #   "Pre-order parts added to your private library"  and  "Consigned parts supplied by you"
 #   (jlcpcb.com/pcb-assembly -> "What if I can't find a component in the JLCPCB parts library?")
 # Candidates, all min-quantity > 0:
-#   C9900243373  "1350"                       凯华Kailh热插拔轴底座  【邮寄专用】 mail-in   min 441
+#   C9900243373  "1350"                      凯华Kailh热插拔轴底座  【邮寄专用】 mail-in   min 441
+#                urlSuffix = JLCPCBAssembly-1350  <- JLC's own assembly registration for the
+#                PG1350 (Choc V1) socket. Both Kailh entries carry
+#                noBuyReason='no longer manufactured', i.e. neither is purchasable from stock;
+#                for a consignment the code is the PAPERWORK anchor and you supply the sockets.
 #   C9900300066  KEYBOARD-SW                  轴座_焊接热插拔_不带灯   【邮寄专用】 mail-in   min  10
 #   C9900010116  Kailh Low-Profile Hot-Swappable Socket (凯华矮轴热插拔)                  min 1000
 #   C9900034372  Gateron low-profile hot-swap socket                                     min 441
