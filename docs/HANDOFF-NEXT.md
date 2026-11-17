@@ -89,12 +89,19 @@ Derive both from `ergogen/config.yaml` (`case_bottom_thickness`, `standoff_lengt
   "collides with the plate / needs an opening" claims were wrong twice in this session — first
   from an axis-flipped export, then "corrected" to the underside. Do not trust my geometry
   claims here without re-measuring.
-- **D1's bay variant is therefore dead**, not merely mis-sized: it is unnecessary *and* it
-  deletes 4 switch cutouts per half. Measured: 25+3 vs 29+3 switch-shaped loops, notch contour
-  65 × 46 mm centred (96.9, 64.9), swallowed positions (69.0, 66.5), (86.0, 70.8), (103.0, 73.3),
+- **D1 is demoted, not dead.** It is not the main variant (D2 is), but it stays as an
+  **optional secondary variant: a controller view window** — a cutout over the MCU purely so the
+  board/controller is visible, since nothing *needs* to be exposed. Its hard constraint is that it
+  must not touch the switch field.
+- **D1 as currently generated is wrong on both counts**: it is unnecessary *and* it deletes 4
+  switch cutouts per half. Measured: 25+3 vs 29+3 switch-shaped loops, notch contour 65 × 46 mm
+  centred (96.9, 64.9), swallowed positions (69.0, 66.5), (86.0, 70.8), (103.0, 73.3),
   (120.0, 76.7) on the left and the mirror on the right.
-  `docs/img/B20-D1-DELETES-SWITCHES.png`. Only keep the file around as the regression case for
-  the restored cutout gate (§3); it should not be a build target.
+  `docs/img/B20-D1-DELETES-SWITCHES.png`. To revive it: rebuild the window as the **MCU keep-out**
+  (~18.8 × 34.8 at PCB (81.75, 47.77)) instead of the 50 × 30 controller-area rectangle, then
+  assert 32 switch cutouts survive (§3).
+- Keep the build target ordering explicit: `plate_*` → D2 (main). `plate_*_bay` → optional,
+  must pass the cutout gate before it can be offered as a choice.
 
 ### Why the numbers in this doc disagree with each other (read before measuring)
 
