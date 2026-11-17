@@ -23,6 +23,24 @@ R-FOOTPRINT is the *mechanism*; R-PCB is the *decision*. R-PLATE needs neither.
 ## 2. R-PLATE — the plate is already reversible (free)
 
 A switch plate has **no copper, no components and no sided features**. Flipping a chiral flat part
+
+> **CORRECTION 2026-11-17 (B5).** The claim that the right half is an exact mirror of the left holds
+> for the **FR4 plate** and for the switch/screw geometry, but **not for the controller bay**. The MCU
+> zone mirrors about **x = 168.5** (`points.zones.mcu.mirror.distance: 165`) while the keys mirror
+> about **x = 170**, so the right PCB's MCU / controller-bay / JST / USB-C block sits **3.0 mm closer
+> to the seam** than a mirrored left does. Consequences:
+>
+> - **Do not print the case by slicer-mirroring the left one** — it is 3 mm out around the bay. B5 now
+>   generates real `r_case_3d` / `r_cover` / `r_3d_preview` from the right-side outlines; print those.
+> - The **plate** is still free to mirror (it is symmetric through its thickness and has no bay).
+> - `r_hand_rest_polygon` and `r_thumb_suplementary_outline` are **not true mirrors** either, so no
+>   right palm rest or tenting base is generated yet; those builders are left-only Python scripts
+>   (`palmrest_and_tenting_creation/`). Tracked in `docs/B5-RIGHT-3D.md`.
+>
+> Open decision: whether the 3 mm MCU offset is intentional (leave the PCB, keep per-side parts) or a
+> slip to be corrected by setting `mcu mirror.distance` to 170 (which would change the verified and
+> routed right PCB). Until decided, the per-side generated parts are the source of truth.
+
 produces its mirror image by definition, and the right half *is* the mirror of the left half. So:
 
 - `plate_left` (132.22 × 116.65) flipped over **is** `plate_right` — the two files are bit-for-bit
