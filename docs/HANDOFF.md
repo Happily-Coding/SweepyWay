@@ -16,9 +16,12 @@ from `docs/README.md` §2 are used: `⚠️ UNVERIFIED`, `🟡 BEST-GUESS`, `❓
 **Session 3 in one line:** the mechanical architecture (F3b) shipped as a configurable knob, **B4 is
 fixed** (right half now has 5 mounting holes, mirror axis x=170), **B1 is fixed** (`check_matrix` went
 15 failures → **0**: no dead rows, no shorted GPIOs), and the router was re-proven end to end.
-Next: **B7** is now only 5 LCSC lookups (`JLC-ASSEMBLY.md` §6); the remaining code work is a CI run for **B2**.
-A new blocker, **B22**, says the configurator generator would revert B13 if anyone ran it
-(`docs/CONFIGURATOR-DRIFT.md`).
+Next: **B7** is now only 5 LCSC lookups (`docs/JLC-ASSEMBLY.md` §6). **B2** is proven locally and is
+being confirmed by CI — its last two silent no-ops (`export-dsn` and `import-ses` were still running
+KiCad 8 against KiCad 9 boards) are fixed. **B22 is fixed and guarded** (session 4): the configurator
+generator now reproduces `ergogen/config.yaml` exactly, and `scripts/check_config_drift.mjs` (step 3/4
+of `scripts/pre-push.sh` plus the `config-drift` CI job) fails if it ever stops doing so. Do not re-fix
+B22 by hand.
 
 **Superseded session-2 notes below (still accurate for F3b/B13/B17):**
 
@@ -188,9 +191,10 @@ Build dir used below: `configurator/builds/sweepyway-2f79aca4/` (content-address
 ## 5. Blockers — current list
 
 Full prose lives in `docs/STATUS.md` §4. Status at session close (2026-11-16):
-**open = B2, B5, B7 (LCSC data entry only), B8, B14, B15, B20, B22** (plus **B18**, accepted by design: the bay is open
-on purpose); **fixed and guarded = B1, B4, B6, B9, B10, B11, B12, B13, B16, B17, B19, B21**.
-B1 and B4 were fixed in session 3; **B22** (configurator drift would revert B13) is the new one.
+**open = B2 (CI confirmation in flight), B5, B7 (LCSC data entry only), B8, B14, B15, B20** (plus
+**B18**, accepted by design: the bay is open on purpose); **fixed and guarded = B1, B3, B4, B6, B9,
+B10, B11, B12, B13, B16, B17, B19, B21, B22**. B1/B4 were fixed in session 3, B3 and B22 in session 4.
+B22's only residue: non-default presets do not round-trip yet (the drift gate covers the default one).
 (B-numbers are stable identifiers; do not renumber them.)
 
 > **B16–B19 were found in the 2026-11-16 (session 2) visual pass — read `docs/VISUAL-AUDIT.md`
@@ -279,6 +283,7 @@ All commands run from the repo root with `./.venv/Scripts/python.exe`.
 | `scripts/check_assembly.py` | **the new one**: 20 cross-artifact checks (wiring + fit) | `... check_assembly.py --cases configurator/builds/<slug>/assets` |
 | `scripts/jlc_assembly.py` | **B3/B7**: KiBot raw POS → JLC CPL (`cpl`), PCB → JLC BoM with an LCSC column (`bom`), and the agreement gate (`check`) | `./.venv/Scripts/python.exe scripts/jlc_assembly.py check` |
 | `scripts/check_published.py` | **B14 gate**: refuses a stale/mixed `filtered-output/` (build stamp + config sha1 + cross-artifact checks + 14 mm cutout signature) | `./.venv/Scripts/python.exe scripts/check_published.py` |
+| `scripts/check_config_drift.mjs` | **B22 gate**: regenerates the default preset **in memory** and refuses to let the configurator's output differ (semantically: comments/key order ignored, ergogen expressions evaluated) from `ergogen/config.yaml` | `node scripts/check_config_drift.mjs` |
 
 ### Traps (each one produced a fake defect in this session — do not repeat)
 
@@ -489,5 +494,7 @@ feasibility, cost, risk — Q-14) · `HARDWARE-STACK.md` (heights/gaps/fasteners
 
 **Scripts that are gates:** `scripts/check_assembly.py` (17 checks, currently PASS) ·
 `scripts/hardware_bom.py` (BOM + geometry, currently PASS) · `scripts/check_published.py`
-(B14, reproduces the bug on an unstamped folder) · `scripts/check_matrix.py` (B1/B4, still
-failing by design) · `scripts/pre-push.sh` (`ln -sf ../../scripts/pre-push.sh .git/hooks/pre-push`).
+(B14, reproduces the bug on an unstamped folder) · `scripts/check_config_drift.mjs`
+(B22, currently PASS — pass `configurator/presets/<x>.json` to try another preset) ·
+`scripts/check_matrix.py` (B1/B4, currently PASS) ·
+`scripts/pre-push.sh` (`ln -sf ../../scripts/pre-push.sh .git/hooks/pre-push`).

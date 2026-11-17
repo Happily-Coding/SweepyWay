@@ -12,13 +12,15 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import { plateCutout, KEYCAPS, ROW_PIN_POOL, COLUMN_PIN_POOL, matrixPairs } from "./schema.mjs";
+import { plateCutout, KEYCAPS, ROW_PIN_POOL, COLUMN_PIN_POOL, matrixPairs, PRESETS, SCREW_SHIFTS, SPACING_KEYS, spacingValues } from "./schema.mjs";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 export const CANONICAL_CONFIG = resolve(REPO, "ergogen/config.yaml");
 
 const yamlQuote = (s) => `"${String(s).replace(/"/g, '\\"')}"`;
 const num = (n) => (Number.isInteger(n) ? String(n) : String(Number(n.toFixed(4))));
+/** `2` -> "+ 2", `-3.506` -> "- 3.506": the way the committed config spells its deltas. */
+const signed = (n) => `${n < 0 ? "-" : "+"} ${num(Math.abs(n))}`;
 
 function rowsToNets(cfg) {
   // canonical naming: the first row in the list gets the highest row net (R5 for 5 rows)
@@ -30,35 +32,39 @@ function rowsToNets(cfg) {
 }
 
 function buildPresets(cfg) {
-  const cap = KEYCAPS[cfg.spacing.keycap] ?? KEYCAPS.cfx;
-  const plate = plateCutout(cfg);
   const presetName = cfg.spacing.keycap === "mbk" ? "mbk_spacing" : "cfx_spacing";
-  const presets = `presets:
-  choc_spacing:
-    # Standard Choc spacing. Keycaps are 16.5 x 16.5 (CFX) or 17.5 x 16.5 (MBK):
-    # the pitch must always be a bit larger than the cap or they collide.
-    kx: ${num(cfg.spacing.kx)}
-    ky: ${num(cfg.spacing.ky)}
-    keycap_x_1u: ${num(cap.w)}
-    keycap_y_1u: ${num(cap.h)}
+  const selected = spacingValues(cfg);
+  // Emit every preset declared in the data table; the SELECTED one takes its spacing numbers
+  // from the JSON config, the others keep their documented values. A selected preset that the
+  // table does not know (mbk_spacing) is appended as a thin extension of the choc baseline.
+  const blocks = Object.entries(PRESETS).map(([name, preset]) => {
+    const values = preset.values.map(([key, value]) =>
+      name === presetName && SPACING_KEYS.includes(key) ? [key, selected[key]] : [key, value],
+    );
+    return { name, $extends: preset.$extends ?? null, values };
+  });
+  if (!blocks.some((b) => b.name === presetName)) {
+    blocks.push({
+      name: presetName,
+      $extends: "presets.choc_spacing",
+      values: SPACING_KEYS.map((key) => [key, selected[key]]),
+    });
+  }
 
-    px: 5
-    py: 5
-    plate_kx: ${num(plate)} # switch cutout: 13.8 = choc v1, 13.95 = v2, 14.0 = both
-    plate_ky: ${num(plate)}
-    vertical_diode_shift: 1.5
-    horizontal_diode_shift: -0.5 plate_kx - 0.85
-    diode_rotation: 0
-
-  cfx_spacing:
-    $extends: presets.choc_spacing
-  mbk_spacing:
-    $extends: presets.choc_spacing
-
-units:
-  $extends: presets.${presetName}
-`;
-  return { text: presets, presetName };
+  const out = ["presets:"];
+  for (const block of blocks) {
+    out.push(`  ${block.name}:`);
+    if (block.name === "choc_spacing") {
+      out.push("    # Standard Choc spacing, compatible with MBK keycaps which are 16.5 x 17.5");
+    }
+    if (block.$extends) out.push(`    $extends: ${block.$extends}`);
+    for (const [key, value] of block.values) out.push(`    ${key}: ${typeof value === "number" ? num(value) : value}`);
+    out.push("");
+  }
+  out.push("units:");
+  out.push(`  $extends: presets.${presetName}`);
+  out.push("");
+  return { text: out.join("\n"), presetName };
 }
 
 /**
@@ -89,6 +95,13 @@ function buildPoints(cfg) {
     ? cfg.layout.rowStagger
     : null;
 
+  // Where the points really are: used by rewritePointRefs() to retarget the hand-authored
+  // outline polygons, and to refuse to point them at a key that does not exist.
+  const names = new Set();
+  for (const col of cols) {
+    for (const cell of col.cells) names.add(`matrix_${col.name}_${cell}`);
+  }
+
   const lines = [];
   lines.push("points:");
   lines.push("  key:");
@@ -107,7 +120,8 @@ function buildPoints(cfg) {
   for (const col of cols) {
     lines.push(`        ${col.name}:`);
     lines.push(`          key.column_net: ${col.net}`);
-    if (col.stagger) lines.push(`          key.stagger: ${num(col.stagger)}`);
+    // emitted unconditionally so the text matches the committed file (which spells out 0)
+    lines.push(`          key.stagger: ${num(col.stagger)}`);
     if (col.spread != null) lines.push(`          key.spread: ${num(col.spread)}`);
     if (col.splay) lines.push(`          key.splay: ${num(col.splay)}`);
     const missing = rows.filter((r) => !col.cells.includes(r));
@@ -147,6 +161,7 @@ function buildPoints(cfg) {
   const thumbRowNet = thumb.rowNet || nets[rows[0]];
 
   if (thumbCount) {
+    for (let i = 0; i < thumbCount; i += 1) names.add(`thumbfan_col${i + 1}_thumb_row_1`);
     lines.push("    thumbfan:");
     lines.push('      key.tags: ["key", "leftkey"]');
     lines.push("      anchor:");
@@ -240,22 +255,28 @@ function buildPoints(cfg) {
   lines.push("    # Screw points. The right half gets EXPLICIT r_ twins anchored to the mirrored key");
   lines.push("    # points: ergogen appends the global mirror tags (rightkey) to any mirrored point, so a");
   lines.push("    # mirrored screw would be caught by the right half's key/diode filters.");
+  lines.push("    # The per-point deltas are the B13 fix; they live in schema.mjs SCREW_SHIFTS as FINAL");
+  lines.push("    # ergogen-space offsets (the thumb frame is rotated, so it is not derivable from the rest).");
   for (const [name, ref] of screws) {
+    const delta = SCREW_SHIFTS[name];
+    if (!delta) throw new Error(`schema.mjs SCREW_SHIFTS: no B13 offset for ${name}`);
+    const shift = `screw_offset_x ${signed(delta[0])}, screw_offset_y ${signed(delta[1])}`;
     const rRef = ref.startsWith("mirror_") ? ref : `mirror_${ref}`;
-    lines.push(`    ${name}:`);
-    lines.push("      anchor:");
-    lines.push(`        - ref: ${ref}`);
-    lines.push("          shift: [screw_offset_x , screw_offset_y]");
-    lines.push("      key.tags:");
-    lines.push("        - left_screw");
-    lines.push(`    r_${name.replace(/^l_/, "")}:`);
-    lines.push("      anchor:");
-    lines.push(`        - ref: ${rRef}`);
-    lines.push("          shift: [screw_offset_x , screw_offset_y]");
-    lines.push("      key.tags:");
-    lines.push("        - right_screw");
+    const rName = `r_${name.replace(/^l_/, "")}`;
+    for (const [pointName, anchorRef, tag] of [
+      [name, ref, "left_screw"],
+      [rName, rRef, "right_screw"],
+    ]) {
+      lines.push(`    ${pointName}:`);
+      lines.push("      anchor:");
+      lines.push(`        - ref: ${anchorRef}`);
+      lines.push(`          shift: [${shift}]`);
+      lines.push("      key.tags:");
+      lines.push(`        - ${tag}`);
+      names.add(pointName);
+    }
   }
-  return lines.join("\n") + "\n";
+  return { text: lines.join("\n") + "\n", names };
 }
 
 function buildPinMap(cfg) {
@@ -312,36 +333,53 @@ function rewritePinBlocks(text, pinMap) {
 }
 
 /**
- * Rewrite the canonical outlines' hardcoded point references so they follow a different
- * layout. Applied ONLY to the `outlines:` section - the generated `points:` section
- * already uses the new names and must not be touched.
+ * Rewrite the canonical outlines' hardcoded point references so they follow a different layout.
+ * Applied ONLY to the `outlines:` section - the generated `points:` section already uses the new
+ * names and must not be touched.
+ *
+ * A reference that still exists in the generated layout is left EXACTLY as written: the polygons
+ * are hand-tuned against specific keys, so "col2_row4" is not a synonym for "col1_row4" (that
+ * mis-mapping silently reshaped the thumb/hand-rest polygons - part of B22). When a name really
+ * has to move (renamed columns/rows) it is retargeted by position and must resolve to an existing
+ * point, otherwise this throws instead of quietly snapping the outline to the wrong key.
  */
-function rewritePointRefs(text, cfg) {
-  const R = layoutRefs(cfg);
+function retargetPointRef(name, cfg, names) {
+  if (names.has(name)) return name;
+  const m = /^matrix_(.+)_row(\d+)$/.exec(name);
+  if (!m) throw new Error(`canonical outline references "${name}", which this layout does not define`);
+  const [, colPart, rowDigits] = m;
+  const cols = cfg.layout.columns;
+  const rows = cfg.layout.rows;
+  const positional = /^col(\d+)$/.exec(colPart);
+  const col = cols.find((c) => c.name === colPart) || (positional ? cols[Number(positional[1]) - 1] : null);
+  // rowN counts from the TOP of the field (row1 = top), while `rows` is listed bottom-first
+  const rowName = rows.includes(`row${rowDigits}`) ? `row${rowDigits}` : rows[rows.length - Number(rowDigits)];
+  const target = col && rowName ? `matrix_${col.name}_${rowName}` : null;
+  if (!target || !names.has(target)) {
+    throw new Error(
+      `canonical outline references "${name}"; this layout has no ${target ?? "equivalent point"}. ` +
+        "Retarget the outline for this preset before generating from it (see docs/CONFIGURATOR-DRIFT.md B22).",
+    );
+  }
+  return target;
+}
+
+function rewritePointRefs(text, cfg, names) {
   const cut = text.indexOf("\noutlines:\n");
   if (cut === -1) throw new Error("canonical config: outlines section not found");
-  let head = text.slice(0, cut);
+  const head = text.slice(0, cut);
   let tail = text.slice(cut);
 
-  // old canonical references -> names in the generated layout
-  const map = {
-    "matrix_col1_row4": `matrix_${R.firstCol.name}_${R.bottomCellOf(R.firstCol)}`,
-    "matrix_col6_row4": `matrix_${R.secondLastCol.name}_${R.bottomCellOf(R.secondLastCol)}`,
-    "matrix_col6_row3": `matrix_${R.secondLastCol.name}_${R.bottomCellOf(R.secondLastCol)}`,
-    "matrix_col2_row4": `matrix_${R.firstCol.name}_${R.bottomCellOf(R.firstCol)}`,
-    "matrix_col2_row3": `matrix_${R.firstCol.name}_${R.bottomCellOf(R.firstCol)}`,
-    "matrix_col1_row1": `matrix_${R.firstCol.name}_${R.topRow}`,
-  };
-  for (const [oldName, newName] of Object.entries(map)) {
-    if (oldName === newName) continue;
-    tail = tail.split(`mirror_${oldName}`).join(`mirror_${newName}`);
-    tail = tail.split(oldName).join(newName);
-  }
+  // the hand-rest polygons use the thumb keys as their front edge; drop the vertices whose
+  // thumb key this layout does not have (all of them when the thumb cluster is disabled)
+  tail = tail.replace(
+    / *- ref: (mirror_)?thumbfan_col(\d+)_thumb_row_1\n(?: +shift: [^\n]*\n)?/g,
+    (match, _mirror, colNum) => (names.has(`thumbfan_col${colNum}_thumb_row_1`) ? match : ""),
+  );
 
-  if (!cfg.layout.thumb.enabled) {
-    // the hand-rest polygons use the thumb keys as their front edge; drop those points
-    tail = tail.replace(/ *- ref: (mirror_)?thumbfan_col\d_thumb_row_1\n(?: +shift: [^\n]*\n)?/g, "");
-  }
+  tail = tail.replace(/(mirror_)?(matrix_[A-Za-z0-9_]+_row\d+)/g, (_match, mirror, name) =>
+    `${mirror ?? ""}${retargetPointRef(name, cfg, names)}`,
+  );
   return head + tail;
 }
 
@@ -356,7 +394,8 @@ export function generate(cfg) {
   }
 
   // 2. points
-  text = replaceSpan(text, "points:\n", "outlines:\n", buildPoints(cfg), "points", true);
+  const points = buildPoints(cfg);
+  text = replaceSpan(text, "points:\n", "outlines:\n", points.text, "points", true);
 
   // 3. scalars owned by the configurator
   const cap = KEYCAPS[cfg.spacing.keycap] ?? KEYCAPS.cfx;
@@ -389,30 +428,30 @@ export function generate(cfg) {
 
   const hotswapV2 = cfg.switch.support !== "v1";
   text = text.replace(/choc_v2_support: (true|false)/g, `choc_v2_support: ${hotswapV2}`);
-  // unify the MCU 3D offset (the canonical file had 2.5 on the left and 5 on the right)
-  text = text.replace(/mcu_3dmodel_xyz_offset: \[0, 0, [\d.]+\]/g, "mcu_3dmodel_xyz_offset: [0, 0, 5]");
+  // NB: `mcu_3dmodel_xyz_offset` is NOT unified here any more (B22). The committed config has
+  // 2.5 on the left and 5 on the right; rewriting it made every configurator run change the
+  // left half's 3D preview without anybody asking. That is a hand-value in config.yaml, so it
+  // is the config's business until someone edits both files on purpose.
 
   // 4. pin maps (both halves)
   text = rewritePinBlocks(text, buildPinMap(cfg));
 
-  // 5. outline references follow the layout
-  text = rewritePointRefs(text, cfg);
+  // 5. outline references follow the layout (identity for the default layout)
+  text = rewritePointRefs(text, cfg, points.names);
 
-  // 6. right half needs its own mounting holes (the canonical config only has them on the left)
-  if (!/^      r_screws:/m.test(text)) {
-    const marker = "      r_standoffs:";
-    if (!text.includes(marker)) throw new Error("canonical config: r_standoffs block not found");
-    text = text.replace(
-      marker,
-      `      r_screws:
-        what: ceoloide/mounting_hole_npth
-        where: right_screw
-        params:
-          hole_size: screw_diameter
-          hole_drill: screw_diameter
-
-${marker}`,
-    );
+  // 6. B4 guard: BOTH halves must carry an NPTH mounting hole on their screw points. The canonical
+  // file already owns these footprints (`screws:` on each side); the old code injected a second,
+  // coincident `r_screws:` block beside the existing one. Assert instead of adding.
+  const mountingHoles = [...text.matchAll(/what: ceoloide\/mounting_hole_npth\n\s+where: (\w+)/g)].map(
+    (m) => m[1],
+  );
+  for (const side of ["left_screw", "right_screw"]) {
+    if (!mountingHoles.includes(side)) {
+      throw new Error(
+        `canonical config: no ceoloide/mounting_hole_npth footprint on ${side} - ` +
+          "B4 requires a mounting hole on both halves (see docs/CONFIGURATOR-DRIFT.md)",
+      );
+    }
   }
 
   const header = `# Generated by the SweepyWay configurator - DO NOT EDIT BY HAND.

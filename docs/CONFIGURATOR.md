@@ -85,29 +85,32 @@ parameterised (outlines, cases, footprint wiring). The generator reads it and re
 3. a handful of scalars: plate thickness, case dimensions, keycap size, `choc_v2_support`,
 4. both `promicro` pin maps — **auto-assigned**, so a generated config can never repeat the
    off-by-one that left row `R1` unwired in the hand-written file,
-5. point references inside the `outlines:` section (so a 5-column keyboard gets a coherent
-   outline and hand-rest polygon).
+5. point references inside the `outlines:` section (retargeted only when the layout actually renames
+   them; a reference that cannot be resolved **throws** rather than snapping the polygon to the
+   wrong key — see `docs/CONFIGURATOR-DRIFT.md`, B22).
 
 Every splice is asserted: if the canonical file stops looking the way the generator expects, it
 throws instead of emitting something broken.
 
-**Equivalence check** (how it was validated): loading `presets/sweepyway.json` and comparing the
-generated `points.yaml` against the repo's own build gives **38/38 identical points** — the only
-additions are the five `r_screw_*` points, i.e. the right half finally gets mounting holes
-(that is bug B4 in `docs/STATUS.md`).
+**Equivalence check** (how it is validated now): `node scripts/check_config_drift.mjs` regenerates
+`presets/sweepyway.json` **in memory**, parses both documents and compares them structurally;
+comments/key order are ignored and ergogen expressions are evaluated, so `0.25 ky` == `4.25`. It is
+step 3/4 of `scripts/pre-push.sh` and the `config-drift` CI job, so a configurator run can no longer
+silently revert a hand-fix. Proof it is exact: ergogen's output for the committed `config.yaml` and
+for the generated one are **byte-identical** (50 outlines, 4 pcbs, 3 cases).
 
 ## 4. Generated-config fixes vs the hand-written file
 
-A generated config is *better* than `ergogen/config.yaml` in three ways, on purpose:
+Historically the generated config was *better* than `ergogen/config.yaml`: it assigned the row pins
+(B1), defined the right half's `r_screw_*` twin points (B4) and unified the MCU 3D offset. **All
+three are now in the committed file too**, so a generator run is a no-op instead of a "fix" — that
+is what `scripts/check_config_drift.mjs` enforces (B22, `docs/CONFIGURATOR-DRIFT.md`). The one
+thing the generator still leaves alone is the left/right `mcu_3dmodel_xyz_offset` asymmetry
+(2.5 vs 5): it is a committed value, so unifying it would itself be drift.
 
-| Issue in the hand-written file | Generated config |
-|---|---|
-| Row `R1` never reaches an MCU pin (12 dead keys) | pins are assigned from the row/column lists |
-| Right half has no mounting holes | `r_screw_*` points + an `r_screws` footprint block |
-| MCU 3D offset differs left (2.5) vs right (5) | one value, both halves |
-
-The repo's `config.yaml` still has these problems — see `docs/STATUS.md` B1/B4. Applying the
-generator's output back into the repo is a separate decision (it changes the pin map).
+Still true and worth knowing: the generator **derives** `case_border_height` from the stack (B17)
+and writes `standoff_body_length` from the JSON (F3b), so the two values that make the case and the
+fasteners consistent can never be hand-edited into disagreement with the JSON.
 
 ## 5. Endpoints
 
@@ -126,9 +129,13 @@ workspace (footprint junction, old outputs) and overwrites.
 ## 6. Presets
 
 `configurator/presets/sweepyway.json` is the keyboard in this repo (auto-selected on load, since
-the UI prefers the preset named `sweepyway`). `minimal-3x5.json` exists to prove the generator is
-not hardcoded to a 7×5 layout: 3 columns × 4 rows + 3 thumbs, MBK caps at 18 mm pitch,
-no palm rest, 10° tenting. It builds cleanly (15 keys/half).
+the UI prefers the preset named `sweepyway`). It is the **only** preset that round-trips: it is the
+one `scripts/check_config_drift.mjs` (and therefore CI) holds to the committed `config.yaml`.
+`minimal-3x5.json` (3 columns × 4 rows + 3 thumbs, MBK caps at 18 mm pitch) is the layout-shape
+test, but since B22 the generator **refuses** it with a readable error: the canonical `outlines:`
+section hardcodes 7-column/5-row point names (`matrix_col7_row2`, `thumbfan_col3_*`) that a 5-column
+layout does not have, and silently snapping those polygons to another key produced wrong geometry
+before. Authoring per-preset outline references is the fix, and it is not done yet.
 
 `row-stagger-1u.json` is the "normal keyboard" variant: **no column stagger, no thumb fan, all 1u
 keys**, standard row stagger of 0.25u (4.25 mm at a 17 mm pitch) applied as absolute offsets
@@ -244,6 +251,9 @@ the STL links still work.
 
 ## 9. Known limits / next layers
 
+- **Only the `sweepyway` preset round-trips** (B22). Other presets need per-preset outline point
+  references; until then the generator fails loudly instead of emitting an outline snapped to the
+  wrong key. The drift gate (`scripts/check_config_drift.mjs`) checks the default preset only.
 - Not yet exposed: **per-key width** (the model is 1u only — a 1.5u/2u spacebar is not expressible
   from the UI yet; see §10), row-level `shift` UI per cell (the model supports `cells`, not per-cell
   offsets), keycap profile choice beyond size, controller type (nice!nano only), screw scheme
