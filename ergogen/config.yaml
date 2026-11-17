@@ -265,7 +265,11 @@ points:
       mirror:
         ref: matrix_col4_row1
         #shift: [-0.25*kx, 0.5 ky + mcu_y/2 + controller_center_y_shift]
-        distance: 165
+        # 168 = a TRUE mirror: axis = anchor.x + distance/2 = 86 + 84 = 170, the same axis the
+        # keys mirror about. It was 165 (axis 168.5), which put the right half's MCU / controller
+        # bay / JST / USB-C block 3.0 mm closer to the seam than a mirrored left. Then no right
+        # outline is a mirror, and the printed halves differ at the bay (see docs/B5-RIGHT-3D.md).
+        distance: 168
       #mirror: 200 #Mirrors 200 away from the controller which isnt right
 
     l_jsph_area_center:

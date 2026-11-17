@@ -35,6 +35,12 @@ const DEFAULT_ROWS = ["row5", "row4", "row3", "row2", "row1"];
  *   x: pushes the hole 2 mm toward the centre of the field, out of the 14 mm switch cutouts
  *   y: nudges it to the corner of the plate outline (the thumb needed 3.506 mm to clear it)
  */
+// MCU / controller zone mirror distance. The mirror axis is `anchor.x + distance/2`
+// (anchor = matrix_col4_row1.x = 86), and the KEYS mirror about x = 170. So a true mirror of the
+// halves needs distance = 2*(170 - 86) = 168. It was 165 (axis 168.5), which put the right half's
+// MCU / controller bay / JST / USB-C block 3.0 mm closer to the seam — see docs/B5-RIGHT-3D.md.
+export const MCU_MIRROR_DISTANCE = 168;
+
 export const SCREW_SHIFTS = {
   l_screw_left_top: [2, -0.75],
   l_screw_left_bottom: [2, -0.75],

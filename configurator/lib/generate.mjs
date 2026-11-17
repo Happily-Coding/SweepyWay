@@ -12,7 +12,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import { plateCutout, KEYCAPS, ROW_PIN_POOL, COLUMN_PIN_POOL, matrixPairs, PRESETS, SCREW_SHIFTS, SPACING_KEYS, spacingValues } from "./schema.mjs";
+import { plateCutout, KEYCAPS, ROW_PIN_POOL, COLUMN_PIN_POOL, matrixPairs, PRESETS, SCREW_SHIFTS, SPACING_KEYS, spacingValues, MCU_MIRROR_DISTANCE } from "./schema.mjs";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 export const CANONICAL_CONFIG = resolve(REPO, "ergogen/config.yaml");
@@ -204,7 +204,7 @@ function buildPoints(cfg) {
   lines.push('        mirror.tags: ["controller_center", "right_controller_center"]');
   lines.push("      mirror:");
   lines.push(`        ref: ${midRef}`);
-  lines.push("        distance: 165");
+  lines.push(`        distance: ${MCU_MIRROR_DISTANCE}`);
   lines.push("");
   lines.push("    l_jsph_area_center:");
   lines.push("      anchor:");
