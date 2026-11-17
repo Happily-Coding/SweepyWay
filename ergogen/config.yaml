@@ -473,6 +473,18 @@ outlines:
       name: l_controller_area_to_cover_outline
       expand: -2
 
+  # B5: right twins of the two controller-housing outlines. `r_cover` needs them; without them
+  # the right cover would have no controller housing. Same construction as the left, on the
+  # right-side inputs, so the two halves stay comparable.
+  r_controller_area_to_cover_outline:
+    - "+r_controller_area"
+    - "-r_key_based_board_outline"
+
+  r_controler_area_to_not_fill:
+    - what: outline
+      name: r_controller_area_to_cover_outline
+      expand: -2
+
   l_jsph_area:
     - what: rectangle
       where: l_jsph_area_center
@@ -1455,7 +1467,7 @@ pcbs:
         where: right_screw
         params:
           screw_diameter: m2
-          length: 4  # Screw length in mm
+          length: screw_bottom_length  # B21: derived minimum 5.5 mm; was a literal 4 (preview could drift from the BOM)
           head_type: low_socket  # Options: pan, low_socket, flat
           case_bottom_thickness: case_bottom_thickness
           do_not_populate: DNP
@@ -1519,3 +1531,59 @@ cases:
     # - name: l_hand_rest_overlapping_polygon # test
     #   extrude: 3
     #   shift: [0,0, 30]
+
+  ########################### B5: the right half's printed parts ###########################
+  # Identical block structure to the left, but on the right-side outlines, so the two halves can
+  # be compared part by part instead of trusting a slicer mirror. Two differences are deliberate
+  # and are NOT mirror-able:
+  #   * the USB-C slot cut is shifted [+20,5] (outboard on the RIGHT), because the slot has to
+  #     open the controller bay's outer wall, which is on the other side of the mirror seam;
+  #   * these parts follow the RIGHT PCB (r_pcb_outline), whose controller bay sits 3.0 mm closer
+  #     to the mirror seam than the mirror of the left one (see docs/STATUS.md B5) - a mirrored
+  #     left case would therefore be 3 mm off around the controller. Volume/bbox still match.
+
+  r_case_3d:
+    - name: r_case_bottom #r_key_based_board_outline_with_extra_padding
+      extrude: case_bottom_thickness
+    - name: r_standoff_bosses
+      extrude: standoff_boss_height
+      shift: [0, 0, case_bottom_thickness]
+    - name: r_case_border #r_case_border_outline
+      extrude: case_border_height
+    - name : r_usbc_border_outline
+      extrude: usbc_slot_height # derived: floor -> 1 mm below the rim
+      shift: [20,5,case_bottom_thickness]
+      operation: subtract
+
+  r_cover:
+    - name: r_coverpart_switch_plate_outline #Create the switch plate
+      extrude: top_plate_thickness
+      shift: [0, 0, 25]
+    - name: r_controller_area_to_cover_outline #create the controller housing
+      extrude: controller_area_height
+      shift: [0, 0, 25]
+    - name: r_controler_area_to_not_fill #Make the controller housing hollow
+      extrude: controller_area_height
+      operation: subtract
+      shift: [0, 0, 25]
+    - name: r_controller_area_to_cover_outline #Add a roof to the controller housing
+      extrude: controller_area_roof_z_thickness
+      shift: [0, 0, 25+ controller_area_height]
+
+  r_3d_preview:
+    #Pasting all components here with vertical offsets we can verify that everything fits where it should
+    - name: r_case_bottom #r_key_based_board_outline_with_extra_padding
+      extrude: case_bottom_thickness
+    - name: r_case_border #r_case_border_outline
+      extrude: case_border_height
+    - name : r_usbc_border_outline
+      extrude: usbc_slot_height # derived: floor -> 1 mm below the rim
+      shift: [20,5,case_bottom_thickness]
+      operation: subtract
+    - name: r_coverpart_switch_plate_outline
+      extrude: 3
+      shift: [0, 0, 25]
+
+    #Components that shoulndt really be printed
+    - name: r_pcb_outline
+      shift: [0, 0, 20]

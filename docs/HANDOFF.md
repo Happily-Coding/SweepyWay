@@ -89,8 +89,11 @@ HARDWARE-STACK}.md` · `scripts/{hardware_bom,check_published}.py` · `scripts/p
   clip the plate and turn a hole into a notch (that is what happened to the thumb at 1.07 mm).
 - **KiCad writes a full circle as `gr_circle`, but a circle touching an edge cut is split into
   `gr_arc`s** — count both or you will believe a hole is missing.
-- **There is no `r_case_3d`** (B5). Only the left case is generated; the right is a slicer mirror.
-  Do not add bosses to a right-hand case that does not exist — add them to the left.
+- ~~**There is no `r_case_3d`** (B5). Only the left case is generated; the right is a slicer mirror.
+  Do not add bosses to a right-hand case that does not exist — add them to the left.~~ **B5 is fixed
+  (2026-11-17): `r_case_3d`, `r_cover` and `r_3d_preview` are generated.** They follow the *right*
+  PCB, whose controller bay is 3.0 mm off the mirror of the left (mcu mirror distance 165, keys
+  170), so a slicer mirror of the left case is 3 mm out around the bay — use the generated part.
 - **`hardware_bom.py` now auto-detects the topology** from `standoff_body_length`; use
   `--topology standoff` to reproduce the old press-fit BOM, `--standoff 4.5` for a what-if.
 
@@ -206,8 +209,8 @@ B22's only residue: non-default presets do not round-trip yet (the drift gate co
 | **B1** | Row `R1` has no MCU pin, in **both** halves, and the two halves' maps differ: left P5+P9→`R5`, right P6+P7→`R5`; R6/R7 don't exist. Kills **R1 = 6 keys/half ⇒ 12 of 64 keys**. Generated configs already fix it (`P3..P7 → R5,R4,R3,R2,R1`). | 🔴 | `config.yaml` pin maps |
 | **B2** | ~~Published gerbers are unrouted.~~ **ROOT CAUSE FOUND 2026-11-16, fix pending.** `autoroute/action.yaml` reads `pcbs/${board}.dsn` **relative to the repo root**, where no `pcbs/` directory exists — and the body is wrapped in `if [ -e pcbs/... ]`, so it **silently does nothing**. No `.ses` is produced, `import-ses` is guarded on the `.ses` too so it also no-ops, and KiBot then exports the unrouted board: every step "succeeds". Proven routable locally: freerouting closed **105 nets, 0 unrouted, 0 violations** (score 1000.00) and the SES import produced a board with **980 segments + 91 vias** (`check_matrix.py --routing` agrees). Fix = prefix the paths with `ergogen/output/`, add `-mp 3` (the default `-mp 25` spent >10 min optimising), and gate on segment count. | 🔴 fix is 3 lines | `.github/actions/autoroute|import-ses|export-dsn/action.yaml` |
 | **B3** | ~~Assembly data is 2 of 98 placements/half.~~ **FIXED 2026-11-16** — declaration bug, not geometry: `only_smd: true` was asked of footprints that lied (diode had *no* `attr`, switch had no `smd`, and the 86 preview/hole footprints were not marked virtual). CPL per half **2 → 67** (66 SMD + 1 THT); `kicad-cli pos --smd-only` now returns the same 66. Socket decision: its pads live in the switch footprint, so `S1…S32` *are* the socket placements. Gated by `scripts/jlc_assembly.py check`. Full story: `JLC-ASSEMBLY.md`. | ✅ fixed | `kibot/jlpcb_pos.kibot.yaml`, `kibot/jlc_parts.csv`, ceoloide footprints, `scripts/jlc_assembly.py` |
-| **B4** | Right half has no screws/standoffs/mounting holes (repo config). | 🔴 | `config.yaml` right_pcb |
-| **B5** | No `r_case_3d` / `r_cover` case at all ⇒ **you cannot print a right case**. (The `r_*` *outlines* DO exist as DXF.) | 🔴 | `config.yaml` `cases:` |
+| **B4** | ~~Right half has no screws/standoffs/mounting holes (repo config).~~ **FIXED 2026-11-16** (5 `r_screw_*` twins + the right PCB's NPTH block; mirror axis x=170). | ✅ | `config.yaml` right_pcb |
+| **B5** | ~~No `r_case_3d` / `r_cover` case at all ⇒ you cannot print a right case.~~ **FIXED 2026-11-17**: `r_case_3d`, `r_cover`, `r_3d_preview` + the two missing `r_controller_area_*` outlines. Right parts are watertight, volumes within 0.17–1.0 % of the left, mirrored bboxes exact; `check_assembly.py` now checks the right halves too. Not mirrored: right palm rest / tenting base (left-only Python builds) — `r_hand_rest_polygon` is not a true mirror. | ✅ | `config.yaml` `outlines:` + `cases:` |
 | **B7** | ~~No BOM with LCSC part numbers; not published.~~ **Mechanism fixed 2026-11-16** — and the old `jlpcb_bom` config never ran at all (KiBot's BoM outputs need a *schematic*; Ergogen makes none). `scripts/jlc_assembly.py bom` builds it from the PCB into `filtered-output/pcbs/bom/` with the LCSC column. **5 part numbers are still missing** (diode, socket, JST, reset, power) → `kibot/jlc_parts.csv`, listed in `JLC-ASSEMBLY.md` §6. | 🟠 data entry | `kibot/jlc_parts.csv`, `scripts/jlc_assembly.py` |
 | **B8** | Case↔tenting attachment, palm-rest attachment undefined. | 🟠 | ❓-4, ❓-5 |
 | **B13** | ~~4 of 5 screw points sit INSIDE the switch cutouts.~~ **FIXED 2026-11-16.** New points (PCB coords): **(43.80, 86.15) (43.80, 137.15) (128.80, 80.13) (128.80, 132.63) (131.70, 160.30)**. `check_assembly.py` **PASSES** (tightest +1.769 mm to a 14 mm cutout). FR4 plate now has 5 clean Ø2.2 holes; printed cover plate level = 32 keys + 5 screw holes; case floor 5 holes. **Three traps found doing it:** (a) **ergogen point y runs opposite to PCB y** — a shift delta must be `-dy`; (b) the thumb point lives in a **rotated frame (~25°)**, so a shift is rotated with it — solve with the calibrated basis `L(1,0)=(0.9063,0.4226)`, `L(0,1)=(0.42667,-0.90667)`; (c) the binding constraint is the **plate OUTLINE**, not the PCB edge — the plate is the key cluster while the PCB has 2–4 mm of padding beyond it, so a screw 6 mm inside the PCB edge can still clip the plate and turn the hole into a notch. | ✅ fixed | `config.yaml` → `l_screw_*` |
@@ -488,7 +491,8 @@ feasibility, cost, risk — Q-14) · `HARDWARE-STACK.md` (heights/gaps/fasteners
 (verified part specs + source URLs) · `BUILD-REFERENCE.md` (Lily58 build-guide audit) ·
 `CONFIGURATOR.md` (§7 print-file pipeline, §10 spacebar) · `PIPELINE.md` ·
 `TROUBLESHOOTING-3D.md` · `ERGOGEN-GUIDE.md` · `BOM.md` · `ROADMAP.md` · `HARDWARE-BOM.md`
-(generated — screw lengths, do not hand-edit).
+(generated — screw lengths, do not hand-edit) · `B5-RIGHT-3D.md` (the right half's 3D parts:
+per-outline mirror audit, volumes, gate output, and the 3 mm controller-bay asymmetry).
 
 **Figures:** `docs/img/{B17-stackup,fastener-options,fastener-sections,screw-move,plate-holes,f3b-boss}.png`
 
