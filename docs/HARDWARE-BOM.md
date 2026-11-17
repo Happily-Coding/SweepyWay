@@ -12,11 +12,13 @@
 | boss printed on the floor (threadless) | 3.0 | 6.0 |
 | **soldered standoff** 3.0 mm (holds the thread) | 3.0 | 9.0 = PCB bottom |
 | PCB | 1.2 | 10.2 |
-| air gap (choc rule) | 1.0 | 11.2 |
-| plate `top_plate_thickness` | 1.2 | **12.4** = case rim |
+| air gap (choc rule) | 1.0 | 11.2 = plate underside |
+| plate `top_plate_thickness` **sits ON the wall** | 1.2 | **12.4** = plate top (= the old rim) |
 
-- Hotswap sockets need 3.5 mm under the PCB → clearance **2.50 mm**
-- Keycap tops sit 3.7 mm above the plate → **3.7 mm above the rim** (never walled in)
+- **B20 option D**: the printed wall stops at the plate's underside (`case_border_height` = **11.2** mm); the FR4 plate overhangs it and is the lid, so its edge has full-perimeter support and nothing extra is printed. The plate top stays 12.4 mm, so keycaps, USB-C and the screw stack do not move.
+- Wall height (`case_border_height`) = **11.2 mm** — this is what a case STL must measure.
+- Hotswap sockets need 3.5 mm under the PCB -> clearance **2.50 mm**
+- Keycap tops sit 3.7 mm above the plate -> **3.7 mm above the plate top** (never walled in)
 
 ## Fasteners  (a full keyboard = 2 halves)
 

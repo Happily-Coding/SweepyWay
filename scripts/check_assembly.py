@@ -33,6 +33,14 @@ import numpy as np
 KEY_RE = r"col(\d+)_row(\d+)"
 THUMB_RE = r"col(\d+)_thumb_row_(\d+)"
 CUTOUT_MM = 14.0
+REPO = Path(__file__).resolve().parent.parent
+
+# ---- B20 option D: the FR4 plate sits ON the wall (docs/B20-PLATE-ON-WALL.md) ----
+# The plate is the case footprint, and the printed wall stops at its underside. Under the old shape
+# (`plate_sits_on_wall: 0`) the wall ran to the plate TOP and the plate was a panel inside the
+# cavity; the checks below are split on that flag so both shapes stay testable.
+PLATE_UNIT_KEYS = ("case_bottom_thickness", "standoff_length", "pcb_thickness",
+                   "plate_top_above_pcb_top", "top_plate_thickness", "plate_sits_on_wall")
 
 
 # --------------------------------------------------------------------------- parsing
@@ -169,6 +177,123 @@ def dxf_circles(path: Path) -> np.ndarray:
     import ezdxf
     msp = ezdxf.readfile(str(path)).modelspace()
     return np.array([[e.dxf.center.x, e.dxf.center.y] for e in msp if e.dxftype() == "CIRCLE"])
+
+
+def config_units(path: Path | None = None) -> dict[str, float]:
+    """The `units:` scalars the stack checks need, straight from the canonical config."""
+    path = path or (REPO / "ergogen" / "config.yaml")
+    text = Path(path).read_text(encoding="utf-8", errors="ignore")
+    out: dict[str, float] = {}
+    for key in PLATE_UNIT_KEYS:
+        m = re.search(rf"^  {key}:\s*([-\d.]+)", text, flags=re.M)
+        if not m:
+            raise SystemExit(f"check_assembly: cannot find units.{key} in {path}")
+        out[key] = float(m.group(1))
+    return out
+
+
+def dxf_net_shape(path: Path):
+    """The outline's material area as one shapely geometry (even-odd nesting, holes removed).
+
+    Trap: plain `polygonize()` only closes a ring when the endpoints match EXACTLY, and ergogen
+    rounds arc endpoints, so an arc-rounded outline silently stays open and you measure only the
+    key cutouts. A 10 um precision grid is what makes this work.
+    """
+    import ezdxf
+    from shapely import set_precision
+    from shapely.geometry import LineString, Polygon
+    from shapely.ops import polygonize, unary_union
+
+    def snap(p):
+        return (round(p[0], 3), round(p[1], 3))
+
+    segs = []
+    for e in ezdxf.readfile(str(path)).modelspace():
+        t = e.dxftype()
+        if t == "LINE":
+            a, b = e.dxf.start, e.dxf.end
+            segs.append((snap((a.x, a.y)), snap((b.x, b.y))))
+        elif t == "ARC":
+            c, r = e.dxf.center, e.dxf.radius
+            a0, a1 = np.deg2rad(e.dxf.start_angle), np.deg2rad(e.dxf.end_angle)
+            if a1 <= a0:
+                a1 += 2 * np.pi
+            th = np.linspace(a0, a1, max(8, int(abs(a1 - a0) * r) + 2))
+            pts = [snap((c.x + r * np.cos(v), c.y + r * np.sin(v))) for v in th]
+            segs += list(zip(pts[:-1], pts[1:]))
+        elif t == "CIRCLE":
+            c, r = e.dxf.center, e.dxf.radius
+            th = np.linspace(0, 2 * np.pi, 64)
+            pts = [snap((c.x + r * np.cos(v), c.y + r * np.sin(v))) for v in th]
+            segs += list(zip(pts[:-1], pts[1:]))
+    lines = unary_union([LineString([a, b]) for a, b in segs if a != b])
+    faces = list(polygonize(set_precision(lines, 0.01)))
+    keep = []
+    for f in faces:
+        # a face inside a hole is material again, so compare against EXTERIORS only
+        depth = sum(1 for g in faces if g is not f and g.area > f.area
+                    and Polygon(g.exterior).contains(f.representative_point()))
+        if depth % 2 == 0:
+            keep.append(f)
+    return unary_union(keep) if keep else None
+
+
+def pcb_net_shape(path: Path):
+    """A generated plate/PCB's Edge.Cuts as one shapely polygon (holes kept as interiors).
+
+    Needed because `plate_polys()` only returns *closed* loops: it cannot see the board outline
+    (arc-rounded) and it silently drops `gr_circle` bores. This one stitches LINE + ARC + CIRCLE
+    with a 10 um snap and returns the material area, so "is there a hole at this switch" becomes a
+    containment test instead of a count. (Traps #7/#8 in docs/HANDOFF.md §8.)
+    """
+    from shapely import set_precision
+    from shapely.geometry import LineString, Polygon
+    from shapely.ops import polygonize, unary_union
+
+    text = path.read_text(encoding="utf-8", errors="ignore")
+
+    def snap(p):
+        return (round(float(p[0]), 3), round(float(p[1]), 3))
+
+    segs = []
+    for m in re.finditer(r"\(gr_line\s*\(start\s+([-\d.]+)\s+([-\d.]+)\)\s*\(end\s+([-\d.]+)\s+([-\d.]+)\)", text):
+        x1, y1, x2, y2 = (float(v) for v in m.groups())
+        segs.append((snap((x1, y1)), snap((x2, y2))))
+    for m in re.finditer(r"\(gr_arc\s*\(start\s+([-\d.]+)\s+([-\d.]+)\)\s*\(mid\s+([-\d.]+)\s+([-\d.]+)\)\s*\(end\s+([-\d.]+)\s+([-\d.]+)\)", text):
+        ax, ay, mx, my, bx, by = (float(v) for v in m.groups())
+        a, b, c = np.array([ax, ay]), np.array([mx, my]), np.array([bx, by])
+        ts = np.linspace(0, 1, 9)
+        pts = [snap((1 - t) ** 2 * a + 2 * (1 - t) * t * b + t ** 2 * c) for t in ts]
+        segs += list(zip(pts[:-1], pts[1:]))
+    for m in re.finditer(r"\(gr_circle\s*\(center\s+([-\d.]+)\s+([-\d.]+)\)\s*\(end\s+([-\d.]+)\s+([-\d.]+)\)", text):
+        cx, cy, ex, ey = (float(v) for v in m.groups())
+        r = float(np.hypot(ex - cx, ey - cy))
+        th = np.linspace(0, 2 * np.pi, 64)
+        pts = [snap((cx + r * np.cos(v), cy + r * np.sin(v))) for v in th]
+        segs += list(zip(pts[:-1], pts[1:]))
+    if not segs:
+        return None
+    lines = unary_union([LineString([a, b]) for a, b in segs if a != b])
+    faces = list(polygonize(set_precision(lines, 0.01)))
+
+    def depth(f):
+        return sum(1 for g in faces if g is not f and g.area > f.area
+                   and Polygon(g.exterior).contains(f.representative_point()))
+
+    keep = [f for f in faces if depth(f) % 2 == 0]
+    return unary_union(keep) if keep else None
+
+
+def shape_holes(geom) -> list:
+    """The interior rings of a (multi)polygon as polygons, largest first."""
+    from shapely.geometry import Polygon
+    out = []
+    if geom is None:
+        return out
+    parts = list(getattr(geom, "geoms", [geom]))
+    for p in parts:
+        out += [Polygon(i) for i in getattr(p, "interiors", [])]
+    return sorted(out, key=lambda p: p.area, reverse=True)
 
 
 def stl_section(path: Path, z: float | None) -> list[dict]:
@@ -395,17 +520,58 @@ def main() -> int:
               f"tightest screw {worst[0][0]:.1f},{worst[0][1]:.1f}: clearance {worst[1]:+.3f} mm "
               f"to a {2*measured_half:.2f} mm cutout (need >= {need:.1f}; negative = inside it)")
 
-    pkeys = plate_polys(root / "plate_left.kicad_pcb")
-    pc = np.array([[k["cx"], k["cy"]] for k in pkeys])
-    if len(pc):
-        d2, _ = cKDTree(sw_xy).query(pc)
-        rep.check("orderable plate PCB cutouts land on switches", d2.max() <= args.key_tol,
-                  f"{len(pkeys)} cutouts, worst {d2.max():.3f} mm")
-        pareas = sorted({round(k["area"], 1) for k in pkeys if k["area"] < 400})
-        rep.check(f"orderable plate cutout area == {CUTOUT_MM}mm square",
-                  all(lo_a <= a <= hi_a for a in pareas), f"areas {pareas[:6]}")
-    else:
-        rep.check("orderable plate PCB parsed", False, "no closed cutouts found")
+    # The orderable plate is generated from the same outline as the DXF, but it is what gets
+    # fabricated, so it is checked on its own. B20-D changed what a "cutout" is: the plate is now the
+    # case footprint and the controller/JSPh bays are notches, so a *count* of closed loops is no
+    # longer meaningful (the notch merges with the cutouts it touches). Test containment instead:
+    # every switch centre must fall in a HOLE of the plate, and every key-sized hole must sit on a
+    # switch.
+    from shapely.geometry import Point
+
+    def plate_report(name: str) -> None:
+        f = root / name
+        if not f.exists():
+            rep.check(f"{name} exists", False, "missing")
+            return
+        shape = pcb_net_shape(f)
+        polys = plate_polys(f)
+        if shape is None or not polys:
+            rep.check(f"{name} parsed", False, "no closed cutout found")
+            return
+        covered = [i for i, (x, y) in enumerate(sw_xy) if shape.contains(Point(x, y))]
+        rep.check(f"{name}: every switch has an opening", not covered,
+                  f"{len(sw_xy) - len(covered)}/32 openings, plate over: {covered[:4]}")
+        key_faces = [k for k in polys if lo_a <= k["area"] <= hi_a]
+        if key_faces:
+            d2, _ = cKDTree(sw_xy).query(np.array([[k["cx"], k["cy"]] for k in key_faces]))
+            rep.check(f"{name}: key cutouts land on switches", d2.max() <= args.key_tol,
+                      f"{len(key_faces)} key-sized cutouts, worst {d2.max():.3f} mm")
+            pareas = sorted({round(k["area"], 1) for k in key_faces})
+            rep.check(f"{name}: cutout area == {CUTOUT_MM}mm square",
+                      all(lo_a <= a <= hi_a for a in pareas), f"areas {pareas[:6]}")
+        bores = [h for h in shape_holes(shape) if h.area < 10]
+        rep.check(f"{name}: has the 5 screw bores", len(bores) == 5,
+                  f"{len(bores)} openings smaller than 10 mm2 (a 2.2 mm bore is 3.80 mm2)")
+        return shape
+
+    plate_shape = plate_report("plate_left.kicad_pcb")
+    if plate_shape is not None:
+        # D1 (default) must leave the bays open; D2 (full) must cover them. The largest hole of D1
+        # IS the merged bay notch, so its centre is the honest probe point.
+        holes = shape_holes(plate_shape)
+        if holes:
+            bay_pt = holes[0].representative_point()
+            full = pcb_net_shape(root / "plate_left_full.kicad_pcb")
+            rep.check("D1 (`plate_left`, default) leaves the bay open, D2 (`plate_left_full`) covers it",
+                      not plate_shape.contains(bay_pt) and full is not None and full.contains(bay_pt),
+                      f"probe {bay_pt.x:.2f},{bay_pt.y:.2f} inside the {holes[0].area:.0f} mm2 bay notch")
+        else:
+            rep.check("D1 has a bay notch", False, "no interior holes at all")
+        rshape = pcb_net_shape(root / "plate_right.kicad_pcb")
+        rep.check("the right plate is the mirror of the left (same net area)",
+                  rshape is not None and abs(rshape.area - plate_shape.area) < 0.5,
+                  f"left {plate_shape.area:.2f} mm2, right "
+                  f"{rshape.area if rshape is not None else float('nan'):.2f} mm2")
 
     # ---- fit: printed cover + case
     if args.cases:
@@ -509,6 +675,85 @@ def main() -> int:
                         apply(np.array([[h["cx"], h["cy"]] for h in rholes]), rreg3))
                     rep.check("right: case screw bosses coaxial with PCB holes",
                               rdh.max() <= args.screw_tol + 0.3, f"worst {rdh.max():.3f} mm")
+
+    # ---- B20-D: the FR4 plate IS the lid, and it sits on the printed wall ----
+    # Numbers come from `units:` (config.yaml), 2D truth from the generated outlines, printed truth
+    # from the case STL. A revert of any one of the three is caught here instead of at assembly time.
+    u = config_units()
+    plate_th = u["top_plate_thickness"]
+    sits = int(u["plate_sits_on_wall"])
+    plate_top = (u["case_bottom_thickness"] + u["standoff_length"] + u["pcb_thickness"]
+                 + u["plate_top_above_pcb_top"])
+    wall_top = plate_top - sits * plate_th
+    print(f"  ...  B20-D stack from units: wall top {wall_top:.2f}, plate {wall_top:.2f}..{plate_top:.2f} "
+          f"(plate_sits_on_wall={sits})")
+    rep.check("wall top + plate thickness == the old rim (one number changed, not two)",
+              abs(wall_top + plate_th - plate_top) < 1e-6,
+              f"wall {wall_top:.2f} + plate {plate_th:.2f} = {wall_top + plate_th:.2f} "
+              f"vs plate top {plate_top:.2f}")
+    p_bay = p_full = foot = pcb = None
+    if sits:
+        from shapely.ops import unary_union
+        NEEDED = ["l_case_bottom", "l_pcb_outline", "l_plate_on_wall_bay", "l_plate_on_wall",
+                  "l_controller_area", "l_jsph_area", "l_keys_outline"]
+        absent = [n for n in NEEDED if not (outl / f"{n}.dxf").exists()]
+        rep.check("B20-D plate outlines exist in the outlines dir", not absent,
+                  "missing: " + ", ".join(absent) if absent else f"all {len(NEEDED)} present")
+        if absent:  # e.g. a pre-B20-D snapshot: report it, but do not crash on the missing files
+            rep.check("B20-D plate outlines are closed", False, "cannot check, outlines missing")
+        else:
+            foot = dxf_net_shape(outl / "l_case_bottom.dxf")
+            pcb = dxf_net_shape(outl / "l_pcb_outline.dxf")
+            p_bay = dxf_net_shape(outl / "l_plate_on_wall_bay.dxf")
+            p_full = dxf_net_shape(outl / "l_plate_on_wall.dxf")
+            ctrl = dxf_net_shape(outl / "l_controller_area.dxf")
+            jsph = dxf_net_shape(outl / "l_jsph_area.dxf")
+            pkeys = dxf_net_shape(outl / "l_keys_outline.dxf")
+            empty = [n for n, g in (("l_case_bottom", foot), ("l_pcb_outline", pcb),
+                                    ("l_plate_on_wall_bay", p_bay), ("l_plate_on_wall", p_full),
+                                    ("l_controller_area", ctrl), ("l_jsph_area", jsph),
+                                    ("l_keys_outline", pkeys)) if g is None]
+            rep.check("B20-D plate outlines are closed", not empty,
+                      "empty: " + ", ".join(empty) if empty else f"{len(NEEDED)} outlines")
+            if not empty:
+                expect_full = foot.difference(unary_union([pkeys]))
+                rep.check("D2 plate (bay covered) == case footprint - keys - screws",
+                          p_full.symmetric_difference(expect_full).area < 1.0,
+                          f"plate {p_full.area:.2f} mm2, footprint-keys {expect_full.area:.2f} mm2, "
+                          f"symmetric difference {p_full.symmetric_difference(expect_full).area:.3f} mm2")
+                bays = ctrl.union(jsph)
+                expected = bays.intersection(foot).area - bays.intersection(pkeys).area
+                got = p_full.area - p_bay.area
+                rep.check("D1 plate (bay open) removes exactly the controller + JSPh bay area",
+                          abs(got - expected) < 1.0,
+                          f"D2 - D1 = {got:.2f} mm2 vs bay inside the footprint {expected:.2f} mm2 "
+                          f"(controller {ctrl.area:.2f} + JSPh {jsph.area:.2f}, "
+                          f"minus {bays.intersection(pkeys).area:.2f} already cut)")
+                ring = foot.difference(pcb.buffer(2, join_style=2, quad_segs=16))
+                rep.check("neither plate variant cuts the wall ring (full-perimeter support in D1 too)",
+                          ring.difference(p_bay).area < 0.01 and ring.difference(p_full).area < 0.01,
+                          f"wall ring {ring.area:.2f} mm2; uncovered by D1 "
+                          f"{ring.difference(p_bay).area:.3f} mm2, by D2 {ring.difference(p_full).area:.3f} mm2")
+    if args.cases and (Path(args.cases) / "l_case_3d.stl").exists():
+        import trimesh
+        case_f = Path(args.cases) / "l_case_3d.stl"
+        m = trimesh.load(str(case_f), force="mesh", process=True)
+        e = m.extents
+        ext = (float(e[0]), float(e[1]), float(e[2]))
+        if sits and p_bay is not None:
+            x0, y0, x1, y1 = p_bay.bounds
+            rep.check("plate outline == case outer footprint (the plate overhangs the wall)",
+                      abs(ext[0] - (x1 - x0)) < 0.1 and abs(ext[1] - (y1 - y0)) < 0.1,
+                      f"case {ext[0]:.2f} x {ext[1]:.2f} mm, D1 plate outline {x1 - x0:.2f} x {y1 - y0:.2f} mm")
+        rep.check(f"case STL height == wall top ({wall_top:.2f} mm = plate underside)",
+                  abs(ext[2] - wall_top) < 0.05,
+                  f"STL {ext[2]:.2f} mm tall; the plate top stays {plate_top:.2f} mm")
+        # the wall must be solid just under the plate, or the plate has nothing to sit on
+        z = wall_top - 0.4
+        sec = stl_section(case_f, z)
+        rep.check("the wall is closed 0.4 mm below its top (the plate seats on material)",
+                  len(sec) >= 1,
+                  f"{len(sec)} closed loop(s) in the section at z={z:.2f}")
 
     if args.json:
         print("__JSON__" + json.dumps({"ok": rep.ok, "checks": rep.rows}, default=float))

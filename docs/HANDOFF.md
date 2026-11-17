@@ -494,7 +494,9 @@ feasibility, cost, risk — Q-14) · `HARDWARE-STACK.md` (heights/gaps/fasteners
 (generated — screw lengths, do not hand-edit) · `B5-RIGHT-3D.md` (the right half's 3D parts:
 per-outline mirror audit, volumes, gate output, and the 3 mm controller-bay asymmetry).
 
-**Figures:** `docs/img/{B17-stackup,fastener-options,fastener-sections,screw-move,plate-holes,f3b-boss}.png`
+`B20-PLATE-ON-WALL.md` (**2026-11-17: B20 is FIXED — option D, the plate is the lid; wall top 11.2,
+plate top 12.4, two plate variants, and the USB-C verdict/fixes**) ·
+**Figures:** `docs/img/{B17-stackup,fastener-options,fastener-sections,screw-move,plate-holes,f3b-boss,B20-options}.png`
 
 **Scripts that are gates:** `scripts/check_assembly.py` (17 checks, currently PASS) ·
 `scripts/hardware_bom.py` (BOM + geometry, currently PASS) · `scripts/check_published.py`

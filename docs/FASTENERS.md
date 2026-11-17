@@ -307,8 +307,18 @@ standoff_length         6.0      # B17
 pcb_thickness           1.2      # B15: measured, was implicitly 1.6
 top_plate_thickness     1.2      # choc need exactly 1.2; 1.5 is FR4's max for seating
 plate_top_above_pcb_top 2.2      # ⇒ 1.0 mm air gap between PCB top and plate bottom
-case_border_height      = 3.0 + 6.0 + 1.2 + 2.2 = 12.4   # verified on the case STL
+plate_sits_on_wall      1        # B20 option D (2026-11-17)
+case_border_height      = 3.0 + 6.0 + 1.2 + 2.2 − 1.2 = 11.2   # verified on the case STL
+                                  # ... but the PLATE TOP is still 3.0 + 6.0 + 1.2 + 2.2 = 12.4
 ```
+
+**B20 option D (2026-11-17) split the top of this stack in two** — `case_border_height` is no longer
+the plate top. The wall stops at the plate's **underside** (11.2) and the FR4 plate overhangs it and
+is the lid; the plate top is unchanged at 12.4, so nothing above it moved. A case STL must therefore
+measure **11.2**, not 12.4 (`scripts/hardware_bom.py --case-stl` asserts exactly that, and it now
+carries the two numbers separately). The plate outlines are the case footprint, in two variants:
+`plate_left_bay` (controller + JSPh bays open, default) and `plate_left_full` (bays covered).
+Full record, numbers and the USB-C consequence: `docs/B20-PLATE-ON-WALL.md`.
 
 The 1.0 mm air gap is the space the switch body's lower half occupies. **Under §1.2 it is no
 longer a case dimension** — it is a property of the switch, and the case cannot violate it: the
