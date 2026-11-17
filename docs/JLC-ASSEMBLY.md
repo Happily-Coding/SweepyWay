@@ -167,35 +167,49 @@ Two CPLs are emitted per board:
 
 ---
 
-## 6. LCSC part numbers — the remaining gap (this is B7)
+## 6. LCSC part numbers — **RESOLVED 2026-11-17** (B7)
 
-The BoM mechanism is complete and the three columns JLC needs are populated from the board. The
-**part numbers themselves do not exist anywhere in this repo** — only `C192879` (the soldered
-standoff, §5) was ever looked up. Nothing here has been invented to fill the column:
+Verified against JLCPCB's live parts API (`selectSmtComponentList`), not a catalogue page. All five
+are now in `kibot/jlc_parts.csv`, and `jlc_assembly.py check` reports **0 LCSC gaps**:
 
-| Footprint | Designators | Part that must be looked up | LCSC |
+| Footprint | Designators | Part | LCSC | library | stock | price@1 |
+|---|---|---|---|---|---|---|
+| `diode_tht_sod123` | D1…D32 | 1N4148W, SOD-123 | **C81598** | **base** | 3,154,652 | $0.0124 |
+| `battery_connector_jst_ph_2` | JST1 | S2B-PH-K-S(LF)(SN) | **C173752** | expand | 179,586 | $0.0397 |
+| `reset_switch_smd_side` | RST1 | Panasonic EVQPUC02K | **C79174** | expand | 11,299 | $0.1822 |
+| `power_switch_smd_side` | PWR1 | Alps SSSS811101 | **C109335** | expand | 41,819 | $0.1488 |
+| `choc_v1_v2` | S1…S32 | Kailh 1350 hotswap socket base | **C9900243373** | expand | 0 → **consigned** | — |
+| `mcu_nice_nano` | MCU1 | nice!nano v2 | n/a — `assemble=no`, hand-soldered | | | |
+
+### The hotswap socket is the one special case
+
+No hotswap socket is *in stock* at JLC: every registration returns `stockCount: 0` and
+`isBuyComponent: 0`. But JLC explicitly supports non-stock parts — from `jlcpcb.com/pcb-assembly`:
+
+> "Components for PCB assembly can be sourced in multiple ways: in-stock components from JLCPCB's
+> parts library (fastest); global sourcing via trusted distributors (lead time 9–15 days);
+> **pre-order parts added to your private library**; **consigned parts supplied by you**; new part
+> requests if a component is not yet listed."
+
+Socket registrations that exist (all `minPurchaseNum` > 0):
+
+| LCSC | description | route | min |
 |---|---|---|---|
-| `diode_tht_sod123` | D1…D32 (32/half) | 1N4148W diode, SOD-123 | **missing** |
-| `choc_v1_v2` | S1…S32 (32/half) | Kailh Choc V1 hotswap socket (PG1350) | **missing** — also unverified whether LCSC stocks it at all (`DECISIONS.md` D-6, `BOM.md` ❓-6) |
-| `battery_connector_jst_ph_2` | JST1 | JST PH 2.0 mm 2-pin, side entry (S2B-PH-K-S class) | **missing** |
-| `reset_switch_smd_side` | RST1 | Panasonic EVQ-PU[A/C/J/L]02K | **missing** |
-| `power_switch_smd_side` | PWR1 | Alps SSSS811101 | **missing** |
-| `mcu_nice_nano` | MCU1 | nice!nano v2 — **not a JLC part**, hand-solder | n/a (by design) |
+| **C9900243373** (chosen) | 【邮寄专用】 "1350" — 凯华Kailh热插拔轴底座 (Kailh hotswap socket base) | mail-in consignment | 441 |
+| C9900300066 | 【邮寄专用】 轴座_焊接热插拔_不带灯 (generic solderable socket) | mail-in consignment | 10 |
+| C9900010116 | Kailh Low-Profile Hot-Swappable Socket (凯华矮轴热插拔) | pre-order | 1000 |
+| C9900034372 | Gateron low-profile hot-swap socket | pre-order | 441 |
+| C9900190495/496/497 | DUROCK Hotswap PCB Sockets (colours) | mail-in consignment | 441 |
 
-To close the gap: put the five codes in the `lcsc` column of `kibot/jlc_parts.csv`. That file is the
-single place the numbers live; nothing else needs to change. `scripts/jlc_assembly.py bom` then
-writes one JLC BoM line per part type, and `check` stops warning.
+`【邮寄专用】` is JLC's own marker for **mail-in only**. So the practical routes are: **consign**
+(buy 64 sockets from a keyboard vendor, mail them, JLC reflows them — CPL stays 67/half) or
+**pre-order** via JLC. Both carry a minimum far above the 64 the board needs. If that is
+unattractive, set `assemble=no` for `choc_v1_v2` and hand-solder them — the CPL then drops to
+**35 placements/half** and the rest still arrives assembled.
 
-```sh
-# what is still missing, on every build:
-./.venv/Scripts/python.exe scripts/jlc_assembly.py bom
-```
-
-> Until those five codes are entered, `<board>_bom_jlc.csv` is **header-only** and JLC will place
-> nothing even though the CPL is complete. That failure is loud on purpose: a CPL full of parts
-> with an empty BoM is exactly the kind of half-declaration this task exists to remove.
-
----
+**Do not use `C5333465`.** The project's old notes recorded it for "CPG135001S30"; the API types it
+as `Mechanical Keyboard Shaft` — that is the Choc *switch*, not the socket, and it is discontinued
+(stock 0).
 
 ## 7. What JLC would receive today
 
