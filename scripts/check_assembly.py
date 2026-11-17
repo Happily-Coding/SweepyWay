@@ -172,8 +172,16 @@ def dxf_circles(path: Path) -> np.ndarray:
 
 
 def stl_section(path: Path, z: float | None) -> list[dict]:
-    """Interior openings of a horizontal slice: centre + oriented size."""
+    """Interior openings of a horizontal slice: centre + oriented size.
+
+    `cx/cy` is the BBOX centre, not the vertex mean: an STL section ring is triangulated, so its
+    vertices are not distributed uniformly round the loop and the mean drifts by up to 6 mm on a
+    14 mm square opening (that produced a fake "cover does not cover its switches"). `w/h` is the
+    axis-aligned extent (fine for filtering); `aw/ah` is the minimum rotated rectangle, which is
+    the rotation-proof size -- a 14 mm cutout reads 19.1 mm axis-aligned at 30 deg splay.
+    """
     import trimesh
+    from shapely.geometry import Polygon
     mesh = trimesh.load(str(path), force="mesh", process=True)
     if z is None:
         z = float(mesh.bounds[0][2]) + 0.6
@@ -185,8 +193,17 @@ def stl_section(path: Path, z: float | None) -> list[dict]:
         for ring in poly.interiors:
             xs = np.array([p[0] for p in ring.coords], dtype=float)
             ys = np.array([p[1] for p in ring.coords], dtype=float)
-            out.append({"cx": float(xs.mean()), "cy": float(ys.mean()),
-                        "w": float(xs.max() - xs.min()), "h": float(ys.max() - ys.min())})
+            aw, ah = float(xs.max() - xs.min()), float(ys.max() - ys.min())
+            try:
+                mrr = Polygon(list(ring.coords)).minimum_rotated_rectangle
+                ex, ey = np.array(mrr.exterior.coords).T
+                sides = np.hypot(np.diff(ex), np.diff(ey))
+                aw, ah = float(sides[0]), float(sides[1])
+            except Exception:
+                pass
+            out.append({"cx": float((xs.min() + xs.max()) / 2), "cy": float((ys.min() + ys.max()) / 2),
+                        "w": float(xs.max() - xs.min()), "h": float(ys.max() - ys.min()),
+                        "aw": aw, "ah": ah})
     return out
 
 
@@ -398,11 +415,15 @@ def main() -> int:
         if cover.exists():
             zmin = float(trimesh.load(str(cover), force="mesh").bounds[0][2])
             openings = stl_section(cover, zmin + 0.6)
-            key_holes = [h for h in openings if max(h["w"], h["h"]) >= 10]
+            key_holes = [h for h in openings if 10 <= max(h["w"], h["h"]) <= 25]
+            bay_holes = [h for h in openings if max(h["w"], h["h"]) > 25]
             screw_holes = [h for h in openings if max(h["w"], h["h"]) < 4]
-            print(f"  ...  cover plate level: {len(key_holes)} key openings, {len(screw_holes)} screw holes")
+            print(f"  ...  cover plate level: {len(key_holes)} key openings, "
+                  f"{len(bay_holes)} controller bay, {len(screw_holes)} screw holes")
             kxy = np.array([[h["cx"], h["cy"]] for h in key_holes])
             sxy = np.array([[h["cx"], h["cy"]] for h in screw_holes])
+            rep.check("printed cover has exactly 1 controller bay opening", len(bay_holes) == 1,
+                      f"{len(bay_holes)} opening(s) larger than a key cutout at plate level")
             rep.check("printed cover has its 5 screw holes", len(screw_holes) == 5,
                       f"{len(screw_holes)} screw-sized openings at plate level")
             if len(sxy) >= 3:
@@ -413,10 +434,10 @@ def main() -> int:
                 covered = int((d3 <= args.key_tol).sum())
                 rep.check("printed cover covers every switch", covered == len(switches) and d3.max() <= args.key_tol,
                           f"{covered}/{len(switches)} covered, worst {d3.max():.3f} mm")
-                csizes = sorted({(round(h["w"], 1), round(h["h"], 1)) for h in key_holes})
+                csizes = sorted({(round(h["aw"], 1), round(h["ah"], 1)) for h in key_holes})
                 rep.check(f"cover openings ~{CUTOUT_MM} mm",
-                          all(CUTOUT_MM - 0.6 <= max(h["w"], h["h"]) <= CUTOUT_MM + 1.6 for h in key_holes),
-                          f"sizes {csizes[:4]}{' ...' if len(csizes) > 4 else ''}")
+                          all(CUTOUT_MM - 0.6 <= max(h["aw"], h["ah"]) <= CUTOUT_MM + 1.6 for h in key_holes),
+                          f"sizes {csizes[:4]}{' ...' if len(csizes) > 4 else ''} (min-rect, rotation-proof)")
         case = cdir / "l_case_3d.stl"
         if case.exists():
             holes = stl_section(case, 1.5)
@@ -428,6 +449,66 @@ def main() -> int:
                 dh, _ = cKDTree(mount_xy).query(apply(hxy, reg3))
                 rep.check("case screw bosses coaxial with PCB holes", dh.max() <= args.screw_tol + 0.3,
                           f"worst {dh.max():.3f} mm")
+
+    # ---- fit: the RIGHT printed parts (B5). Same checks on right-hand inputs: the right case and
+    # cover must register onto the right PCB, or the author is back to trusting a slicer mirror.
+    # Skipped silently when the right STLs are not in --cases, so old builds still work.
+    if args.cases:
+        cdir = Path(args.cases)
+        rcase_f, rcover_f = cdir / "r_case_3d.stl", cdir / "r_cover.stl"
+        if rcase_f.exists() or rcover_f.exists():
+            import trimesh
+            rfps = kicad_footprints(root / "right_pcb.kicad_pcb")
+            rswitches = [f for f in rfps if f["name"].endswith(":choc_v1_v2")]
+            rmounts = [f for f in rfps if "mounting_hole" in f["name"]]
+            rep.check("right: 32 switches + 5 mounting holes",
+                      len(rswitches) == 32 and len(rmounts) == 5,
+                      f"{len(rswitches)} switches, {len(rmounts)} mounting holes")
+            rsw_xy = np.array([[f["x"], f["y"]] for f in rswitches])
+            rmount_xy = np.array([[f["x"], f["y"]] for f in rmounts])
+            rscrews_xy = dxf_circles(outl / "r_screws_outline.dxf")
+            rreg, rres = register(rscrews_xy, rmount_xy)
+            rep.check("right: screw outline registers onto right PCB", rres < 0.05,
+                      f"residual {rres:.3f} mm, flip={rreg[0]}")
+            if rcover_f.exists():
+                rzmin = float(trimesh.load(str(rcover_f), force="mesh").bounds[0][2])
+                ropen = stl_section(rcover_f, rzmin + 0.6)
+                rkey_holes = [h for h in ropen if 10 <= max(h["w"], h["h"]) <= 25]
+                rbay_holes = [h for h in ropen if max(h["w"], h["h"]) > 25]
+                rscrew_holes = [h for h in ropen if max(h["w"], h["h"]) < 4]
+                print(f"  ...  right cover plate level: {len(rkey_holes)} key openings, "
+                      f"{len(rbay_holes)} controller bay, {len(rscrew_holes)} screw holes")
+                rep.check("right: printed cover has exactly 1 controller bay opening",
+                          len(rbay_holes) == 1,
+                          f"{len(rbay_holes)} opening(s) larger than a key cutout at plate level")
+                rep.check("right: printed cover has its 5 screw holes", len(rscrew_holes) == 5,
+                          f"{len(rscrew_holes)} screw-sized openings at plate level")
+                if len(rscrew_holes) >= 3:
+                    rreg2, rres2 = register(np.array([[h["cx"], h["cy"]] for h in rscrew_holes]), rmount_xy)
+                    rep.check("right: cover registers onto right PCB (screw holes)", rres2 < 0.7,
+                              f"residual {rres2:.3f} mm, flip={rreg2[0]}")
+                    rd3, _ = cKDTree(rsw_xy).query(
+                        apply(np.array([[h["cx"], h["cy"]] for h in rkey_holes]), rreg2))
+                    rep.check("right: printed cover covers every switch",
+                              len(rd3) == 32 and rd3.max() <= args.key_tol,
+                              f"{int((rd3 <= args.key_tol).sum())}/32 covered, worst {rd3.max():.3f} mm")
+                    rcsizes = sorted({(round(h["aw"], 1), round(h["ah"], 1)) for h in rkey_holes})
+                    rep.check(f"right: cover openings ~{CUTOUT_MM} mm",
+                              all(CUTOUT_MM - 0.6 <= max(h["aw"], h["ah"]) <= CUTOUT_MM + 1.6
+                                  for h in rkey_holes),
+                              f"sizes {rcsizes[:4]}{' ...' if len(rcsizes) > 4 else ''} (min-rect)")
+            if rcase_f.exists():
+                rholes = stl_section(rcase_f, 1.5)
+                rep.check("right: case has 5 screw holes in its floor", len(rholes) == 5,
+                          f"{len(rholes)} closed openings at z=1.5")
+                if len(rholes) >= 3:
+                    rreg3, rres3 = register(np.array([[h["cx"], h["cy"]] for h in rholes]), rmount_xy)
+                    rep.check("right: case registers onto right PCB (screw bosses)", rres3 < 1.2,
+                              f"residual {rres3:.3f} mm, flip={rreg3[0]}")
+                    rdh, _ = cKDTree(rmount_xy).query(
+                        apply(np.array([[h["cx"], h["cy"]] for h in rholes]), rreg3))
+                    rep.check("right: case screw bosses coaxial with PCB holes",
+                              rdh.max() <= args.screw_tol + 0.3, f"worst {rdh.max():.3f} mm")
 
     if args.json:
         print("__JSON__" + json.dumps({"ok": rep.ok, "checks": rep.rows}, default=float))
