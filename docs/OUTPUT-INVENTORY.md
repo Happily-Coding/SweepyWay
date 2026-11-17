@@ -28,7 +28,7 @@ So: **nothing on that site reflects B17/B19/B20.** Do not quote it as current.
 
 | path | what it contains | producer | notes |
 |---|---|---|---|
-| `combined_scene.glb` | everything merged for viewing: case + cover + PCB-with-components + palm rest + tenting system, in one scene | `create_full_3d_visual.py` | **dimensionally incoherent**: `Case` 0…16, PCB 0…1.51, `Cover` **25…32**. Uses a hardcoded −90° X rotation and "move the PCB up 7 units". Cannot be used to check clearances. |
+| `combined_scene.glb` | everything merged for viewing: cases + FR4 plates + PCBs-with-components + palm rest + tenting system, in one scene | **`scripts/build_combined_scene.py`** (replaces `create_full_3d_visual.py`) | Now coherent: case 0…11.20, plate 11.20…12.40 (sitting on the wall), PCB lifted to 9.00…10.20 from `config.yaml`, both halves side by side. It **fails** if the stack is incoherent. Caveat: the PCB export's fastener *preview* models hang ~2 mm below the floor, so component z-extents are indicative. The old script read `cases/case.stl` + `cover.stl` (legacy committed files nothing regenerates — the committed cover was dated March 2026) and applied a −90° rotation plus "PCB up 7", which is why the published scene showed a 16 mm case. |
 | `temp_stl_models_no_tenting.glb` | scratch: STL parts only, pre-merge | same script | **build junk — should not be published** |
 | `temp_stl_models_tenting.glb` | scratch: STL parts with tenting applied | same script | build junk |
 | `pcb_plus_stl_no_tenting.glb` | scratch: PCB + STL parts, before tenting | same script | build junk |
@@ -112,7 +112,8 @@ exist because `r_hand_rest_polygon` is not a true mirror of the left.
    `*-3d.glb` vs `*-3d-misscaled.glb` vs `*-3d.step` vs `*-3d.stl`; `case.stl` vs `l_case_3d.stl`;
    `cover.stl` vs `l_cover.stl`. The repo needs `fix_glb_scale.py` precisely because the GLB export
    gets units wrong, so the GLB is only correct *after* that step.
-4. **`tenting_system.stl` has negative volume** (inverted normals) — a printing hazard.
+4. ~~`tenting_system.stl` has negative volume~~ — **fixed by regeneration**: the pipeline's own
+   output is +60.0 cm³; only the committed snapshot was inverted. Rebuild before printing.
 5. **`combined_scene.glb` is not a valid clearance check** (parts stacked incoherently).
 6. **No build stamp**, so nothing here can be proven to match any commit — hence
    `scripts/check_published.py` refuses to publish, correctly.

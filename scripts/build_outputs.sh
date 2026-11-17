@@ -79,13 +79,22 @@ if [ "$DO_KIBOT" = 1 ]; then
   for cfg in default boards 3d_preview pdf jlpcb_pos; do
     for board in left_pcb right_pcb; do
       printf '   kibot %-12s %-10s ' "$cfg" "$board"
-      MSYS_NO_PATHCONV=1 "$DOCKER" run --rm \
+      # `pdf` (pdf_pcb_print, all layers) writes its file and then never exits locally, so cap it
+      # and accept a timeout when fresh output is on disk. Otherwise a real failure stays a failure.
+      marker="/tmp/.kibot_marker_${cfg}_${board}"; touch "$marker"; sleep 1
+      MSYS_NO_PATHCONV=1 timeout 300 "$DOCKER" run --rm \
         -v "$WSM:/workspace" -w /workspace \
         -e KICAD9_3DMODEL_DIR=/workspace/component_3d_models \
         -e PATH_TO_SWEEPYWAY_COMPONENT_MODELS=/workspace/component_3d_models \
         --entrypoint /bin/bash "$KICAD_IMAGE" \
         -c "kibot -b /workspace/ergogen/output/pcbs/${board}.kicad_pcb -c /workspace/kibot/${cfg}.kibot.yaml" \
-        >"/tmp/kibot_${cfg}_${board}.log" 2>&1 && echo "ok" || { echo "FAIL (see /tmp/kibot_${cfg}_${board}.log)"; FAIL=1; }
+        >"/tmp/kibot_${cfg}_${board}.log" 2>&1
+      rc=$?
+      if [ "$rc" = 0 ]; then echo "ok"
+      elif [ "$rc" = 124 ] && [ -n "$(find filtered-output ergogen/output -newer "$marker" -type f 2>/dev/null | head -1)" ]; then
+        echo "ok (timed out after writing output)"
+      else echo "FAIL rc=$rc (see /tmp/kibot_${cfg}_${board}.log)"; FAIL=1; fi
+      rm -f "$marker"
     done
   done
 fi
@@ -135,11 +144,13 @@ if [ "$DO_ASSEMBLY" = 1 ]; then
     && ok "tenting system" || { bad "tenting — see /tmp/tent.log"; tail -3 /tmp/tent.log; }
   $RUN fix_glb_scale.py --verbose >/tmp/scale.log 2>&1 \
     && ok "fix_glb_scale" || { bad "fix_glb_scale — see /tmp/scale.log"; tail -3 /tmp/scale.log; }
-  $RUN create_full_3d_visual.py >/tmp/scene.log 2>&1 \
-    && ok "combined scene" || { bad "combined scene — see /tmp/scene.log"; tail -3 /tmp/scene.log; }
-  echo "   NOTE: create_full_3d_visual.py still hardcodes a -90 deg X rotation and 'PCB up 7 units'"
-  echo "         (tuned to the old 16 mm case). Until that is derived from config.yaml the scene"
-  echo "         is not dimensionally trustworthy — see docs/HANDOFF-NEXT.md 1c."
+  # The legacy create_full_3d_visual.py read filtered-output/cases/{case,cover}.stl, which nothing
+  # regenerates (a 16 mm case from March 2026), and applied a -90 deg rotation plus "PCB up 7".
+  # scripts/build_combined_scene.py replaces it: real inputs, one explicit frame, offsets derived
+  # from ergogen/config.yaml, and it fails if the stack is incoherent.
+  $RUN scripts/build_combined_scene.py --sides l,r >/tmp/scene.log 2>&1 \
+    && ok "combined scene (scripts/build_combined_scene.py)" \
+    || { bad "combined scene — see /tmp/scene.log"; tail -6 /tmp/scene.log; }
 fi
 
 # ---------------------------------------------------------------- 7. stamp
