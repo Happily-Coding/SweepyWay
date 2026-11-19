@@ -192,6 +192,33 @@ def config_units(path: Path | None = None) -> dict[str, float]:
     return out
 
 
+def resolved_units(path: Path | None = None) -> dict[str, float]:
+    """Every `units:` entry, resolving expressions top-down (ergogen units reference each other).
+
+    `config_units()` deliberately reads literals only; B23's hood is derived
+    (`pcb_top + mcu_head_height + clearance`), so it needs the expression form.
+    """
+    path = path or (REPO / "ergogen" / "config.yaml")
+    text = Path(path).read_text(encoding="utf-8", errors="ignore")
+    exprs: dict[str, str] = {}
+    for m in re.finditer(r"^  ([a-z_0-9]+):\s*([^\n#]+)", text, flags=re.M):
+        exprs.setdefault(m.group(1), m.group(2).strip())
+    out: dict[str, float] = {}
+    for _ in range(12):
+        progress = False
+        for key, expr in exprs.items():
+            if key in out:
+                continue
+            try:
+                out[key] = float(eval(expr, {"__builtins__": {}}, dict(out)))  # noqa: S307
+                progress = True
+            except Exception:
+                continue
+        if not progress:
+            break
+    return out
+
+
 def dxf_net_shape(path: Path):
     """The outline's material area as one shapely geometry (even-odd nesting, holes removed).
 
@@ -777,6 +804,29 @@ def main() -> int:
                           ring.difference(p_bay).area < 0.01 and ring.difference(p_full).area < 0.01,
                           f"wall ring {ring.area:.2f} mm2; uncovered by D1 "
                           f"{ring.difference(p_bay).area:.3f} mm2, by D2 {ring.difference(p_full).area:.3f} mm2")
+    # ---- B23: controller headroom, parameterised -----------------------------------------------
+    # Nothing here is a measurement: it checks that the parameters in config.yaml describe a hood
+    # that clears the controller head, and keeps the disagreement with the repo's 3D models visible
+    # instead of silently trusting either of them.
+    ru = resolved_units()
+    need = ("mcu_head_height", "pcb_top_z", "controller_hood_inner_top", "controller_hood_outer_top")
+    if all(k in ru for k in need) and "case_border_height" in ru:
+        head, inner, outer = ru["mcu_head_height"], ru["controller_hood_inner_top"], ru["controller_hood_outer_top"]
+        want = ru["pcb_top_z"] + head + ru["mcu_head_clearance"]
+        rep.check("B23: hood inner top clears pcb_top + head + clearance", inner >= want - 1e-6,
+                  f"inner {inner:.2f} = pcb_top {ru['pcb_top_z']:.2f} + head {head:.2f} "
+                  f"+ clearance {ru['mcu_head_clearance']:.2f} = {want:.2f}")
+        rep.check("B23: the hood rises above the wall top (otherwise it is not a hood)",
+                  outer > ru["case_border_height"] + 0.5,
+                  f"outer {outer:.2f} vs wall top {ru['case_border_height']:.2f} -> "
+                  f"+{outer - ru['case_border_height']:.2f} mm, "
+                  f"{outer - ru['case_border_height'] - ru['top_plate_thickness']:.2f} mm above the plate top")
+        rep.note(f"B23 head {head:.2f} mm is the author's hardware assumption "
+                 f"({ru.get('mcu_header_total', 0):.1f} mm header, 1/4 above the board), NOT a measurement; "
+                 f"KiCad's generic PinHeader_1x12 preview draws 5.84 mm of pin tails (~8.6 mm above the PCB top)")
+    else:
+        rep.note("B23 units missing from config.yaml: controller headroom is unparameterised")
+
     if args.cases and (Path(args.cases) / "l_case_3d.stl").exists():
         import trimesh
         case_f = Path(args.cases) / "l_case_3d.stl"
