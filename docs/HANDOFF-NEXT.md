@@ -241,11 +241,38 @@ shapes) **and 5 screw holes**, or fail. This is the check that would have caught
 
 ---
 
+## 4b. Right palm rest / tenting outline — measured baseline (not fixed)
+
+The old note said "one wrong vertex". The measurements say something less tidy, so here is the
+state a future attempt should start from (all against mirror axis **x = 170**):
+
+| outline | bbox mirror residual | shape agreement | note |
+|---|---|---|---|
+| `thumb_suplementary_outline` | **0.00 mm** | IoU **0.9612** (L 3356.1 vs R 3491.4 mm²) | already very close; R is 4 % larger, so this is a shape detail, not a broken outline |
+| `hand_rest_polygon` | **86.33 mm** | — (open outline, does not polygonise) | genuinely different shapes: L spans x **25.2…231.2** (it crosses the mirror axis, because `l_hand_rest_overlapping_polygon` deliberately uses the **`mirror_thumbfan_col1_thumb_row_1`** vertex), R spans x **195.1…314.8** |
+
+So the *left* hand-rest polygon is the odd one: it is built partly from a mirrored point, which is
+why it reaches across the axis and why no mechanical mirror of it can match. The fix order is:
+
+1. Rebuild `l_hand_rest_overlapping_polygon` using **left-half refs only** (replace the
+   `mirror_thumbfan_col1_thumb_row_1` vertex with the equivalent left-side point/shift), so the left
+   polygon stays inside its own half.
+2. Then mirror it mechanically: ref `X` → its twin (`mirror_X` ↔ `X`), and negate the **whole** x
+   term of each shift (`-(0.5 kx + 0.5px)`, not `-0.5 kx + 0.5px`), because
+   `mirror(P + s) = mirror(P) + (−s_x, s_y)`.
+3. Gate it: 0.99 ≤ IoU(L_mirrored, R) for both outlines, in `check_assembly`.
+
+Two traps hit while trying this the first time, both worth keeping:
+- a regex that parses `- ref:` / `shift:` must not let `\s*` swallow the newline, or every shift is
+  silently dropped and the mirror comes out wrong with no error;
+- Windows Python cannot read `/tmp/...` paths, so an A/B experiment written to `/tmp` silently
+  measured the same unchanged file twice (use `C:/tmp/...`).
+
 ## 5. Older pendings, unchanged
 
-- **Right palm rest / tenting base are not mirrors** (`r_hand_rest_polygon`,
-  `r_thumb_suplementary_outline` — one wrong vertex, `mirror_thumbfan_col1` vs `thumbfan_col1`),
-  so the Python builders are left-only.
+- **Right palm rest / tenting base are not mirrors** — see §4b for the measured baseline (the thumb
+  outline is already 96 % mirrored; the *left* hand-rest polygon is the odd one because it uses a
+  mirrored vertex). The Python builders are left-only until that is done.
 - **B22 residue**: only the default preset round-trips; `minimal-3x5` refuses loudly,
   `row-stagger-1u` generates a valid but different config (needs per-preset outline refs).
 - **B14/B15**: `filtered-output/` cannot be published without `BUILD-STAMP.txt`;
