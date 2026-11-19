@@ -812,18 +812,23 @@ def main() -> int:
     need = ("mcu_head_height", "pcb_top_z", "controller_hood_inner_top", "controller_hood_outer_top")
     if all(k in ru for k in need) and "case_border_height" in ru:
         head, inner, outer = ru["mcu_head_height"], ru["controller_hood_inner_top"], ru["controller_hood_outer_top"]
-        want = ru["pcb_top_z"] + head + ru["mcu_head_clearance"]
-        rep.check("B23: hood inner top clears pcb_top + head + clearance", inner >= want - 1e-6,
-                  f"inner {inner:.2f} = pcb_top {ru['pcb_top_z']:.2f} + head {head:.2f} "
-                  f"+ clearance {ru['mcu_head_clearance']:.2f} = {want:.2f}")
+        onehot = ru.get("mcu_header_style_spring", 0) + ru.get("mcu_header_style_generic", 0)
+        rep.check("B23: exactly one MCU mounting preset is selected", abs(onehot - 1) < 1e-9,
+                  f"spring={ru.get('mcu_header_style_spring', 0):.0f} "
+                  f"generic={ru.get('mcu_header_style_generic', 0):.0f} (one-hot)")
+        # `mcu_head_height` already carries its own roof clearance, per preset.
+        want = ru["pcb_top_z"] + head
+        rep.check("B23: hood inner top == pcb_top + head (+ that preset's clearance)", abs(inner - want) < 1e-6,
+                  f"inner {inner:.2f} = pcb_top {ru['pcb_top_z']:.2f} + head {head:.2f}")
         rep.check("B23: the hood rises above the wall top (otherwise it is not a hood)",
                   outer > ru["case_border_height"] + 0.5,
                   f"outer {outer:.2f} vs wall top {ru['case_border_height']:.2f} -> "
                   f"+{outer - ru['case_border_height']:.2f} mm, "
                   f"{outer - ru['case_border_height'] - ru['top_plate_thickness']:.2f} mm above the plate top")
-        rep.note(f"B23 head {head:.2f} mm is the author's hardware assumption "
-                 f"({ru.get('mcu_header_total', 0):.1f} mm header, 1/4 above the board), NOT a measurement; "
-                 f"KiCad's generic PinHeader_1x12 preview draws 5.84 mm of pin tails (~8.6 mm above the PCB top)")
+        style = "spring header (5 mm)" if ru.get("mcu_header_style_spring") == 1 else "generic KiCad 2.54 header"
+        rep.note(f"B23 preset in use: {style} -> head {head:.2f} mm "
+                 f"(spring {ru.get('mcu_spring_head_height', 0):.2f} / generic {ru.get('mcu_generic_head_height', 0):.2f}); "
+                 f"the generic one is the conservative choice, ~2 mm taller")
     else:
         rep.note("B23 units missing from config.yaml: controller headroom is unparameterised")
 

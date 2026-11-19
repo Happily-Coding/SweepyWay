@@ -114,24 +114,41 @@ units:
   # below its top). One millimetre of lintel keeps the seat. Whether the window is tall enough for
   # the connector is a B23 question (controller headroom / hood), not something to solve by opening
   # the wall all the way up.
-  # ---- B23 controller headroom: PARAMETERISED (numbers belong to the real parts) ------------
-  # The headers pass through the PCB (part below the board) and into the nice!nano (part above).
-  # With a 5 mm no-solder header, assume ~1/4 above and ~1/4 below the board. What has to fit inside
-  # the enclosure is the quarter above + the nano's own board + the tallest part on its top face.
-  # Nothing here is a measurement: the two 3D models in this repo disagree (KiCad's generic
-  # PinHeader_1x12 renders 11.5 mm of header with 5.84 mm of pin tails; Nice_Nano_V2.step is a
-  # bounding box that includes its connectors), so these are the author's hardware assumptions and
-  # they are deliberately rounded UP. Update the four physical numbers after measuring the parts.
-  mcu_header_total: 5                  # no-solder spring header, end to end
+  # ---- B23 controller headroom: PARAMETERISED, two mounting PRESETS (one-hot) -----------------
+  # Exactly one `mcu_header_style_*` must be 1. Each preset's head height already includes its own
+  # clearance to the hood roof, so `controller_hood_inner_top = pcb_top_z + mcu_head_height`.
+  #
+  #   A) spring_header  -- 5 mm no-solder spring header, ~1/4 above and ~1/4 below the board.
+  #   B) generic_header -- KiCad's official PinHeader_1x12 (component_3d_models/
+  #      PinHeader_1x12_P2.54mm_Vertical.step, 2018-08-30, the standard library part). More likely
+  #      to be in stock and the more conservative case. Measured off that model with the short pins
+  #      through the PCB, the plastic body sitting on it, and the nano socketed onto the long pins:
+  #        long-pin band 4.13..9.97 above the PCB top
+  #        plastic body  1.59..4.13   -> 2.54 mm
+  #        long pins     4.13..9.97   -> 5.84 mm
+  #        nano roof = plastic + long pins = 8.38, plus 0.5 clearance -> 8.88
+  #      A generic 2.54 header is ~8.4 mm from the PCB face to the top of the pins, so 8.88 is the
+  #      number to design the hood around; anything shorter risks the nano.
+  mcu_header_style_spring: 1
+  mcu_header_style_generic: 0
+
+  mcu_header_total: 5                  # A) no-solder spring header, end to end
   mcu_header_above_pcb: mcu_header_total * 0.25
   mcu_header_below_pcb: mcu_header_total * 0.25
   mcu_board_thickness: 1.6             # nice!nano PCB
   mcu_board_tallest_component: 2.0     # conservative: tallest thing on the keycap-side face
-  mcu_head_clearance: 1.0              # air between the head and the hood ceiling
-  mcu_head_safety: 1.0                 # err on the side of caution
-  mcu_head_height: mcu_header_above_pcb + mcu_board_thickness + mcu_board_tallest_component + mcu_head_safety
+  mcu_head_clearance: 1.0
+  mcu_head_safety: 1.0
+  mcu_spring_head_height: mcu_header_above_pcb + mcu_board_thickness + mcu_board_tallest_component + mcu_head_safety + mcu_head_clearance
+
+  mcu_generic_plastic: 2.54            # B) measured: 4.13 - 1.59
+  mcu_generic_long_pins: 5.84          # B) measured: 9.97 - 4.13
+  mcu_generic_roof_clearance: 0.5      # B) author's rule: +0.5 to the roof
+  mcu_generic_head_height: mcu_generic_plastic + mcu_generic_long_pins + mcu_generic_roof_clearance
+
+  mcu_head_height: mcu_spring_head_height * mcu_header_style_spring + mcu_generic_head_height * mcu_header_style_generic
   pcb_top_z: case_bottom_thickness + standoff_length + pcb_thickness
-  controller_hood_inner_top: pcb_top_z + mcu_head_height + mcu_head_clearance
+  controller_hood_inner_top: pcb_top_z + mcu_head_height
   controller_hood_roof: 1.0
   controller_hood_outer_top: controller_hood_inner_top + controller_hood_roof
   # ---------------------------------------------------------------------------------------------
