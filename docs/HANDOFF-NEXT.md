@@ -273,8 +273,14 @@ Two traps hit while trying this the first time, both worth keeping:
 - **Right palm rest / tenting base are not mirrors** — see §4b for the measured baseline (the thumb
   outline is already 96 % mirrored; the *left* hand-rest polygon is the odd one because it uses a
   mirrored vertex). The Python builders are left-only until that is done.
-- **B22 residue**: only the default preset round-trips; `minimal-3x5` refuses loudly,
-  `row-stagger-1u` generates a valid but different config (needs per-preset outline refs).
+- **B22 residue (reduced)**: `check_config_drift.mjs --preset` now has three honest modes.
+  Default `sweepyway.json` does the full structural compare against `ergogen/config.yaml` (PASS).
+  `row-stagger-1u` **generates** and is reported as "non-default preset: generation only" (PASS) —
+  comparing it to the canonical file would be asserting that a different layout produces identical
+  output, which used to show up as a false FAIL. `minimal-3x5` still refuses loudly and correctly:
+  "canonical outline references matrix_col6_row4; this layout has no equivalent point. Retarget the
+  outline for this preset before generating from it." That retargeting (per-preset outline refs) is
+  the only real work left in B22, and it is a design change, not a bug.
 - **B14/B15**: `filtered-output/` cannot be published without `BUILD-STAMP.txt`;
   `check_published.py` correctly blocks. One clean CI run after the fixes closes it.
 - **B8** still open.

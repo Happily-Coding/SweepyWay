@@ -297,6 +297,18 @@ try {
 }
 
 const committedText = readFileSync(resolve(REPO, "ergogen/config.yaml"), "utf8");
+// A non-default preset is a DIFFERENT LAYOUT, so its generated config is expected to differ from the
+// canonical ergogen/config.yaml. Comparing them would report drift that is not drift, which is how a
+// gate becomes noise. In that mode the question is only "does this preset generate at all?", so the
+// loud refusal in the catch above stays the failure mode and a successful generation is a PASS.
+if (presetPath !== resolve(DEFAULT_PRESET)) {
+  console.log(`drift       : not applicable - ${relPreset} is not the default preset`);
+  console.log(`              (its layout differs from ergogen/config.yaml by design; the gate only`);
+  console.log(`               asserts that the generator can produce it at all)`);
+  console.log("\nB22 gate: PASS (non-default preset: generation only)");
+  process.exit(0);
+}
+
 const diffs = compare(load(committedText, "ergogen/config.yaml"), load(generatedText, "generator output"));
 
 if (diffs.length === 0) {
