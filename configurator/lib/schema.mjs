@@ -59,6 +59,36 @@ export const MCU_MIRROR_DISTANCE = 168;
  */
 export const PLATE_SITS_ON_WALL = 1;
 
+// B23: how the nice!nano is mounted, as a named preset. Both are parameterised from real parts;
+// `generic` is the DEFAULT because a stock 2.54 mm header is far easier to buy than a no-solder
+// spring header AND it is the taller (conservative) case, so a build designed around it works with
+// either part. Numbers below are millimetres above the PCB's top face.
+//
+//   generic: measured off KiCad's official PinHeader_1x12_P2.54mm_Vertical 3D model with the short
+//            pins through the PCB and the plastic body sitting on it (long-pin band 4.13..9.97,
+//            plastic 1.59..4.13). The nano sockets onto the long pins, so its roof is
+//            plastic + long pins = 8.38, plus the author's 0.5 clearance = 8.88.
+//   spring:  a 5 mm no-solder spring header, ~1/4 above and ~1/4 below the board, plus the nano's
+//            own board and its tallest top-side part, a 1.0 mm safety margin and 1.0 mm clearance.
+export const MCU_MOUNTINGS = {
+  generic: {
+    label: "Generic 2.54 header (KiCad official, recommended)",
+    plastic: 2.54,
+    longPins: 5.84,
+    roofClearance: 0.5,
+  },
+  spring: {
+    label: "5 mm no-solder spring header",
+    headerTotal: 5,
+    abovePcbFraction: 0.25,
+    boardThickness: 1.6,
+    tallestComponent: 2.0,
+    headClearance: 1.0,
+    safety: 1.0,
+  },
+};
+export const DEFAULT_MCU_MOUNTING = "generic";
+
 export const SCREW_SHIFTS = {
   l_screw_left_top: [2, -0.75],
   l_screw_left_bottom: [2, -0.75],
@@ -162,7 +192,8 @@ export function defaults() {
     // XHHD M2*3+3 (LCSC C192879) placed+soldered by JLCPCB's PCB Assembly service; 6 = press-fit
     // standoff spanning floor->PCB; 0 = no metal, thread in printed plastic. The printed boss
     // height is DERIVED as standoffLength - standoffBodyLength, so the stack never changes.
-    case: { bottomThickness: 3, standoffLength: 6, standoffBodyLength: 3, borderHeight: null, wallThickness: 1.2 },
+    case: { bottomThickness: 3, standoffLength: 6, standoffBodyLength: 3, borderHeight: null, wallThickness: 1.2,
+      mcuMounting: DEFAULT_MCU_MOUNTING },
     palmRest: { enabled: true, height: 10, curve: 3 },
     tenting: { enabled: true, angle: 6.5, zMin: 3, hollow: 10, includePalmRest: false },
     fab: { plateThickness: 1.2, pcbThickness: 1.2 },
@@ -210,6 +241,12 @@ export function normalize(input = {}) {
   cfg.fab.pcbThickness = Number(cfg.fab.pcbThickness);
   cfg.case.standoffLength = Number(cfg.case.standoffLength);
   cfg.case.standoffBodyLength = Number(cfg.case.standoffBodyLength);
+  // B23: the mounting preset is a string; reject anything not in the table so a typo cannot
+  // silently produce a hood cut for the wrong stack.
+  if (!MCU_MOUNTINGS[cfg.case.mcuMounting]) {
+    throw new Error(`unknown case.mcuMounting "${cfg.case.mcuMounting}"; expected one of ` +
+      Object.keys(MCU_MOUNTINGS).join(", "));
+  }
   cfg.palmRest.height = Number(cfg.palmRest.height);
   cfg.palmRest.curve = Number(cfg.palmRest.curve);
   cfg.tenting.angle = Number(cfg.tenting.angle);

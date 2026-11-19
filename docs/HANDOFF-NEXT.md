@@ -130,6 +130,39 @@ measures **8.62 mm** tall on the fresh export.
 - Keep the build target ordering explicit: `plate_*` → D2 (main). `plate_*_bay` → optional,
   must pass the cutout gate before it can be offered as a choice.
 
+### B23 — controller headroom: two mounting presets, generic header by default
+
+**Decision: `case.mcuMounting` defaults to `generic`** — a stock 2.54 mm header (the KiCad official
+`PinHeader_1x12` part). Reasons, in order of weight:
+
+1. **Availability.** A 2.54 mm 1×12 header is in every shop on earth; a 5 mm no-solder spring header
+   is a niche part. A case designed for the generic header also works with the spring one.
+2. **It is the conservative case.** Generic is ~2 mm taller, so designing to it means the enclosure
+   is never too short: `spring 6.85` vs `generic 8.88` head height, i.e. hood inner top
+   **19.08 vs 17.05** and outer top **20.08 vs 18.05**.
+3. **It is measurable from a model already in the repo**, so the number is reproducible rather than
+   remembered — see the band table below.
+
+The cost of that choice is exactly **+2.03 mm of case height** over the screw/standoff region and
+nothing else: no switch, no plate dimension, no screw length changes.
+
+| preset | what it models | head | hood inner | hood outer |
+|---|---|---|---|---|
+| `generic` (default) | KiCad `PinHeader_1x12_P2.54mm_Vertical`: short pins through the PCB, plastic body on it, nano socketed onto the long pins — plastic **2.54** + long pins **5.84** + 0.5 roof clearance | **8.88** | 19.08 | 20.08 |
+| `spring` | 5 mm no-solder spring header, ¼ above / ¼ below the board — 1.25 + board 1.6 + tallest part 2.0 + safety 1.0 + clearance 1.0 | **6.85** | 17.05 | 18.05 |
+
+Measured bands behind the generic numbers (relative to the PCB top face, from
+`component_3d_models/PinHeader_1x12_P2.54mm_Vertical.step` via the KiBot glTF export):
+plastic body **1.59…4.13**, long pins **4.13…9.97**, short pins through the board **−1.41…1.59**.
+
+Both presets live in `configurator/lib/schema.mjs` (`MCU_MOUNTINGS`) and reach `config.yaml` as a
+**one-hot pair** (`mcu_header_style_spring` / `mcu_header_style_generic`), because ergogen units are
+pure arithmetic with no conditionals: `mcu_head_height` is the dot product of the flags with the two
+head heights. `check_config_drift` owns the flags, so the UI choice and the canonical config cannot
+disagree; `check_assembly` asserts they are one-hot and that the hood follows from the selected one.
+
+#### Why the height is necessary at all (unchanged)
+
 ### B23 — controller headroom: it IS necessary, and it is a raised area, not an opening
 
 Author's call: **no opening**; the controller area gets taller *only if necessary* (and it looks

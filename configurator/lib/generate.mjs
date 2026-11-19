@@ -12,7 +12,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import { plateCutout, KEYCAPS, ROW_PIN_POOL, COLUMN_PIN_POOL, matrixPairs, PRESETS, SCREW_SHIFTS, SPACING_KEYS, spacingValues, MCU_MIRROR_DISTANCE, PLATE_SITS_ON_WALL } from "./schema.mjs";
+import { plateCutout, KEYCAPS, ROW_PIN_POOL, COLUMN_PIN_POOL, matrixPairs, PRESETS, SCREW_SHIFTS, SPACING_KEYS, spacingValues, MCU_MIRROR_DISTANCE, PLATE_SITS_ON_WALL, MCU_MOUNTINGS } from "./schema.mjs";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 export const CANONICAL_CONFIG = resolve(REPO, "ergogen/config.yaml");
@@ -416,6 +416,29 @@ export function generate(cfg) {
   // MCU_MIRROR_DISTANCE: if it is ever flipped, the rim formula below has to flip with it, and the
   // drift gate (scripts/check_config_drift.mjs) is what refuses a half-flip.
   setScalar(/  plate_sits_on_wall: [\d.]+[^\n]*/, `  plate_sits_on_wall: ${PLATE_SITS_ON_WALL}`, "plate_sits_on_wall");
+  // B23: the MCU mounting preset is a one-hot pair, because ergogen units are pure arithmetic (no
+  // conditionals) and `mcu_head_height` is the dot product of the flags with the two head heights.
+  const mounting = cfg.case.mcuMounting;
+  setScalar(/  mcu_header_style_spring: [\d.]+/, `  mcu_header_style_spring: ${mounting === "spring" ? 1 : 0}`,
+    "mcu_header_style_spring");
+  setScalar(/  mcu_header_style_generic: [\d.]+/, `  mcu_header_style_generic: ${mounting === "generic" ? 1 : 0}`,
+    "mcu_header_style_generic");
+  const m = MCU_MOUNTINGS[mounting];
+  if (mounting === "generic") {
+    setScalar(/  mcu_generic_plastic: [\d.]+/, `  mcu_generic_plastic: ${num(m.plastic)}`, "mcu_generic_plastic");
+    setScalar(/  mcu_generic_long_pins: [\d.]+/, `  mcu_generic_long_pins: ${num(m.longPins)}`, "mcu_generic_long_pins");
+    setScalar(/  mcu_generic_roof_clearance: [\d.]+/, `  mcu_generic_roof_clearance: ${num(m.roofClearance)}`,
+      "mcu_generic_roof_clearance");
+  } else {
+    setScalar(/  mcu_header_total: [\d.]+/, `  mcu_header_total: ${num(m.headerTotal)}`, "mcu_header_total");
+    setScalar(/  mcu_header_above_pcb: [^\n]*/, `  mcu_header_above_pcb: mcu_header_total * ${m.abovePcbFraction}`,
+      "mcu_header_above_pcb");
+    setScalar(/  mcu_board_thickness: [\d.]+/, `  mcu_board_thickness: ${num(m.boardThickness)}`, "mcu_board_thickness");
+    setScalar(/  mcu_board_tallest_component: [\d.]+/, `  mcu_board_tallest_component: ${num(m.tallestComponent)}`,
+      "mcu_board_tallest_component");
+    setScalar(/  mcu_head_clearance: [\d.]+/, `  mcu_head_clearance: ${num(m.headClearance)}`, "mcu_head_clearance");
+    setScalar(/  mcu_head_safety: [\d.]+/, `  mcu_head_safety: ${num(m.safety)}`, "mcu_head_safety");
+  }
   {
     const PLATE_BAND = 2.2;
     const band = PLATE_BAND;

@@ -97,6 +97,16 @@
               <small>&nbsp;3 = soldered C192879 (JLCPCB PCB Assembly), 6 = press-fit standoff, 0 = printed only. The printed boss becomes standoff − this.</small>
             </label>
           </div>
+          <div class="row">
+            <label>Controller mounting
+              <select id="case-mcu-mounting">
+                <option value="generic">Generic 2.54 header (KiCad official) — recommended</option>
+                <option value="spring">5 mm no-solder spring header</option>
+              </select>
+              <small>&nbsp;Sets how tall the controller area (hood) has to be. The generic header is the
+              taller, safer case: ~8.9 mm from the PCB to the roof vs ~6.9 mm for a spring header.</small>
+            </label>
+          </div>
         </div>
 
         <div class="group">

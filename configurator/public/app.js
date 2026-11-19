@@ -65,6 +65,8 @@ function renderForm() {
   binders.push(bindField("case-bottom", () => c.case.bottomThickness, (v) => (c.case.bottomThickness = v)));
   binders.push(bindField("case-standoff", () => c.case.standoffLength, (v) => (c.case.standoffLength = v)));
   binders.push(bindField("case-body", () => c.case.standoffBodyLength, (v) => (c.case.standoffBodyLength = v)));
+  // B23: MCU mounting preset (generic = default). Drives the controller-hood height.
+  binders.push(bindField("case-mcu-mounting", () => c.case.mcuMounting, (v) => { c.case.mcuMounting = v; }));
   binders.push(bindField("case-height", () => c.case.borderHeight, (v) => (c.case.borderHeight = v)));
   binders.push(bindField("case-wall", () => c.case.wallThickness, (v) => (c.case.wallThickness = v)));
 
