@@ -195,6 +195,27 @@ required. **Two things to fix while doing it:**
    to it: the head height is the number to confirm on hardware, because it drives the case height
    more than anything else in this design.
 
+#### Hood geometry — decided, not yet cut (all parameters are in place)
+
+Author's answers, which the next pass should implement exactly:
+
+| decision | value |
+|---|---|
+| footprint | **a configurator setting** (`bay` = `*_controller_area_border`, or `wide` = the old cover's look, which the author liked); both acceptable, so expose it |
+| how it is made | **integral with the case** (one print), rising from the **case floor** so the walls are printable verticals |
+| walls | **same as the case wall**, but parameterised (`hood_wall_thickness: case_wall_thickness`) |
+| plate | **butts against the hood wall** — no cutout, no opening, nothing visible through the plate |
+| roof | **no chamfers needed for the bay footprint**: the unsupported bridge is ~27 mm at 1 mm thick, routine for FDM; a *wide* footprint grows that span, so a 45° fillet or supports is the fallback there. No model reorientation is required — the case already prints floor-down and the roof is the only bridge |
+| corners | **rounded to match the case** (the existing `*_controller_area_border` outline already has 8 arcs, so this is free) |
+
+**Why it is not in the tree yet:** the first attempt (outer extrude 54 × 34, inner subtract 50 × 30,
+roof extrude 1 mm, everything sitting exactly on the floor plane and exactly on the wall top) produced
+a **non-watertight** case with thousands of zero-volume sliver bodies. That is the known JSCAD failure
+mode for **coincident coplanar faces**. The fix to try first is mechanical: extrude the walls from
+`case_bottom_thickness - 0.4` with height `+0.4`, and start the roof at `controller_hood_inner_top - 0.4`
+with thickness `+0.4`, so every adjoining solid overlaps instead of touching. Also verify with
+`check_assembly --cases` that the STL is watertight before trusting any volume/clearance number.
+
 **The reference geometry is the old cover, and it did exactly this:**
 
 ```

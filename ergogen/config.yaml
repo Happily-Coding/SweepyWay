@@ -151,6 +151,14 @@ units:
   controller_hood_inner_top: pcb_top_z + mcu_head_height
   controller_hood_roof: 1.0
   controller_hood_outer_top: controller_hood_inner_top + controller_hood_roof
+  # B23 geometry, next step (see docs/HANDOFF-NEXT.md): the hood is a shell built from outlines that
+  # already exist and are rounded -- outer `*_controller_area_border` 54 x 34, inner
+  # `*_controller_area` 50 x 30, i.e. 2 mm walls. Wall height is derived so switching the MCU
+  # mounting preset re-cuts it automatically.
+  # Wall-clock lesson from the first attempt: extrude from the FLOOR and overlap adjoining solids by
+  # ~0.4 mm. Coincident coplanar faces (hood base exactly on the floor plane, roof exactly on the
+  # wall top) made JSCAD emit thousands of zero-volume slivers and a non-watertight case.
+  controller_hood_wall_height: controller_hood_inner_top - case_bottom_thickness
   # ---------------------------------------------------------------------------------------------
   usbc_slot_height: case_border_height - case_bottom_thickness - 1
   #TODO: aplicar offset adicional por screw minimo. porque no va a entrar asi , hay que buscar a la esquina posta. si no choca con switch.
