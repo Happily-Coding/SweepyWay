@@ -841,6 +841,22 @@ def main() -> int:
                           ring.difference(p_bay).area < 0.01 and ring.difference(p_full).area < 0.01,
                           f"wall ring {ring.area:.2f} mm2; uncovered by D1 "
                           f"{ring.difference(p_bay).area:.3f} mm2, by D2 {ring.difference(p_full).area:.3f} mm2")
+    # ---- B26: the plate FILE must declare the thickness the stack needs ------------------------
+    # top_plate_thickness is 1.2 because choc switches do not seat in anything thicker than 1.5
+    # (author's own note in config.yaml), but ergogen stamps its kicad export with a 1.6 default.
+    # Ordering straight from that file makes the plate 4 mm too proud of the case and the switches
+    # will not clip in - so assert what the file says, not what we remember to type into the order.
+    plate_files = sorted((REPO / "ergogen" / "output" / "pcbs").glob("plate_*.kicad_pcb"))
+    if plate_files:
+        want_mm = float(resolved_units().get("top_plate_thickness", 1.2))
+        for pf in plate_files:
+            m = re.search(r"\(thickness ([\d.]+)\)", pf.read_text(encoding="utf-8", errors="ignore"))
+            got = float(m.group(1)) if m else None
+            rep.check(f"{pf.name} declares the plate thickness the switches need",
+                      got is not None and abs(got - want_mm) < 0.01,
+                      f"file says {got} mm, stack needs {want_mm} mm"
+                      + (" - choc does not seat above 1.5 mm" if got and got > 1.5 else ""))
+
     # ---- printed parts must be printable: a non-manifold STL is not a part ----------------------
     # The B23 hood union taught this the hard way: coincident coplanar faces make JSCAD emit
     # zero-volume slivers, the volume goes meaningless and slicers misbehave. `scripts/repair_stl.py`

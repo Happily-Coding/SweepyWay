@@ -60,10 +60,28 @@ if [ "$DO_ERGOGEN" = 1 ]; then
   else bad "ergogen failed — see /tmp/ergogen.log"; tail -5 /tmp/ergogen.log; fi
 fi
 
+# ---------------------------------------------------------- 1b. plate thickness
+# ergogen stamps (thickness 1.6) on every pcb it writes; the plate must be top_plate_thickness (1.2)
+# or choc switches will not seat (and the case height, derived from 1.2, would be 0.4 mm out).
+step "set the plate board thickness"
+if $PY scripts/fix_plate_thickness.py >/tmp/plate_th.log 2>&1; then
+  ok "$(tail -1 /tmp/plate_th.log)"
+else
+  bad "fix_plate_thickness — see /tmp/plate_th.log"
+  tail -4 /tmp/plate_th.log
+fi
+
 # ---------------------------------------------------------------- 2. gates
 if [ "$DO_GATES" = 1 ]; then
   step "gates (the ones that must stay honest)"
-  $PY scripts/check_assembly.py --cases ergogen/output/cases >/tmp/ca.log 2>&1 \
+  # --cases must point at the STLs we ship: ergogen/output/cases holds only .jscad, and passing
+ # it made the watertight gate skip every file silently.
+ if [ -d filtered-output/cases ] && ls filtered-output/cases/*.stl >/dev/null 2>&1; then
+ CASES="--cases filtered-output/cases"
+ else
+ CASES=""
+ fi
+ $PY scripts/check_assembly.py $CASES >/tmp/ca.log 2>&1 \
     && ok "check_assembly --cases" || { bad "check_assembly"; tail -12 /tmp/ca.log; }
   $PY scripts/hardware_bom.py --no-write >/tmp/hb.log 2>&1 \
     && ok "hardware_bom" || { bad "hardware_bom"; tail -8 /tmp/hb.log; }
