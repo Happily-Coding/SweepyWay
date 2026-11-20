@@ -35,6 +35,8 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from check_assembly import dxf_net_shape, pcb_net_shape  # noqa: E402
 PLATE_CUTOUT_MM = 14.0
 CUTOUT_TOL = 0.25
 
@@ -129,6 +131,35 @@ def main() -> int:
             fails.append(msg)
         else:
             print(f"  ok  {p.name}: 32 cutouts at {PLATE_CUTOUT_MM} mm")
+
+    # ---------------------------------------------------------------- 5 geometry is current
+    # The stamp proves WHICH config produced the snapshot. It does not prove the PCBs inside were
+    # regenerated from it: kibot against a stopped Docker fails all six stages, and the stamp still
+    # validates. So compare what was published against the outline it must have been cut from.
+    outl_dir = REPO / "ergogen" / "output" / "outlines"
+    for name, side in (("plate_left.kicad_pcb", "l"), ("plate_right.kicad_pcb", "r")):
+        pcb = next(iter(find(cad, name)), None)
+        if pcb is None:
+            continue
+        outline = outl_dir / f"{side}_plate_on_wall.dxf"
+        if not outline.exists():
+            warns.append(f"{outline.name} missing -> cannot prove {name} matches the design")
+            continue
+        # Compare the HOLES, not the areas: the generated PCB's exterior sits ~0.8 mm inside the
+        # plate outline (an edge trim), which moves the material area ~107 mm2 without anything
+        # being stale. Every hole - 32 keys, the screw bores, the hood footprint - must match.
+        from shapely.geometry import Polygon as _Poly
+        want_holes = sorted(_Poly(i).area for i in dxf_net_shape(outline).interiors)
+        shape = pcb_net_shape(pcb)
+        got_holes = sorted(_Poly(i).area for i in shape.interiors) if shape is not None else []
+        worst = max((abs(a - b) for a, b in zip(got_holes, want_holes)), default=0.0)
+        if len(got_holes) != len(want_holes) or worst > 2.0:
+            fails.append(f"{name}: {len(got_holes)} holes vs {len(want_holes)} in the current outline, "
+                         f"worst area difference {worst:.1f} mm2 - not regenerated from this design")
+        else:
+            hood = max(want_holes)
+            print(f"  ok  {name}: {len(got_holes)} holes match the current outline "
+                  f"(largest {hood:.1f} mm2 = the hood footprint; board edge trim ignored)")
 
     # ---------------------------------------------------------------- report
     for w in warns:
