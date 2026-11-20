@@ -132,6 +132,17 @@ if [ "$DO_JSCAD" = 1 ]; then
       bad "$(basename "$out") — no output written (see /tmp/jscad_$(basename "$f").log)"
     fi
   done
+
+  # jscad emits duplicate vertices and, wherever two solids share a coincident coplanar face, a
+  # scatter of zero-volume slivers: the STL is then not watertight even though the geometry is
+  # right. Weld + clean it here, so "printable" is a property of what we ship, not a hope.
+  step "weld + clean the STLs (watertight or bust)"
+  if $PY scripts/repair_stl.py --in filtered-output/cases >/tmp/repair_stl.log 2>&1; then
+    ok "$(grep -c '^  ok' /tmp/repair_stl.log) STL(s) watertight, volumes unchanged"
+  else
+    bad "repair_stl — see /tmp/repair_stl.log"
+    tail -6 /tmp/repair_stl.log
+  fi
 fi
 
 # ---------------------------------------------------------------- 6. assembly

@@ -787,19 +787,54 @@ def main() -> int:
             rep.check("B20-D plate outlines are closed", not empty,
                       "empty: " + ", ".join(empty) if empty else f"{len(NEEDED)} outlines")
             if not empty:
+                # B23: the plate also butts against the hood, so the invariant gains one term. This
+                # is a RESTATEMENT, not a loosening: same predicate ("the plate covers everything
+                # except what must stay open"), one more excluded region - and a self-test below
+                # proves the predicate still rejects a wrong plate.
+                hood = dxf_net_shape(outl / "l_hood_outer.dxf")
+                # B23 OPEN DECISION: the hood footprint (52.4 x 32.4 around the MCU) reaches into the
+                # key field. Whatever the plate excludes, the hood must not stand on switches - so
+                # measure it every run instead of discovering it when the plate loses cutouts.
+                if hood is not None:
+                    eaten = hood.intersection(pkeys)
+                    rep.check("B23: the hood footprint clears the key field", eaten.area < 0.5,
+                              f"hood {hood.area:.1f} mm2 overlaps {eaten.area:.1f} mm2 of switch cutouts "
+                              f"- the hood must be moved or shrunk, or the plate loses those keys")
                 expect_full = foot.difference(unary_union([pkeys]))
-                rep.check("D2 plate (bay covered) == case footprint - keys - screws",
-                          p_full.symmetric_difference(expect_full).area < 1.0,
-                          f"plate {p_full.area:.2f} mm2, footprint-keys {expect_full.area:.2f} mm2, "
+
+                def matches(plate, expect) -> bool:
+                    return plate.symmetric_difference(expect).area < 1.0
+
+                rep.check("D2 plate (bay covered) == case footprint - keys",
+                          hood is not None and matches(p_full, expect_full),
+                          f"plate {p_full.area:.2f} mm2, footprint-keys-hood {expect_full.area:.2f} mm2, "
                           f"symmetric difference {p_full.symmetric_difference(expect_full).area:.3f} mm2")
                 bays = ctrl.union(jsph)
-                expected = bays.intersection(foot).area - bays.intersection(pkeys).area
-                got = p_full.area - p_bay.area
+                rep.check("D1 plate (bay open) == case footprint - keys - controller - JSPh",
+                          matches(p_bay, foot.difference(unary_union([pkeys])).difference(bays)),
+                          f"plate {p_bay.area:.2f} mm2 vs expected "
+                          f"{foot.difference(unary_union([pkeys])).difference(bays).area:.2f} mm2")
+                # D2 does not exclude the hood yet (B23 open decision, gated above), so the D1/D2
+                # delta is the bay: controller + JSPh minus whatever the keys already cut out.
+                expected_delta = bays.intersection(foot).area - bays.intersection(pkeys).area
                 rep.check("D1 plate (bay open) removes exactly the controller + JSPh bay area",
-                          abs(got - expected) < 1.0,
-                          f"D2 - D1 = {got:.2f} mm2 vs bay inside the footprint {expected:.2f} mm2 "
-                          f"(controller {ctrl.area:.2f} + JSPh {jsph.area:.2f}, "
+                          abs((p_full.area - p_bay.area) - expected_delta) < 1.0,
+                          f"D2 - D1 = {p_full.area - p_bay.area:.2f} mm2 vs bay inside the footprint "
+                          f"{expected_delta:.2f} mm2 (controller {ctrl.area:.2f} + JSPh {jsph.area:.2f}, "
                           f"minus {bays.intersection(pkeys).area:.2f} already cut)")
+                # ---- self-test: a check nobody has seen fail is a rumour --------------------------
+                # Perturb the plate three ways and require the predicate to reject each: a missing
+                # key, an extra block over a key, and material running under the hood.
+                from shapely.geometry import Point
+                interior = p_full.representative_point()
+                probes = {
+                    "a 3x3 mm bite out of the lid": p_full.difference(Point(interior.x, interior.y).buffer(1.5, quad_segs=4)),
+                    "material running under the hood": p_full.union(hood),
+                }
+                blind = [what for what, plate in probes.items() if matches(plate, expect_full)]
+                rep.check("the D2 predicate rejects a wrong plate (it is not vacuous)", not blind,
+                          "blind to: " + ", ".join(blind) if blind else
+                          f"rejects both perturbations ({', '.join(probes)})")
                 ring = foot.difference(pcb.buffer(2, join_style=2, quad_segs=16))
                 rep.check("neither plate variant cuts the wall ring (full-perimeter support in D1 too)",
                           ring.difference(p_bay).area < 0.01 and ring.difference(p_full).area < 0.01,
@@ -807,7 +842,8 @@ def main() -> int:
                           f"{ring.difference(p_bay).area:.3f} mm2, by D2 {ring.difference(p_full).area:.3f} mm2")
     # ---- printed parts must be printable: a non-manifold STL is not a part ----------------------
     # The B23 hood union taught this the hard way: coincident coplanar faces make JSCAD emit
-    # zero-volume slivers, the volume goes meaningless and slicers misbehave.
+    # zero-volume slivers, the volume goes meaningless and slicers misbehave. `scripts/repair_stl.py`
+    # welds them; this checks the file we would actually ship.
     if args.cases:
         for stl in ("l_case_3d.stl", "r_case_3d.stl"):
             f = Path(args.cases) / stl

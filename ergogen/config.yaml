@@ -824,6 +824,16 @@ outlines:
     - operation: subtract
       name: l_jsph_area # the JST-PH battery connector is 7.60 mm tall; it MUST be notched
 
+  l_hood_outer:
+    - what: outline
+      name: l_controller_area
+      expand: hood_wall_thickness
+
+  r_hood_outer:
+    - what: outline
+      name: r_controller_area
+      expand: hood_wall_thickness
+
   l_plate_on_wall:
     - name: l_case_bottom
     - operation: subtract
@@ -1703,6 +1713,21 @@ cases:
       shift: [0,7,case_bottom_thickness]
       operation: subtract
 
+    # B23 controller hood. Every solid interpenetrates its neighbour instead of touching it: JSCAD
+    # turns coincident coplanar faces into zero-volume slivers (hood_overlap / hood_roof_overlap).
+    # walls: from just under the floor, past the roof underside
+    - name: l_hood_outer
+      extrude: controller_hood_wall_height + hood_overlap + hood_roof_overlap
+      shift: [0, 0, case_bottom_thickness - hood_overlap]
+    # cavity: the same span, subtracted, so the interior is open down into the case
+    - name: l_controller_area
+      extrude: controller_hood_wall_height + hood_overlap + hood_roof_overlap
+      shift: [0, 0, case_bottom_thickness - hood_overlap]
+      operation: subtract
+    # roof: last, so it survives the subtract and closes the cavity at inner_top
+    - name: l_hood_outer
+      extrude: controller_hood_roof
+      shift: [0, 0, controller_hood_inner_top]
   l_cover:
     - name: l_coverpart_switch_plate_outline #Create the switch plate
       extrude: top_plate_thickness
@@ -1772,6 +1797,21 @@ cases:
       shift: [0,7,case_bottom_thickness]
       operation: subtract
 
+    # B23 controller hood. Every solid interpenetrates its neighbour instead of touching it: JSCAD
+    # turns coincident coplanar faces into zero-volume slivers (hood_overlap / hood_roof_overlap).
+    # walls: from just under the floor, past the roof underside
+    - name: r_hood_outer
+      extrude: controller_hood_wall_height + hood_overlap + hood_roof_overlap
+      shift: [0, 0, case_bottom_thickness - hood_overlap]
+    # cavity: the same span, subtracted, so the interior is open down into the case
+    - name: r_controller_area
+      extrude: controller_hood_wall_height + hood_overlap + hood_roof_overlap
+      shift: [0, 0, case_bottom_thickness - hood_overlap]
+      operation: subtract
+    # roof: last, so it survives the subtract and closes the cavity at inner_top
+    - name: r_hood_outer
+      extrude: controller_hood_roof
+      shift: [0, 0, controller_hood_inner_top]
   r_cover:
     - name: r_coverpart_switch_plate_outline #Create the switch plate
       extrude: top_plate_thickness
