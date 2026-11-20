@@ -18,7 +18,8 @@ below is measured from the files, not remembered.
 | **B1** | **No gerbers exist for the plates.** `pcbs/gerbers/` holds only `left_pcb/` and `right_pcb/`. The plates exist as `kicad_pcb` (cad/) and as DXFs (outlines/), and **no kibot job plots them**. | `ls filtered-output/pcbs/gerbers/` → 2 boards only | add a kibot plot job for `plate_left/plate_right`: Edge.Cuts + drill, no copper. Or order the plates from the DXF as a mechanical cut |
 | **B2** | **Plate thickness was 1.6 mm in the file** while the stack needs **1.2 mm** (`top_plate_thickness`, and config's own comment: *"choc switches need a 1.2 mm plate (1.5 mm FR4 absolute max) or they do not seat"*). ergogen stamps every kicad_pcb with a 1.6 default. | `grep thickness plate_left.kicad_pcb` → `(thickness 1.6)` | **FIXED**: `scripts/fix_plate_thickness.py` runs right after ergogen; `check_assembly` now asserts the file says 1.2. Verified: all 6 plate files read `(thickness 1.2)` |
 | **B3** | **The right PCB is a translated copy of the left, not a mirrored design.** left `x 24.00…156.27`, right `x 183.73…316.00`, identical 132.27 × 134.46. A mirror about x=170 would put the right at `x −146.00…−13.73`. So the artefacts are the *same artwork*. | measured from `pcb_net_shape()` on both boards | **needs the author's confirmation**: either order 2× one design and flip one physically (works, but the sockets end up on the opposite face and silkscreen reads mirrored), or the right half was meant to be a true mirror and the artwork is wrong |
-| **B4** | **Consigned sockets are a physical process step, not a file.** `C9900248317` (Kailh choc hotswap) is mail-in only: 64 sockets must be sent to JLCPCB (their consignment minimum is 10). | `jlc_assembly check` → 32 sockets per half on LCSC `C9900248317` | buy the sockets and ship them before/with the order, or set `assemble=no` and hand-solder 64 sockets + 64 diodes |
+| **B4** | **Consigned sockets are a physical process step, not a file.** `C9900248317` (Kailh choc hotswap) is mail-in only: 64 sockets must be sent to JLCPCB (their consignment minimum is 10). No in-stock alternative exists - every choc socket code in their catalogue is `stock 0`, and `CPG135001S30` reads *"no longer manufactured"*. | JLC API, queried 2026-xx: `C9900009224`, `C5333465`, `C9900248317`, `C9900180604`, `C7499820` all zero | **mandatory** if the sockets are to be factory-fitted (no hand-soldering by the buyer) |
+| **B5** | **The MCU cannot be assembled by JLCPCB's SMT line.** `ceoloide/mcu_nice_nano` carries **27 through-hole pads only** (2 × 12 at x ±7.62, drill 1.0 mm); this footprint has no castellated SMD variant, so the module needs pin headers soldered. | `kicad_footprints()` on the published `left_pcb.kicad_pcb` | three options: (a) confirm whether JLC's THT add-on covers it, (b) fit **female** headers (still THT) so the buyer plugs the MCU in with no iron, (c) design change to castellated pads for true SMT (v0.3) |
 
 ## Verified good (with the number it was verified at)
 
@@ -36,17 +37,31 @@ below is measured from the files, not remembered.
 | plate copper | 0 pads, 0 segments, 0 zones — a pure cutout board (`(viasonmask no)` is a setting, not a hole) |
 | hood ↔ keys | hood footprint hits **0.00 mm²** of switch cutouts; plate/hood overlap **0.000 mm²** |
 
-## Decisions still open
+## The plate is a flat 1.2 mm sheet — three ways to get one
 
-1. **Key cutout 14.0 vs 13.8 mm.** Kailh's choc drawing is 13.8 × 13.8; ours is 14.0 × 14.0 square, so
-   each switch has ~0.1 mm play per side. JLCPCB will also round the internal corners with their router
-   bit (r ≈ 0.8–1.0 mm), which is normal for choc plates.
-2. **Bottom-side assembly.** The 32 hotswap sockets are on **Bottom**. JLC charges per side, so this is
-   a two-pass assembly. Hand-soldering the sockets instead drops the SMT order to one side.
-3. **Plate supply.** Plates as PCB gerbers from JLC, or as a DXF mechanical cut from a plate service —
-   B1 has to be decided one way or the other before the cart is complete.
+Measured on `export3d/plate_right_full.stl`: **two** distinct z values (11.2 and 12.4), i.e. constant
+1.20 mm, every feature a through-cut. The roof and the 8.88 mm hood belong to the **printed case**
+(`l_case_3d`), not to the plate. So any 2D process can make it:
 
-## Order sheet (once B1/B3 are settled)
+| route | file it needs | process | material | status |
+|---|---|---|---|---|
+| (a) **PCB** | Gerbers (Edge.Cuts + drill) | PCB fabrication: panel, router-cut with a 1.6–2 mm bit, tolerances like a board | **1.2 mm FR4 only** | **missing** (B1) |
+| (b) **Sheet cut** ("mechanical cut") | DXF | laser (acrylic/PC) or CNC router (FR4) cuts the outline from a sheet — no copper, no mask, no PCB process | FR4 sheet, acrylic, polycarbonate, aluminium | ready (`outlines/plate_*_on_wall.dxf`) |
+| (c) **3D print** (JLC3DP) | STL | resin (SLA) or nylon (SLS) | resin / nylon | exists but **stale** (pre-hood: 9.40 cm³ vs 8.07 cm³ now) + needs `repair_stl.py` |
+
+(a) and (b) are the **same shape**, different process and material choice: (a) is FR4 made by a PCB
+house, (b) is any sheet cut by a fabrication shop. The DXF and the Edge.Cuts describe the same plate.
+
+**Acrylic is the wrong pick here** specifically because this plate is clamped by 5 screws through
+⌀2.2 mm self-tapping holes in 1.2 mm sheet: acrylic crazes and cracks at those holes under screw load,
+and a cracked plate drops switches. Polycarbonate if a clear plate is wanted; FR4 is the standard for
+exactly this reason.
+
+**3D printing a 1.2 mm plate is worse than either**: SLA resin at 1.2 mm is brittle, SLS nylon is
+springy, and the plate's job is to hold 32 switches at a fixed 14.00 mm and take the screw clamping.
+Recommendation: **(a) PCB route**, which is what the repo already models - it just needs the plot job.
+
+## Decisions still open## Order sheet (once B1/B3 are settled)
 
 * PCB: 2 layers, 1.6 mm, 132.27 × 134.46 mm, quantity 2 (or 2 × mirrored design), HASL, no impedance
   control, no panel.
