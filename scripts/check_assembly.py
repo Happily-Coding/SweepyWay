@@ -791,21 +791,21 @@ def main() -> int:
                 # is a RESTATEMENT, not a loosening: same predicate ("the plate covers everything
                 # except what must stay open"), one more excluded region - and a self-test below
                 # proves the predicate still rejects a wrong plate.
-                hood = dxf_net_shape(outl / "l_hood_outer.dxf")
-                # B23 OPEN DECISION: the hood footprint (52.4 x 32.4 around the MCU) reaches into the
-                # key field. Whatever the plate excludes, the hood must not stand on switches - so
-                # measure it every run instead of discovering it when the plate loses cutouts.
+                hood = dxf_net_shape(outl / "l_hood_footprint.dxf")
+                # B23: the hood is the controller housing MINUS the key field, so the keys are
+                # subtracted from it rather than dodged by nudging its footprint. Expanding the raw
+                # rectangle outward instead ate 223 mm2 of switch cutouts - this gate says so.
                 if hood is not None:
                     eaten = hood.intersection(pkeys)
-                    rep.check("B23: the hood footprint clears the key field", eaten.area < 0.5,
-                              f"hood {hood.area:.1f} mm2 overlaps {eaten.area:.1f} mm2 of switch cutouts "
-                              f"- the hood must be moved or shrunk, or the plate loses those keys")
-                expect_full = foot.difference(unary_union([pkeys]))
+                    rep.check("B23: the hood footprint hits no switch cutout", eaten.area < 0.01,
+                              f"hood {hood.area:.1f} mm2 vs {eaten.area:.2f} mm2 of key cutouts "
+                              f"(the footprint must be controller_area MINUS the key field)")
+                expect_full = foot.difference(unary_union([pkeys])).difference(hood)
 
                 def matches(plate, expect) -> bool:
                     return plate.symmetric_difference(expect).area < 1.0
 
-                rep.check("D2 plate (bay covered) == case footprint - keys",
+                rep.check("D2 plate (bay covered) == case footprint - keys - hood",
                           hood is not None and matches(p_full, expect_full),
                           f"plate {p_full.area:.2f} mm2, footprint-keys-hood {expect_full.area:.2f} mm2, "
                           f"symmetric difference {p_full.symmetric_difference(expect_full).area:.3f} mm2")
@@ -814,14 +814,15 @@ def main() -> int:
                           matches(p_bay, foot.difference(unary_union([pkeys])).difference(bays)),
                           f"plate {p_bay.area:.2f} mm2 vs expected "
                           f"{foot.difference(unary_union([pkeys])).difference(bays).area:.2f} mm2")
-                # D2 does not exclude the hood yet (B23 open decision, gated above), so the D1/D2
-                # delta is the bay: controller + JSPh minus whatever the keys already cut out.
-                expected_delta = bays.intersection(foot).area - bays.intersection(pkeys).area
-                rep.check("D1 plate (bay open) removes exactly the controller + JSPh bay area",
+                # D2 now also excludes the hood, so the D1/D2 delta is the bay MINUS the hood: the
+                # part of controller + JSPh that D2 already covers with hood instead of opening.
+                bay_open = bays.intersection(foot).difference(hood).difference(pkeys)
+                expected_delta = bay_open.area
+                rep.check("D1 - D2 == the bay the hood does not already open",
                           abs((p_full.area - p_bay.area) - expected_delta) < 1.0,
-                          f"D2 - D1 = {p_full.area - p_bay.area:.2f} mm2 vs bay inside the footprint "
-                          f"{expected_delta:.2f} mm2 (controller {ctrl.area:.2f} + JSPh {jsph.area:.2f}, "
-                          f"minus {bays.intersection(pkeys).area:.2f} already cut)")
+                          f"D2 - D1 = {p_full.area - p_bay.area:.2f} mm2 vs bay not already hood "
+                          f"{expected_delta:.2f} mm2 (controller {ctrl.area:.2f} + JSPh {jsph.area:.2f} "
+                          f"- hood {hood.area:.2f} - keys {bays.intersection(pkeys).area:.2f})")
                 # ---- self-test: a check nobody has seen fail is a rumour --------------------------
                 # Perturb the plate three ways and require the predicate to reject each: a missing
                 # key, an extra block over a key, and material running under the hood.

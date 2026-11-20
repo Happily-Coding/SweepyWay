@@ -213,22 +213,21 @@ overridable with an explicit number. The hood's outer outline is **derived** fro
 `*_controller_area` with ergogen's `expand: hood_wall_thickness`, so any thickness works without new
 shapes (verified: the derived `l_hood_outer.dxf` / `r_hood_outer.dxf` generate correctly).
 
-**Progress made on the geometry (then reverted, deliberately):** a working cut was reached — case
-bbox z 0…20.08, the roof **solid** across the hood at z=20.0 (63.75…115.75), walls present — but two
-defects remained, and fixing them means also rewriting two plate invariants, so it was reverted rather
-than leaving the tree red:
+**Corrected design (author's point, and he was right):** the key field is *subtracted from* the
+hood, so the hood cannot stand on a key by construction — it is not something to dodge by nudging a
+rectangle. The outline already existed for the old cover:
 
-1. the measured wall came out **0.75 mm**, not the 1.2 requested: `expand` widens the *outline path*
-   differently than expected, so wall thickness must be checked on the STL, not assumed from the unit;
-2. still **4 bodies / not watertight**, despite the 0.4 mm overlaps;
-3. `D2 plate == footprint − keys − screws` and `D1 removes exactly the bay` both (correctly) stop
-   holding once the plate also excludes the hood footprint — they must be restated as
-   `… − hood_outer`, and the D1/D2 difference recalculated against the derived hood outline.
+    l_controller_area_to_cover_outline:  +l_controller_area  -l_key_based_board_outline
 
-A watertight-STL gate was written for `check_assembly` (`l_case_3d.stl` / `r_case_3d.stl` must be
-watertight, reporting body count and volume) but **it currently does not execute** — the block is
-present at the right level yet never prints, so it is either unreachable or shadowed. First thing to
-debug next: run `check_assembly --cases` and confirm those two rows appear at all.
+`l_key_based_board_outline` is the whole key field (10 689 mm²), so that outline is 1085.4 mm² of the
+controller area with **0.000 mm² of key cutouts in it**. Walls are cut **inward** from it
+(`l_hood_cavity = footprint expand -hood_wall_thickness`), never outward: expanding the raw 50×30
+rectangle by 1.2 is what ate 223.2 mm² of switch cutouts and 3 keys per half.
+
+Result, measured on the repaired mesh: case z 0…20.08, hood walls 1.15 mm (nominal 1.2), roof 0.96 mm
+spanning z 19.10…20.06 over the footprint only, 55.0 cm³, both halves mirrored (l x 20.00…160.61,
+r x 179.39…320.00). Plates now exclude the hood footprint: 6723.0 mm² (was 7808.44), **0.0 mm² of keys
+hit**, plate/hood overlap 0.000 mm², and the fab plates keep all 32 key-sized cutouts.
 
 **Why it is not in the tree yet:** the first attempt (outer extrude 54 × 34, inner subtract 50 × 30,
 roof extrude 1 mm, everything sitting exactly on the floor plane and exactly on the wall top) produced

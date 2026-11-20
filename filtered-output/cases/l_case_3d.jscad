@@ -52,6 +52,24 @@ function l_usbc_border_outline_extrude_7_199999999999999_outline_fn(){
 }
 
 
+function l_hood_footprint_extrude_17_08_outline_fn(){
+    return new CSG.Path2D.arc({"center":[111.75,-64.77],"radius":3,"startangle":341.3370749,"endangle":360}).appendPoint([114.75,-40.77]).appendArc([111.75,-37.77],{"radius":3,"clockwise":false,"large":false}).appendPoint([67.75,-37.77]).appendArc([64.75,-40.77],{"radius":3,"clockwise":false,"large":false}).appendPoint([64.75,-55.53]).appendPoint([77,-55.53]).appendArc([80,-58.53],{"radius":3,"clockwise":true,"large":false}).appendPoint([80,-59.78]).appendPoint([94,-59.78]).appendArc([96.966058,-62.33],{"radius":3,"clockwise":true,"large":false}).appendPoint([111,-62.33]).appendArc([114,-65.33],{"radius":3,"clockwise":true,"large":false}).appendPoint([114,-65.73]).appendPoint([114.5922526,-65.73]).close().innerToCAG()
+.extrude({ offset: [0, 0, 17.08] });
+}
+
+
+function l_hood_cavity_extrude_17_08_outline_fn(){
+    return new CSG.Path2D([[113.55,-61.9927107],[113.55,-40.77]]).appendArc([111.75,-38.97],{"radius":1.8,"clockwise":false,"large":false}).appendPoint([67.75,-38.97]).appendArc([65.95,-40.77],{"radius":1.8,"clockwise":false,"large":false}).appendPoint([65.95,-54.33]).appendPoint([77,-54.33]).appendArc([81.2,-58.53],{"radius":4.2,"clockwise":true,"large":false}).appendPoint([81.2,-58.58]).appendPoint([94,-58.58]).appendArc([97.862318,-61.13],{"radius":4.2,"clockwise":true,"large":false}).appendPoint([111,-61.13]).appendArc([113.55,-61.9927107],{"radius":4.2,"clockwise":true,"large":false}).close().innerToCAG()
+.extrude({ offset: [0, 0, 17.08] });
+}
+
+
+function l_hood_footprint_extrude_1_outline_fn(){
+    return new CSG.Path2D.arc({"center":[111.75,-64.77],"radius":3,"startangle":341.3370749,"endangle":360}).appendPoint([114.75,-40.77]).appendArc([111.75,-37.77],{"radius":3,"clockwise":false,"large":false}).appendPoint([67.75,-37.77]).appendArc([64.75,-40.77],{"radius":3,"clockwise":false,"large":false}).appendPoint([64.75,-55.53]).appendPoint([77,-55.53]).appendArc([80,-58.53],{"radius":3,"clockwise":true,"large":false}).appendPoint([80,-59.78]).appendPoint([94,-59.78]).appendArc([96.966058,-62.33],{"radius":3,"clockwise":true,"large":false}).appendPoint([111,-62.33]).appendArc([114,-65.33],{"radius":3,"clockwise":true,"large":false}).appendPoint([114,-65.73]).appendPoint([114.5922526,-65.73]).close().innerToCAG()
+.extrude({ offset: [0, 0, 1] });
+}
+
+
 
 
                 function l_case_3d_case_fn() {
@@ -118,6 +136,54 @@ function l_usbc_border_outline_extrude_7_199999999999999_outline_fn(){
 
                 l_case_3d__part_3 = translate([0,7,3], l_case_3d__part_3);
                 result = result.subtract(l_case_3d__part_3);
+                
+            
+
+                // creating part 4 of case l_case_3d
+                let l_case_3d__part_4 = l_hood_footprint_extrude_17_08_outline_fn();
+
+                // make sure that rotations are relative
+                let l_case_3d__part_4_bounds = l_case_3d__part_4.getBounds();
+                let l_case_3d__part_4_x = l_case_3d__part_4_bounds[0].x + (l_case_3d__part_4_bounds[1].x - l_case_3d__part_4_bounds[0].x) / 2
+                let l_case_3d__part_4_y = l_case_3d__part_4_bounds[0].y + (l_case_3d__part_4_bounds[1].y - l_case_3d__part_4_bounds[0].y) / 2
+                l_case_3d__part_4 = translate([-l_case_3d__part_4_x, -l_case_3d__part_4_y, 0], l_case_3d__part_4);
+                l_case_3d__part_4 = rotate([0,0,0], l_case_3d__part_4);
+                l_case_3d__part_4 = translate([l_case_3d__part_4_x, l_case_3d__part_4_y, 0], l_case_3d__part_4);
+
+                l_case_3d__part_4 = translate([0,0,2.6], l_case_3d__part_4);
+                result = result.union(l_case_3d__part_4);
+                
+            
+
+                // creating part 5 of case l_case_3d
+                let l_case_3d__part_5 = l_hood_cavity_extrude_17_08_outline_fn();
+
+                // make sure that rotations are relative
+                let l_case_3d__part_5_bounds = l_case_3d__part_5.getBounds();
+                let l_case_3d__part_5_x = l_case_3d__part_5_bounds[0].x + (l_case_3d__part_5_bounds[1].x - l_case_3d__part_5_bounds[0].x) / 2
+                let l_case_3d__part_5_y = l_case_3d__part_5_bounds[0].y + (l_case_3d__part_5_bounds[1].y - l_case_3d__part_5_bounds[0].y) / 2
+                l_case_3d__part_5 = translate([-l_case_3d__part_5_x, -l_case_3d__part_5_y, 0], l_case_3d__part_5);
+                l_case_3d__part_5 = rotate([0,0,0], l_case_3d__part_5);
+                l_case_3d__part_5 = translate([l_case_3d__part_5_x, l_case_3d__part_5_y, 0], l_case_3d__part_5);
+
+                l_case_3d__part_5 = translate([0,0,2.6], l_case_3d__part_5);
+                result = result.subtract(l_case_3d__part_5);
+                
+            
+
+                // creating part 6 of case l_case_3d
+                let l_case_3d__part_6 = l_hood_footprint_extrude_1_outline_fn();
+
+                // make sure that rotations are relative
+                let l_case_3d__part_6_bounds = l_case_3d__part_6.getBounds();
+                let l_case_3d__part_6_x = l_case_3d__part_6_bounds[0].x + (l_case_3d__part_6_bounds[1].x - l_case_3d__part_6_bounds[0].x) / 2
+                let l_case_3d__part_6_y = l_case_3d__part_6_bounds[0].y + (l_case_3d__part_6_bounds[1].y - l_case_3d__part_6_bounds[0].y) / 2
+                l_case_3d__part_6 = translate([-l_case_3d__part_6_x, -l_case_3d__part_6_y, 0], l_case_3d__part_6);
+                l_case_3d__part_6 = rotate([0,0,0], l_case_3d__part_6);
+                l_case_3d__part_6 = translate([l_case_3d__part_6_x, l_case_3d__part_6_y, 0], l_case_3d__part_6);
+
+                l_case_3d__part_6 = translate([0,0,19.08], l_case_3d__part_6);
+                result = result.union(l_case_3d__part_6);
                 
             
                     return result;
