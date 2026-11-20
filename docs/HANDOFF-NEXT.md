@@ -208,6 +208,28 @@ Author's answers, which the next pass should implement exactly:
 | roof | **no chamfers needed for the bay footprint**: the unsupported bridge is ~27 mm at 1 mm thick, routine for FDM; a *wide* footprint grows that span, so a 45° fillet or supports is the fallback there. No model reorientation is required — the case already prints floor-down and the roof is the only bridge |
 | corners | **rounded to match the case** (the existing `*_controller_area_border` outline already has 8 arcs, so this is free) |
 
+**Wall thickness:** `hood_wall_thickness: case_wall_thickness` — defaults to the case wall (1.2),
+overridable with an explicit number. The hood's outer outline is **derived** from
+`*_controller_area` with ergogen's `expand: hood_wall_thickness`, so any thickness works without new
+shapes (verified: the derived `l_hood_outer.dxf` / `r_hood_outer.dxf` generate correctly).
+
+**Progress made on the geometry (then reverted, deliberately):** a working cut was reached — case
+bbox z 0…20.08, the roof **solid** across the hood at z=20.0 (63.75…115.75), walls present — but two
+defects remained, and fixing them means also rewriting two plate invariants, so it was reverted rather
+than leaving the tree red:
+
+1. the measured wall came out **0.75 mm**, not the 1.2 requested: `expand` widens the *outline path*
+   differently than expected, so wall thickness must be checked on the STL, not assumed from the unit;
+2. still **4 bodies / not watertight**, despite the 0.4 mm overlaps;
+3. `D2 plate == footprint − keys − screws` and `D1 removes exactly the bay` both (correctly) stop
+   holding once the plate also excludes the hood footprint — they must be restated as
+   `… − hood_outer`, and the D1/D2 difference recalculated against the derived hood outline.
+
+A watertight-STL gate was written for `check_assembly` (`l_case_3d.stl` / `r_case_3d.stl` must be
+watertight, reporting body count and volume) but **it currently does not execute** — the block is
+present at the right level yet never prints, so it is either unreachable or shadowed. First thing to
+debug next: run `check_assembly --cases` and confirm those two rows appear at all.
+
 **Why it is not in the tree yet:** the first attempt (outer extrude 54 × 34, inner subtract 50 × 30,
 roof extrude 1 mm, everything sitting exactly on the floor plane and exactly on the wall top) produced
 a **non-watertight** case with thousands of zero-volume sliver bodies. That is the known JSCAD failure

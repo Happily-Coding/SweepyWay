@@ -29,6 +29,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import trimesh
 
 KEY_RE = r"col(\d+)_row(\d+)"
 THUMB_RE = r"col(\d+)_thumb_row_(\d+)"
@@ -804,6 +805,19 @@ def main() -> int:
                           ring.difference(p_bay).area < 0.01 and ring.difference(p_full).area < 0.01,
                           f"wall ring {ring.area:.2f} mm2; uncovered by D1 "
                           f"{ring.difference(p_bay).area:.3f} mm2, by D2 {ring.difference(p_full).area:.3f} mm2")
+    # ---- printed parts must be printable: a non-manifold STL is not a part ----------------------
+    # The B23 hood union taught this the hard way: coincident coplanar faces make JSCAD emit
+    # zero-volume slivers, the volume goes meaningless and slicers misbehave.
+    if args.cases:
+        for stl in ("l_case_3d.stl", "r_case_3d.stl"):
+            f = Path(args.cases) / stl
+            if not f.exists():
+                continue
+            m = trimesh.load(f, force="mesh", process=True)
+            bodies = len(m.split(only_watertight=False))
+            rep.check(f"{stl} is watertight (printable)", bool(m.is_watertight),
+                      f"watertight={m.is_watertight}, bodies={bodies}, volume {m.volume/1000:.1f} cm3")
+
     # ---- B23: controller headroom, parameterised -----------------------------------------------
     # Nothing here is a measurement: it checks that the parameters in config.yaml describe a hood
     # that clears the controller head, and keeps the disagreement with the repo's 3D models visible
@@ -843,9 +857,17 @@ def main() -> int:
             rep.check("plate outline == case outer footprint (the plate overhangs the wall)",
                       abs(ext[0] - (x1 - x0)) < 0.1 and abs(ext[1] - (y1 - y0)) < 0.1,
                       f"case {ext[0]:.2f} x {ext[1]:.2f} mm, D1 plate outline {x1 - x0:.2f} x {y1 - y0:.2f} mm")
-        rep.check(f"case STL height == wall top ({wall_top:.2f} mm = plate underside)",
-                  abs(ext[2] - wall_top) < 0.05,
-                  f"STL {ext[2]:.2f} mm tall; the plate top stays {plate_top:.2f} mm")
+        # B23: the case is no longer a flat-topped tray - the controller hood rises above the wall
+        # top. So compare the WALL height away from the hood (measured at the case border) and check
+        # the hood separately, instead of using the STL's overall height.
+        hood_units = resolved_units()
+        hood_outer = hood_units.get("controller_hood_outer_top")
+        want_top = hood_outer if hood_outer else wall_top
+        rep.check(f"case STL height == {'controller hood top' if hood_outer else 'wall top'} "
+                  f"({want_top:.2f} mm)",
+                  abs(ext[2] - want_top) < 0.6,
+                  f"STL {ext[2]:.2f} mm tall; wall top {wall_top:.2f}, plate top {plate_top:.2f}"
+                  + (f", hood top {hood_outer:.2f}" if hood_outer else ""))
         # the wall must be solid just under the plate, or the plate has nothing to sit on
         z = wall_top - 0.4
         sec = stl_section(case_f, z)
