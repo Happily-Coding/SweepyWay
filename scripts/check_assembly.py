@@ -812,6 +812,9 @@ def main() -> int:
         for stl in ("l_case_3d.stl", "r_case_3d.stl"):
             f = Path(args.cases) / stl
             if not f.exists():
+                # Say so rather than skipping silently: pointing --cases at ergogen/output/cases
+                # (jscad only) made this whole block invisible and I misdiagnosed it as dead code.
+                rep.check(f"{stl} present in --cases", False, f"missing: {f} (pass the dir holding STLs)")
                 continue
             m = trimesh.load(f, force="mesh", process=True)
             bodies = len(m.split(only_watertight=False))
