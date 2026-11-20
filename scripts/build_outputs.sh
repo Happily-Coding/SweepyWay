@@ -177,6 +177,10 @@ if [ "$DO_ASSEMBLY" = 1 ]; then
   # regenerates (a 16 mm case from March 2026), and applied a -90 deg rotation plus "PCB up 7".
   # scripts/build_combined_scene.py replaces it: real inputs, one explicit frame, offsets derived
   # from ergogen/config.yaml, and it fails if the stack is incoherent.
+  # the plate STLs are the scene's input and nothing used to rebuild them (B23: the scene kept
+  # drawing a pre-hood plate over a hooded case). Build them from the outlines first.
+  $RUN scripts/build_plate_stls.py >/tmp/plate_stl.log 2>&1 \
+    && ok "$(tail -1 /tmp/plate_stl.log)" || { bad "plate STLs — see /tmp/plate_stl.log"; tail -3 /tmp/plate_stl.log; }
   $RUN scripts/build_combined_scene.py --sides l,r >/tmp/scene.log 2>&1 \
     && ok "combined scene (scripts/build_combined_scene.py)" \
     || { bad "combined scene — see /tmp/scene.log"; tail -6 /tmp/scene.log; }
