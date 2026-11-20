@@ -203,14 +203,15 @@ jobs:
           uv run python3 fix_glb_scale.py --verbose
       - name: Create full 3D visual with PCBs, cases, and palm rest
         run: |
-          echo "=== Running 3D merge ==="
-          
+          # B25: create_full_3d_visual.py read filtered-output/cases/case.stl and cover.stl - legacy
+          # committed files nothing regenerates - and applied a magic -90 deg X rotation plus a
+          # "PCB up 7 units" nudge. scripts/build_combined_scene.py uses the real inputs and one
+          # explicit frame, and fails the run if the stack is incoherent, so it is the one to ship.
           echo "--- Creating full 3D visualization ---"
-          uv run python3 create_full_3d_visual.py || echo "create_full_3d_visual failed"
-          
-          echo "=== 3D merge completed ==="
+          uv run python3 scripts/build_combined_scene.py --sides l,r
+
           echo "=== Generated files ==="
-          ls -la filtered-output/combined_scene*.glb 2>/dev/null || echo "No 3D scene files generated"
+          ls -la filtered-output/combined_scene*.glb
       - name: Write build stamp (provenance for the published folder)
         run: |
           # B14: a snapshot with no provenance cannot be told apart from a mixed one.

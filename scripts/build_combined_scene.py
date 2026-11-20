@@ -75,6 +75,8 @@ def units() -> dict:
         "pcb": resolved["pcb_thickness"],
         "plate": resolved.get("top_plate_thickness", 1.2),
         "wall_top": resolved["case_border_height"],
+        # B23: the controller hood stands above the wall, so "how tall is the case" has two answers
+        "hood_top": resolved.get("controller_hood_outer_top", resolved["case_border_height"]),
     }
 
 
@@ -135,6 +137,7 @@ def main() -> int:
     pcb_bottom = u["floor"] + u["standoff"]
     pcb_top = pcb_bottom + u["pcb"]
     plate_top = wall_top + u["plate"]
+    hood_top = u["hood_top"]
     print(f"stack from config: floor {u['floor']} + standoff {u['standoff']} -> PCB {pcb_bottom:.2f}"
           f"..{pcb_top:.2f}; wall top {wall_top:.2f}; plate underside {wall_top:.2f}"
           f"..{plate_top:.2f}")
@@ -188,14 +191,18 @@ def main() -> int:
             problems.append(f"{name} z {lo:.2f}..{hi:.2f} (expected to sit at {pcb_bottom:.2f})")
         if "plate" in name and not abs(lo - wall_top) < 0.1:
             problems.append(f"{name} z {lo:.2f} (expected plate underside {wall_top:.2f})")
-        if "case" in name and not abs(hi - wall_top) < 0.6:
-            problems.append(f"{name} z top {hi:.2f} (expected wall top {wall_top:.2f})")
+        # B23: the case is no longer flat-topped - the controller hood rises above the wall - so the
+        # expected top is the taller of the two, and which one it is gets printed.
+        if "case" in name and not (abs(hi - wall_top) < 0.6 or abs(hi - hood_top) < 0.6):
+            problems.append(f"{name} z top {hi:.2f} (expected wall top {wall_top:.2f} "
+                            f"or hood top {hood_top:.2f})")
     if problems:
         print("\nINCOHERENT STACK:")
         for p in problems:
             print("  -", p)
         return 1
-    print("stack coherent: case top == plate underside == wall top, PCB in its slot")
+    print(f"stack coherent: plate underside == wall top {wall_top:.2f}, case top == hood top "
+          f"{hood_top:.2f}, PCB in its slot")
     return 0
 
 

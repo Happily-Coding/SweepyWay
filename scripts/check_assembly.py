@@ -846,7 +846,11 @@ def main() -> int:
     # (author's own note in config.yaml), but ergogen stamps its kicad export with a 1.6 default.
     # Ordering straight from that file makes the plate 4 mm too proud of the case and the switches
     # will not clip in - so assert what the file says, not what we remember to type into the order.
-    plate_files = sorted((REPO / "ergogen" / "output" / "pcbs").glob("plate_*.kicad_pcb"))
+    # judge what we SHIP (filtered-output) first; the ergogen working dir is only a fallback, since a
+    # raw `ergogen` run regenerates it at the 1.6 default and that is not what reaches a fab.
+    _ship = REPO / "filtered-output" / "pcbs" / "cad"
+    plate_files = sorted(_ship.glob("plate_*.kicad_pcb")) or \
+        sorted((REPO / "ergogen" / "output" / "pcbs").glob("plate_*.kicad_pcb"))
     if plate_files:
         want_mm = float(resolved_units().get("top_plate_thickness", 1.2))
         for pf in plate_files:
