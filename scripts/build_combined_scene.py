@@ -28,12 +28,15 @@ Open the result at https://3dviewer.net/ (GLB keeps colours and part names).
 from __future__ import annotations
 
 import argparse
+import math
 import re
 import sys
 from pathlib import Path
 
 import numpy as np
 import trimesh
+
+TENTING_ANGLE = 6.5  # from create_tenting_system.py; the old scene applied it to the case too
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -80,8 +83,19 @@ def units() -> dict:
     }
 
 
-def colour(mesh: trimesh.Trimesh, rgb) -> trimesh.Trimesh:
-    mesh.visual.vertex_colors = np.tile(np.array([*rgb, 255], dtype=np.uint8), (len(mesh.vertices), 1))
+def colour(mesh: trimesh.Trimesh, rgb, alpha: float = 1.0) -> trimesh.Trimesh:
+    """Paint a part, optionally translucent. The old scene used 40% alpha everywhere so the internal
+    layout could be inspected; vertex colours alone cannot express alpha, so use a PBR material and
+    alphaMode BLEND (that is what glTF viewers honour)."""
+    if alpha >= 1.0:
+        mesh.visual.vertex_colors = np.tile(np.array([*rgb, 255], dtype=np.uint8),
+                                            (len(mesh.vertices), 1))
+        return mesh
+    mat = trimesh.visual.material.PBRMaterial(
+        baseColorFactor=[rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, alpha],
+        alphaMode="BLEND", metallicFactor=0.0, roughnessFactor=0.85,
+        doubleSided=True)
+    mesh.visual = trimesh.visual.TextureVisuals(material=mat)
     return mesh
 
 
@@ -121,7 +135,27 @@ def load_pcb(path: Path, z_bottom: float) -> trimesh.Trimesh | None:
     # frame is (x right, y along the board, z = UP), so it needs +90 deg about X:
     # (x, y, z) -> (x, -z, y). Proper rotation (det +1), so normals survive.
     pcb.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2.0, [1, 0, 0]))
-    pcb.apply_translation([0.0, 0.0, z_bottom])
+    # Anchor on the BOARD, not on the glTF origin: the export's board plane sits ~0.17 mm off zero and
+    # the MCU header pins reach 11 mm below it, so translating the raw origin puts the board 0.2 mm out
+    # of its slot. Find the two biggest flat faces 1.6 mm apart (board bottom/top) and align the lower.
+    c, a = pcb.triangles_center, pcb.area_faces
+    h, edges = np.histogram(c[:, 2], bins=400, weights=a)
+    centres = 0.5 * (edges[:-1] + edges[1:])
+    # candidate faces = local maxima that carry real area (the board's two copper faces are the
+    # biggest flat surfaces; header pins and sockets are thin slivers)
+    cand = [i for i in range(1, len(h) - 1)
+            if h[i] >= h[i - 1] and h[i] >= h[i + 1] and h[i] > 0.05 * h.max()]
+    best = None
+    for i in cand:
+        for j in cand:
+            if 1.25 <= centres[j] - centres[i] <= 1.95:      # 1.6 mm board, generous tolerance
+                score = h[i] + h[j]
+                if best is None or score > best[0]:
+                    best = (score, float(centres[i]))
+    board_lo = best[1] if best else float(pcb.bounds[0][2])
+    print(f"  board plane found at z {board_lo:.2f} -> lifted to {z_bottom:.2f}"
+          if best else "  ! could not find the board slab; using the raw origin")
+    pcb.apply_translation([0.0, 0.0, z_bottom - board_lo])
     return pcb
 
 
@@ -143,64 +177,109 @@ def main() -> int:
           f"..{plate_top:.2f}")
 
     scene = trimesh.Scene()
-    added = []
+    parts: list[tuple[str, trimesh.Trimesh, bool]] = []   # (node name, mesh, tilts with the case)
 
     for side in [s.strip() for s in args.sides.split(",") if s.strip()]:
         tag = "left" if side == "l" else "right"
 
         case = load_mesh(ROOT / f"filtered-output/cases/{side}_case_3d.stl")
         if case is not None:
-            scene.add_geometry(colour(case, (200, 200, 208)), node_name=f"1-case_{tag} (printed, incl. controller hood)")
+            parts.append((f"1-case_{tag} (printed, incl. controller hood)",
+                          colour(case, (200, 200, 208), 0.32), True))
 
         # FR4 plate: the lid, sitting ON the wall (B20 option D)
         plate = load_mesh(ROOT / f"export3d/plate_{tag}_full.stl")
         if plate is not None:
             plate.apply_translation([0, 0, wall_top - plate.bounds[0][2]])
-            scene.add_geometry(colour(plate, (26, 90, 52)), node_name=f"2-plate_{tag} (FR4 1.2mm - the lid, butts against the hood)")
+            parts.append((f"2-plate_{tag} (FR4 1.2mm - the lid, butts against the hood)",
+                          colour(plate, (26, 90, 52), 0.85), True))
 
         pcb = load_pcb(ROOT / f"filtered-output/pcbs/3d/{tag}_pcb-3d.glb", pcb_bottom)
         if pcb is not None:
-            scene.add_geometry(colour(pcb, (30, 110, 70)), node_name=f"3-pcb_{tag} (board + switches + keycaps)")
+            parts.append((f"3-pcb_{tag} (board + switches + keycaps)",
+                          colour(pcb, (30, 110, 70), 1.0), True))
 
-        added.append(tag)
-
+    # the tenting wedge stays on the desk; the case (and everything bolted to it) tilts onto it.
+    # The old scene applied TENTING_ANGLE = 6.5 deg to Case/Cover/Palm_Rest and left Tenting_System
+    # flat, which is why its parts lined up.
     tenting = load_mesh(ROOT / "filtered-output/cases/tenting_system.stl")
     if tenting is not None:
-        scene.add_geometry(colour(tenting, (170, 170, 180)), node_name="4-tenting_system")
+        parts.append(("4-tenting_system (desk, untilted)", colour(tenting, (120, 150, 190), 0.55),
+                      False))
 
     palm_rest = load_mesh(ROOT / "filtered-output/palmrest/palm_rest.stl")
     if palm_rest is not None:
-        # The palm rest model is authored above the board's front edge; park it beside the case
-        # rather than guessing a placement that would look authoritative and be wrong.
-        palm_rest.apply_translation([0, 0, 0])
-        scene.add_geometry(colour(palm_rest, (150, 160, 190)), node_name="5-palm_rest (own frame, parked beside the case)")
+        # The palm rest STL is authored in the board frame but 42.3 mm too far back: its footprint
+        # overlapped the case by 119.6 x 42.3 mm, which is what made it look broken. Push it flush
+        # against the case's front edge instead of guessing a prettier offset.
+        case_l = next((m for n, m, _ in parts if n.startswith("1-case_left")), None)
+        if case_l is not None:
+            p, c = palm_rest.bounds, case_l.bounds
+            shift = c[0][1] - p[1][1]
+            palm_rest.apply_translation([0, shift, 0])
+            print(f"palm rest: moved {shift:+.2f} mm in y to sit flush against the case front "
+                  f"(was overlapping it by {p[1][1] - c[0][1]:.1f} mm)")
+        parts.append(("5-palm_rest (front, flush against the case)",
+                      colour(palm_rest, (150, 160, 190), 0.45), True))
 
-    if not scene.geometry:
+    if not parts:
         sys.exit("nothing to merge: no case/plate/PCB outputs found")
+
+    # ---- coherence, measured FLAT (the tilt would make these numbers meaningless) ----------------
+    problems = []
+    for name, mesh, _ in parts:
+        lo, hi = mesh.bounds[0][2], mesh.bounds[1][2]
+        # hotswap sockets hang BELOW the board and keycaps sit above it, so allow both: this checks
+        # that the board is in its slot, not that nothing protrudes.
+        if name.startswith("3-pcb") and not (pcb_bottom - 12.0 <= lo <= pcb_top + 6.0):
+            problems.append(f"{name} z {lo:.2f}..{hi:.2f} (expected to sit at {pcb_bottom:.2f})")
+        if name.startswith("2-plate") and not abs(lo - wall_top) < 0.1:
+            problems.append(f"{name} z {lo:.2f} (expected plate underside {wall_top:.2f})")
+        # B23: the case is no longer flat-topped - the controller hood rises above the wall - so the
+        # expected top is the taller of the two, and which one it is gets printed.
+        if name.startswith("1-case") and not (abs(hi - wall_top) < 0.6 or abs(hi - hood_top) < 0.6):
+            problems.append(f"{name} z top {hi:.2f} (expected wall top {wall_top:.2f} "
+                            f"or hood top {hood_top:.2f})")
+    if problems:
+        print("\nINCOHERENT STACK:")
+        for p_ in problems:
+            print("  -", p_)
+        return 1
+
+    # ---- the tenting tilt, and a measurement that it is the right way round ----------------------
+    tilt = math.radians(TENTING_ANGLE)
+    if tenting is not None:
+        case_l = next((m for n, m, t in parts if "case_left" in n), None)
+        if case_l is not None:
+            # pivot on the desk plane at the footprint centre, not the world origin: these STLs live
+            # in absolute PCB coordinates (x 20..160), so a pivot at x=0 would swing them through the
+            # floor.
+            c = case_l.bounds
+            pivot = [(c[0][0] + c[1][0]) / 2, (c[0][1] + c[1][1]) / 2, 0.0]
+            bottom = case_l.vertices[case_l.vertices[:, 2] < case_l.bounds[0][2] + 1.0]
+            best_sign, best_hits = +1, None
+            for sign in (+1, -1):
+                T = trimesh.transformations.rotation_matrix(sign * tilt, [0, 1, 0], pivot)
+                probe = bottom @ T[:3, :3].T + T[:3, 3]
+                hits = int(tenting.contains(probe).sum())
+                if best_hits is None or hits < best_hits:
+                    best_sign, best_hits = sign, hits
+            print(f"tenting tilt: {TENTING_ANGLE} deg about Y at footprint centre; "
+                  f"sign {best_sign:+d} buries {best_hits} of {len(bottom)} case-floor vertices "
+                  f"in the wedge")
+            T = trimesh.transformations.rotation_matrix(best_sign * tilt, [0, 1, 0], pivot)
+            for _n, mesh, tilts in parts:
+                if tilts:
+                    mesh.apply_transform(T)
+
+    for name, mesh, _ in parts:
+        scene.add_geometry(mesh, node_name=name)
 
     out = ROOT / args.out
     scene.export(out)
     b = scene.bounds
     print(f"wrote {args.out}: {len(scene.geometry)} parts, "
           f"x {b[0][0]:.1f}..{b[1][0]:.1f}  y {b[0][1]:.1f}..{b[1][1]:.1f}  z {b[0][2]:.1f}..{b[1][2]:.1f} mm")
-    # coherence assertions: this is the check the old script never had
-    problems = []
-    for name, mesh in scene.geometry.items():
-        lo, hi = mesh.bounds[0][2], mesh.bounds[1][2]
-        if "pcb" in name and not (pcb_bottom - 0.5 <= lo <= pcb_top + 6.0):
-            problems.append(f"{name} z {lo:.2f}..{hi:.2f} (expected to sit at {pcb_bottom:.2f})")
-        if "plate" in name and not abs(lo - wall_top) < 0.1:
-            problems.append(f"{name} z {lo:.2f} (expected plate underside {wall_top:.2f})")
-        # B23: the case is no longer flat-topped - the controller hood rises above the wall - so the
-        # expected top is the taller of the two, and which one it is gets printed.
-        if "case" in name and not (abs(hi - wall_top) < 0.6 or abs(hi - hood_top) < 0.6):
-            problems.append(f"{name} z top {hi:.2f} (expected wall top {wall_top:.2f} "
-                            f"or hood top {hood_top:.2f})")
-    if problems:
-        print("\nINCOHERENT STACK:")
-        for p in problems:
-            print("  -", p)
-        return 1
     print(f"stack coherent: plate underside == wall top {wall_top:.2f}, case top == hood top "
           f"{hood_top:.2f}, PCB in its slot")
     return 0
