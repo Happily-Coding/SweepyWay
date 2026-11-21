@@ -36,7 +36,9 @@ from pathlib import Path
 import numpy as np
 import trimesh
 
-TENTING_ANGLE = 6.5  # from create_tenting_system.py; the old scene applied it to the case too
+TENTING_ANGLE = 6.5
+TILTED = ("case", "plate", "pcb", "palm")   # ride on the wedge -> tilted
+FLAT = ("tenting",)                       # sits on the desk -> flat  # from create_tenting_system.py; the old scene applied it to the case too
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -83,20 +85,77 @@ def units() -> dict:
     }
 
 
-def colour(mesh: trimesh.Trimesh, rgb, alpha: float = 1.0) -> trimesh.Trimesh:
-    """Paint a part, optionally translucent. The old scene used 40% alpha everywhere so the internal
-    layout could be inspected; vertex colours alone cannot express alpha, so use a PBR material and
-    alphaMode BLEND (that is what glTF viewers honour)."""
-    if alpha >= 1.0:
-        mesh.visual.vertex_colors = np.tile(np.array([*rgb, 255], dtype=np.uint8),
-                                            (len(mesh.vertices), 1))
-        return mesh
-    mat = trimesh.visual.material.PBRMaterial(
-        baseColorFactor=[rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, alpha],
-        alphaMode="BLEND", metallicFactor=0.0, roughnessFactor=0.85,
-        doubleSided=True)
-    mesh.visual = trimesh.visual.TextureVisuals(material=mat)
+def colour(mesh: trimesh.Trimesh, rgb) -> trimesh.Trimesh:
+    """Paint a part with vertex colours. Transparency is NOT set here on purpose: giving a mesh a
+    TextureVisuals material makes trimesh's glTF writer unshare vertices per face, so the part exports
+    as triangle soup (that is what broke the palm rest). Alpha is patched into the exported GLB's
+    materials by `apply_alpha()`, which is what the original scene did too."""
+    mesh.visual.vertex_colors = np.tile(np.array([*rgb, 255], dtype=np.uint8),
+                                        (len(mesh.vertices), 1))
     return mesh
+
+
+def apply_alpha(path: Path, palette: dict[str, tuple[int, int, int]],
+                alpha: float = 0.4) -> int:
+    """Give every part its own material with its RGB and 40% alpha, like the original scene.
+
+    The original carried 17 materials (one per part) with baseColorFactor [r,g,b,0.4]; relying on
+    COLOR_0 vertex colours instead means a viewer that ignores vertex colours shows everything white,
+    which is exactly what "many parts lack transparency/colour" looks like. So: patch the exported GLB
+    and point each mesh at a material built from the part's colour.
+    """
+    from pygltflib import GLTF2, Material, PbrMetallicRoughness
+    gltf = GLTF2().load(str(path))
+    gltf.materials = []
+    index: dict[str, int] = {}
+
+    def material_for(name: str) -> int:
+        rgb = (255, 255, 255)
+        for key, col in palette.items():
+            if key in name:
+                rgb = col
+                break
+        if rgb in index:
+            return index[rgb]
+        gltf.materials.append(Material(
+            name=f"part_{rgb[0]}_{rgb[1]}_{rgb[2]}",
+            pbrMetallicRoughness=PbrMetallicRoughness(
+                baseColorFactor=[rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, alpha],
+                metallicFactor=0.0, roughnessFactor=0.9),
+            alphaMode="BLEND", doubleSided=True))
+        index[rgb] = len(gltf.materials) - 1
+        return index[rgb]
+
+    for mesh in gltf.meshes or []:
+        mname = mesh.name or ""
+        for prim in mesh.primitives or []:
+            prim.material = material_for(mname)
+    gltf.save(str(path))
+    return len(gltf.materials)
+
+
+def apply_node_tilt(path: Path, angle_deg: float = TENTING_ANGLE) -> int:
+    """Rotate the ride-on-the-wedge nodes about Z, leaving the tenting base unrotated.
+
+    trimesh bakes any transform passed to add_geometry into the vertices on export, so the tilt cannot
+    be expressed as a node transform through it. The reference scene has the tilt as a node quaternion
+    (with the -90 deg X conversion baked), so patch the exported GLB the same way - that also makes
+    "is the base flat, is the keyboard tilted" answerable by reading the file.
+    """
+    from pygltflib import GLTF2
+    gltf = GLTF2().load(str(path))
+    half = math.radians(angle_deg) / 2.0
+    q = [0.0, 0.0, math.sin(half), math.cos(half)]
+    tilted = 0
+    for node in gltf.nodes or []:
+        name = (node.name or "").lower()
+        if any(k in name for k in TILTED) and not any(k in name for k in FLAT):
+            node.rotation = q
+            tilted += 1
+        elif any(k in name for k in FLAT):
+            node.rotation = None
+    gltf.save(str(path))
+    return tilted
 
 
 def load_mesh(path: Path) -> trimesh.Trimesh | None:
@@ -185,42 +244,35 @@ def main() -> int:
         case = load_mesh(ROOT / f"filtered-output/cases/{side}_case_3d.stl")
         if case is not None:
             parts.append((f"1-case_{tag} (printed, incl. controller hood)",
-                          colour(case, (200, 200, 208), 0.32), True))
+                          colour(case, (200, 200, 208)), True))
 
         # FR4 plate: the lid, sitting ON the wall (B20 option D)
         plate = load_mesh(ROOT / f"export3d/plate_{tag}_full.stl")
         if plate is not None:
             plate.apply_translation([0, 0, wall_top - plate.bounds[0][2]])
             parts.append((f"2-plate_{tag} (FR4 1.2mm - the lid, butts against the hood)",
-                          colour(plate, (26, 90, 52), 0.85), True))
+                          colour(plate, (26, 90, 52)), True))
 
         pcb = load_pcb(ROOT / f"filtered-output/pcbs/3d/{tag}_pcb-3d.glb", pcb_bottom)
         if pcb is not None:
             parts.append((f"3-pcb_{tag} (board + switches + keycaps)",
-                          colour(pcb, (30, 110, 70), 1.0), True))
+                          colour(pcb, (30, 110, 70)), True))
 
     # the tenting wedge stays on the desk; the case (and everything bolted to it) tilts onto it.
     # The old scene applied TENTING_ANGLE = 6.5 deg to Case/Cover/Palm_Rest and left Tenting_System
     # flat, which is why its parts lined up.
     tenting = load_mesh(ROOT / "filtered-output/cases/tenting_system.stl")
     if tenting is not None:
-        parts.append(("4-tenting_system (desk, untilted)", colour(tenting, (120, 150, 190), 0.55),
+        parts.append(("4-tenting_system (desk, untilted)", colour(tenting, (120, 150, 190)),
                       False))
 
     palm_rest = load_mesh(ROOT / "filtered-output/palmrest/palm_rest.stl")
     if palm_rest is not None:
-        # The palm rest STL is authored in the board frame but 42.3 mm too far back: its footprint
-        # overlapped the case by 119.6 x 42.3 mm, which is what made it look broken. Push it flush
-        # against the case's front edge instead of guessing a prettier offset.
-        case_l = next((m for n, m, _ in parts if n.startswith("1-case_left")), None)
-        if case_l is not None:
-            p, c = palm_rest.bounds, case_l.bounds
-            shift = c[0][1] - p[1][1]
-            palm_rest.apply_translation([0, shift, 0])
-            print(f"palm rest: moved {shift:+.2f} mm in y to sit flush against the case front "
-                  f"(was overlapping it by {p[1][1] - c[0][1]:.1f} mm)")
+        # No translation: the original scene placed it exactly as authored and it looked right. It
+        # overlaps the case footprint on purpose (it slides under the front wall) - my earlier "flush
+        # against the front edge" shift was invented, not measured against anything.
         parts.append(("5-palm_rest (front, flush against the case)",
-                      colour(palm_rest, (150, 160, 190), 0.45), True))
+                      colour(palm_rest, (150, 160, 190)), True))
 
     if not parts:
         sys.exit("nothing to merge: no case/plate/PCB outputs found")
@@ -246,37 +298,30 @@ def main() -> int:
             print("  -", p_)
         return 1
 
-    # ---- the tenting tilt, and a measurement that it is the right way round ----------------------
-    tilt = math.radians(TENTING_ANGLE)
-    if tenting is not None:
-        case_l = next((m for n, m, t in parts if "case_left" in n), None)
-        if case_l is not None:
-            # pivot on the desk plane at the footprint centre, not the world origin: these STLs live
-            # in absolute PCB coordinates (x 20..160), so a pivot at x=0 would swing them through the
-            # floor.
-            c = case_l.bounds
-            pivot = [(c[0][0] + c[1][0]) / 2, (c[0][1] + c[1][1]) / 2, 0.0]
-            bottom = case_l.vertices[case_l.vertices[:, 2] < case_l.bounds[0][2] + 1.0]
-            best_sign, best_hits = +1, None
-            for sign in (+1, -1):
-                T = trimesh.transformations.rotation_matrix(sign * tilt, [0, 1, 0], pivot)
-                probe = bottom @ T[:3, :3].T + T[:3, 3]
-                hits = int(tenting.contains(probe).sum())
-                if best_hits is None or hits < best_hits:
-                    best_sign, best_hits = sign, hits
-            print(f"tenting tilt: {TENTING_ANGLE} deg about Y at footprint centre; "
-                  f"sign {best_sign:+d} buries {best_hits} of {len(bottom)} case-floor vertices "
-                  f"in the wedge")
-            T = trimesh.transformations.rotation_matrix(best_sign * tilt, [0, 1, 0], pivot)
-            for _n, mesh, tilts in parts:
-                if tilts:
-                    mesh.apply_transform(T)
+    # ---- orientation, copied from the scene that looked right ---------------------------------
+    # create_full_3d_visual.py rotated every STL -90 deg about X (z-up -> glTF y-up) and then applied
+    # TENTING_ANGLE = 6.5 deg about Z to Case/Cover/Palm_Rest, leaving Tenting_System flat: the desk
+    # base does not tilt, the keyboard that sits on it does. Reproduce that exactly.
+    y_up = trimesh.transformations.rotation_matrix(-np.pi / 2.0, [1, 0, 0])
+    tilt_z = trimesh.transformations.rotation_matrix(math.radians(TENTING_ANGLE), [0, 0, 1])
+    for _n, mesh, tilts in parts:
+        mesh.apply_transform(y_up)
+    print(f"orientation: -90 deg about X for all parts; {TENTING_ANGLE} deg about Z for the case, "
+          f"plate, PCB and palm rest; tenting base left flat")
 
-    for name, mesh, _ in parts:
-        scene.add_geometry(mesh, node_name=name)
+    for name, mesh, _tilts in parts:
+        scene.add_geometry(mesh, node_name=name)   # tilt goes on the NODE after export
 
     out = ROOT / args.out
     scene.export(out)
+    palette = {
+        "case": (200, 200, 208), "plate": (26, 90, 52), "pcb": (30, 110, 70),
+        "tenting": (120, 150, 190), "palm": (150, 160, 190),
+    }
+    n_mat = apply_alpha(out, palette, 0.4)
+    n_tilt = apply_node_tilt(out, TENTING_ANGLE)
+    print(f"materials: {n_mat} set to 40% alpha, alphaMode BLEND (as in the original scene)")
+    print(f"node tilt: {n_tilt} node(s) at {TENTING_ANGLE} deg about Z; tenting base left flat")
     b = scene.bounds
     print(f"wrote {args.out}: {len(scene.geometry)} parts, "
           f"x {b[0][0]:.1f}..{b[1][0]:.1f}  y {b[0][1]:.1f}..{b[1][1]:.1f}  z {b[0][2]:.1f}..{b[1][2]:.1f} mm")
