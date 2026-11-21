@@ -37,6 +37,10 @@ import numpy as np
 import trimesh
 
 TENTING_ANGLE = 6.5
+# Rendering-only: the plate sits EXACTLY on the wall top, so their faces are coplanar and a
+# translucent viewer z-fights between them (the speckled look). Lift it 20 um for the scene; the real
+# part still sits on the wall.
+RENDER_EPS = 0.02
 TILTED = ("case", "plate", "pcb", "palm")   # ride on the wedge -> tilted
 FLAT = ("tenting",)                       # sits on the desk -> flat  # from create_tenting_system.py; the old scene applied it to the case too
 
@@ -274,7 +278,7 @@ def main() -> int:
         # FR4 plate: the lid, sitting ON the wall (B20 option D)
         plate = load_mesh(ROOT / f"export3d/plate_{tag}_full.stl")
         if plate is not None:
-            plate.apply_translation([0, 0, wall_top - plate.bounds[0][2]])
+            plate.apply_translation([0, 0, wall_top - plate.bounds[0][2] + RENDER_EPS])
             parts.append((f"2-plate_{tag} (FR4 1.2mm - the lid, butts against the hood)",
                           colour(plate, (26, 90, 52)), True))
 
