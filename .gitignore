@@ -97,3 +97,4 @@ configurator/.slug
 configurator/.server.log
 configurator/.smoke.sh
 configurator/.app-check.mjs
+.ask-model/

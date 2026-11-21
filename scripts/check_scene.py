@@ -123,6 +123,16 @@ def main() -> int:
     rows.append(("STL parts are welded (smooth shading, no triangle soup)", not soup,
                  "; ".join(soup[:4]) if soup else (note[0] if note else "all welded")))
 
+    # ---- 4. shading normals -------------------------------------------------------------------
+    # THE ONE THAT GOT THROUGH: trimesh computes vertex normals lazily and its glTF writer does not
+    # force the cache, so a part can export with POSITION only. Every viewer then computes flat
+    # per-face normals and a smooth solid renders as visible facets - while positions, volumes and
+    # part counts are all perfectly correct.
+    no_norm = [m.get("name") for m in meshes for p in m.get("primitives", [])
+               if "NORMAL" not in p.get("attributes", {})]
+    rows.append(("every mesh carries NORMAL (smooth shading in a viewer)", not no_norm,
+                 f"missing on: {no_norm}" if no_norm else f"{len(meshes)} meshes"))
+
     # ---- report --------------------------------------------------------------------------------
     print(f"\n=== scene gate: {path} ({path.stat().st_size/1e6:.1f} MB, {len(meshes)} meshes)")
     for label, ok, detail in rows:
@@ -132,7 +142,7 @@ def main() -> int:
     if fails:
         print(f"\nFAIL  {len(fails)} scene problem(s)")
         return 1
-    print("\nPASS  scene is translucent, base flat, keyboard tilted, shading smooth")
+    print("\nPASS  translucent, base flat, keyboard tilted, welded AND shaded (NORMAL present)")
     return 0
 
 

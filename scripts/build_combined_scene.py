@@ -163,7 +163,12 @@ def load_mesh(path: Path) -> trimesh.Trimesh | None:
         return None
     try:
         m = trimesh.load(path, force="mesh", process=True)
-        return m if len(m.faces) else None
+        if not len(m.faces):
+            return None
+        # trimesh computes vertex normals lazily and the glTF writer does not force the cache: without
+        # this the part exports with POSITION only and every viewer shades it flat (visible facets).
+        _ = m.vertex_normals
+        return m
     except Exception as exc:                      # noqa: BLE001 - report and continue
         print(f"  ! {path.name}: {exc}")
         return None
@@ -190,6 +195,26 @@ def load_pcb(path: Path, z_bottom: float) -> trimesh.Trimesh | None:
     if not parts:
         return None
     pcb = trimesh.util.concatenate(parts)
+    # concatenate drops normals, and the PCB's vertices are per-component (unshared), so recomputing
+    # them gives per-face normals = faceted switches/keycaps. Rebuild the array in the same vertex
+    # order from each source mesh's own normals and hand it to the cache.
+    try:
+        collected = []
+        for node in scene.graph.nodes_geometry:
+            T, gname = scene.graph[node]
+            geom = scene.geometry[gname]
+            if geom is None or not len(geom.faces):
+                continue
+            n = geom.vertex_normals.copy()
+            R = T[:3, :3]
+            n = n @ np.linalg.inv(R).T              # normals transform by the inverse-transpose
+            ln = np.linalg.norm(n, axis=1, keepdims=True)
+            collected.append(n / np.where(ln == 0, 1, ln))
+        merged = np.vstack(collected)
+        if merged.shape == pcb.vertex_normals.shape:
+            pcb.vertex_normals = merged
+    except Exception as exc:                        # noqa: BLE001
+        print(f"  ! could not carry the PCB normals ({exc}); geometry will shade flat")
     # The KiBot glTF export is (x right, y = UP (keycap side), z = along the board). The assembly
     # frame is (x right, y along the board, z = UP), so it needs +90 deg about X:
     # (x, y, z) -> (x, -z, y). Proper rotation (det +1), so normals survive.
