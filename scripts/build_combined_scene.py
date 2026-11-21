@@ -162,6 +162,32 @@ def apply_node_tilt(path: Path, angle_deg: float = TENTING_ANGLE) -> int:
     return tilted
 
 
+def clean(mesh: trimesh.Trimesh) -> trimesh.Trimesh:
+    """Weld, drop zero-area faces and recompute normals.
+
+    Every STL here comes out of a CSG step and carries slivers: measured 136 zero-area faces on the
+    case, 1592 on the palm rest and 15711 on the tenting system. They are invisible as geometry but they
+    poison vertex-normal averaging (a zero-area face contributes a garbage normal) and they export as
+    degenerate triangles, which viewers render as dark faceted patches. Cleaning them is what makes the
+    shading smooth; it does not move the surface.
+    """
+    # repeat until stable: dropping faces can leave new zero-area ones behind
+    for _ in range(4):
+        before = len(mesh.faces)
+        mesh.merge_vertices()
+        mesh.update_faces(mesh.nondegenerate_faces())
+        mesh.update_faces(mesh.unique_faces())
+        mesh.remove_unreferenced_vertices()
+        if len(mesh.faces) == before:
+            break
+    if mesh.is_watertight:
+        trimesh.repair.fix_normals(mesh)
+    _ = mesh.vertex_normals
+    n = np.linalg.norm(mesh.vertex_normals, axis=1)
+    mesh.vertex_normals = mesh.vertex_normals / np.where(n == 0, 1, n)[:, None]
+    return mesh
+
+
 def load_mesh(path: Path) -> trimesh.Trimesh | None:
     if not path.exists():
         return None
@@ -169,6 +195,7 @@ def load_mesh(path: Path) -> trimesh.Trimesh | None:
         m = trimesh.load(path, force="mesh", process=True)
         if not len(m.faces):
             return None
+        m = clean(m)
         # trimesh computes vertex normals lazily and the glTF writer does not force the cache: without
         # this the part exports with POSITION only and every viewer shades it flat (visible facets).
         _ = m.vertex_normals
@@ -244,7 +271,7 @@ def load_pcb(path: Path, z_bottom: float) -> trimesh.Trimesh | None:
     print(f"  board plane found at z {board_lo:.2f} -> lifted to {z_bottom:.2f}"
           if best else "  ! could not find the board slab; using the raw origin")
     pcb.apply_translation([0.0, 0.0, z_bottom - board_lo])
-    return pcb
+    return clean(pcb)
 
 
 def main() -> int:
