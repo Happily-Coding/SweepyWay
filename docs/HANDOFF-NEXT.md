@@ -1,3 +1,7 @@
+
+
+> The 3D scene (`combined_scene.glb`) is a separate, UNRESOLVED problem - see
+> `docs/HANDOFF-SCENE.md` for its own handoff (iterations tried, what is ruled out, how to verify).
 # Next session — start here
 
 State at hand-off: `968e280` (on top of the merged B20-D work `a1bc1c0`, pushed to main).
