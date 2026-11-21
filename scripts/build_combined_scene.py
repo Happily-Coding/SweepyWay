@@ -150,30 +150,30 @@ def main() -> int:
 
         case = load_mesh(ROOT / f"filtered-output/cases/{side}_case_3d.stl")
         if case is not None:
-            scene.add_geometry(colour(case, (200, 200, 208)), node_name=f"case_{tag}")
+            scene.add_geometry(colour(case, (200, 200, 208)), node_name=f"1-case_{tag} (printed, incl. controller hood)")
 
         # FR4 plate: the lid, sitting ON the wall (B20 option D)
         plate = load_mesh(ROOT / f"export3d/plate_{tag}_full.stl")
         if plate is not None:
             plate.apply_translation([0, 0, wall_top - plate.bounds[0][2]])
-            scene.add_geometry(colour(plate, (26, 90, 52)), node_name=f"plate_{tag} (FR4)")
+            scene.add_geometry(colour(plate, (26, 90, 52)), node_name=f"2-plate_{tag} (FR4 1.2mm - the lid, butts against the hood)")
 
         pcb = load_pcb(ROOT / f"filtered-output/pcbs/3d/{tag}_pcb-3d.glb", pcb_bottom)
         if pcb is not None:
-            scene.add_geometry(colour(pcb, (30, 110, 70)), node_name=f"pcb_{tag}")
+            scene.add_geometry(colour(pcb, (30, 110, 70)), node_name=f"3-pcb_{tag} (board + switches + keycaps)")
 
         added.append(tag)
 
     tenting = load_mesh(ROOT / "filtered-output/cases/tenting_system.stl")
     if tenting is not None:
-        scene.add_geometry(colour(tenting, (170, 170, 180)), node_name="tenting_system")
+        scene.add_geometry(colour(tenting, (170, 170, 180)), node_name="4-tenting_system")
 
     palm_rest = load_mesh(ROOT / "filtered-output/palmrest/palm_rest.stl")
     if palm_rest is not None:
         # The palm rest model is authored above the board's front edge; park it beside the case
         # rather than guessing a placement that would look authoritative and be wrong.
         palm_rest.apply_translation([0, 0, 0])
-        scene.add_geometry(colour(palm_rest, (150, 160, 190)), node_name="palm_rest (own frame)")
+        scene.add_geometry(colour(palm_rest, (150, 160, 190)), node_name="5-palm_rest (own frame, parked beside the case)")
 
     if not scene.geometry:
         sys.exit("nothing to merge: no case/plate/PCB outputs found")
